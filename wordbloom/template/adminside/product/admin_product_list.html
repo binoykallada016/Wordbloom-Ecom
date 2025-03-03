@@ -1,0 +1,406 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Wordbloom : Admin Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #2b5f5f;
+        --secondary-color: #dc2626;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+        --info-color: #3b82f6;
+        --text-color: #333;
+        --light-gray: #f3f4f6;
+        --medium-gray: #9ca3af;
+        --dark-gray: #4b5563;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.5;
+        color: var(--text-color);
+        background-color: var(--light-gray);
+    }
+
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .admin-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .admin-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .search-bar {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .search-bar input {
+        padding: 0.5rem;
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .btn {
+        display: inline-block;
+        text-decoration: none;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #1e4545;
+    }
+
+    .btn-secondary {
+        background-color: var(--light-gray);
+        color: var(--text-color);
+    }
+
+    .btn-secondary:hover {
+        background-color: #e5e7eb;
+    }
+
+    .btn-edit {
+        background-color: var(--info-color);
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background-color: #2563eb;
+    }
+
+    .btn-view {
+        background-color: var(--success-color);
+        color: white;
+    }
+
+    .btn-view:hover {
+        background-color: #047857;
+    }
+
+    .btn-delete {
+        background-color: var(--danger-color);
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background-color: #b91c1c;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    th, td {
+        padding: 0.75rem;
+        text-align: center;
+        border-bottom: 1px solid var(--light-gray);
+    }
+
+    th {
+        background-color: var(--light-gray);
+        font-weight: 600;
+    }
+
+    .status-active {
+        color: var(--success-color);
+    }
+
+    .status-inactive {
+        color: var(--danger-color);
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding: 1rem;
+    }
+
+    .pagination a {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--primary-color);
+        border-radius: 4px;
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .pagination a:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .pagination .current {
+        padding: 0.5rem 1rem;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 4px;
+    }
+
+    .pagination .disabled {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--medium-gray);
+        color: var(--medium-gray);
+        border-radius: 4px;
+        pointer-events: none;
+    }
+
+    .deactivated {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .deactivated .btn-restore {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .btn-restore {
+        background-color: var(--success-color);
+        color: white;
+    }
+
+    .btn-restore:hover {
+        background-color: #047857;
+    }
+
+    @media (max-width: 768px) {
+        .admin-controls {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .search-bar {
+            width: 100%;
+        }
+
+        .search-bar input {
+            flex-grow: 1;
+        }
+
+        table {
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            flex-wrap: wrap;
+        }
+
+        .action-buttons .btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-content">
+        <h2>Product List</h2>
+        <div class="admin-controls">
+            <div class="search-bar">
+                <form method="get" action="">
+                    <input type="text" name="search" placeholder="Search products..." value="{{ search_query }}">
+                    <button class="btn btn-primary"><i class="ri-search-line"></i> Search</button>
+                </form>
+            </div>           
+            <a href="{% url 'products:admin_product_add' %}" class="btn btn-primary"><i class="ri-add-line"></i> Add New Product</a>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th style="text-align:left">Product Name</th>
+                    <th>Category</th>
+                    <th>Author</th>
+                    <th>Variants and Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.product_id }}</td>
+                    <td style="text-align:left">{{ product.product_name }}</td>
+                    <td>{{ product.category.name }}</td>
+                    <td>{{ product.author }}</td>
+                    <td>
+                        {% for variant in product.variants.all %}
+                            {{ variant.format }} (₹{{ variant.price }})<br>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for variant in product.variants.all %}
+                            {{ variant.format }}: {{ variant.stock }}<br>
+                        {% endfor %}
+                    </td>
+                    {% comment %} <td>
+                        {% for variant in product.variants.all %}
+                            {{ variant.format }}: 
+                            <span class="{% if variant.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                {% if variant.is_active %}Active{% else %}Inactive{% endif %}
+                            </span><br>
+                        {% endfor %}
+                    </td> {% endcomment %}
+                    <td>
+                        {% for variant in product.variants.all %}
+                            <div class="variant-status">
+                                {{ variant.format }}:
+                                <span class="{% if variant.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                    {% if variant.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'products:admin_product_view' product.product_id %}" class="btn btn-view">
+                                <i class="ri-eye-line"></i>View
+                            </a>
+                            <a href="{% url 'products:admin_product_edit' product.product_id %}" class="btn btn-edit">
+                                <i class="ri-edit-line"></i>Edit
+                            </a>
+                            <a href="{% url 'products:admin_product_delete' product.product_id %}" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this product?')">
+                                <i class="ri-delete-bin-line"></i>Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">No products found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if products.paginator.num_pages > 1 %}
+        <div class="pagination">
+            {% if products.has_previous %}
+                <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="first">
+                    <i class="ri-arrow-left-double-line"></i> First
+                </a>
+                <a href="?page={{ products.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    <i class="ri-arrow-left-line"></i> Previous
+                </a>
+            {% else %}
+                <span class="disabled"><i class="ri-arrow-left-double-line"></i> First</span>
+                <span class="disabled"><i class="ri-arrow-left-line"></i> Previous</span>
+            {% endif %}
+
+            {% for num in products.paginator.page_range %}
+                {% if products.number == num %}
+                    <span class="current">{{ num }}</span>
+                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                    <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                    Next <i class="ri-arrow-right-line"></i>
+                </a>
+                <a href="?page={{ products.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="last">
+                    Last <i class="ri-arrow-right-double-line"></i>
+                </a>
+            {% else %}
+                <span class="disabled">Next <i class="ri-arrow-right-line"></i></span>
+                <span class="disabled">Last <i class="ri-arrow-right-double-line"></i></span>
+            {% endif %}
+        </div>
+        {% endif %}        
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.querySelector('table');
+        
+        table.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-delete')) {
+                e.preventDefault();
+                const row = e.target.closest('tr');
+                deactivateRow(row);
+            } else if (e.target.classList.contains('btn-restore')) {
+                e.preventDefault();
+                const row = e.target.closest('tr');
+                activateRow(row);
+            }
+        });
+    
+        function deactivateRow(row) {
+            row.classList.add('deactivated');
+            const statusCells = row.querySelectorAll('.variant-status span');
+            statusCells.forEach(cell => {
+                cell.textContent = 'Inactive';
+                cell.className = 'status-inactive';
+            });
+            const deleteButton = row.querySelector('.btn-delete');
+            deleteButton.textContent = 'Restore';
+            deleteButton.classList.remove('btn-delete');
+            deleteButton.classList.add('btn-restore');
+            deleteButton.innerHTML = '<i class="ri-refresh-line"></i> Restore';
+        }
+    
+        function activateRow(row) {
+            row.classList.remove('deactivated');
+            const statusCells = row.querySelectorAll('.variant-status span');
+            statusCells.forEach(cell => {
+                cell.textContent = 'Active';
+                cell.className = 'status-active';
+            });
+            const restoreButton = row.querySelector('.btn-restore');
+            restoreButton.classList.remove('btn-restore');
+            restoreButton.classList.add('btn-delete');
+            restoreButton.innerHTML = '<i class="ri-delete-bin-line"></i> Delete';
+        }
+</script>
+{% endblock %}

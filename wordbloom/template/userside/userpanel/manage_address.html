@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Manage Addresses | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    .profile-content {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    .profile-main {
+        flex: 3;
+        background-color: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .section-title {
+        font-size: 1.5rem;
+        color: #2b5f5f;
+        margin-bottom: 1rem;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    .btn-primary:hover {
+        background-color: #234c4c;
+    }
+    .address-item {
+        border: 1px solid #e1e7ef;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .btn-secondary {
+        background-color: #4b5563;
+        color: white;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    .btn-secondary:hover {
+        background-color: #374151;
+    }
+    .btn-danger {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-danger:hover {
+        background-color: #dc2626;
+    }
+    @media (max-width: 768px) {
+        .profile-content {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-content">
+        {% include 'includes/_profile_menu.html' with active_tab='addresses' %}
+        <div class="profile-main">
+            <h2 class="section-title">Manage Addresses</h2>
+            <a href="{% url 'userpanel:add_address' %}" class="btn-primary">Add New Address</a>
+            {% for address in addresses %}
+                <div class="address-item">
+                    <p>{{ address.name }}</p>
+                    <p>{{ address.house_name }}, {{ address.street_name }}</p>
+                    <p>{{ address.district }}, {{ address.state }}, {{ address.pin_number }}</p>
+                    <p>{{ address.country }}</p>
+                    <p>Phone: {{ address.phone_number }}</p>
+                    <a href="{% url 'userpanel:edit_address' address.id %}" class="btn-secondary">Edit</a>
+                    <form method="post" action="{% url 'userpanel:delete_address' address.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-danger" onclick="return confirm('Are you sure you want to delete this address?')">Delete</button>
+                    </form>
+                </div>
+            {% empty %}
+                <p>You haven't added any addresses yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

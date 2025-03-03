@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Submit Return Request | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background-color: #2b5f5f;
+        color: #fff;
+        padding: 1rem;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    .card-body {
+        padding: 2rem;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+    textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        resize: vertical;
+        min-height: 100px;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-primary:hover {
+        background-color: #234c4c;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #f5c6cb;
+    }
+    @media (max-width: 768px) {
+        .col-md-8 {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">Submit Return Request</h2>
+                </div>
+                <div class="card-body">
+                    <h3>Order Details</h3>
+                    <p><strong>Order ID:</strong> {{ order.order_id }}</p>
+                    <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+                    <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+
+                    <h3 class="mt-4">Return Request Form</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="{{ form.reason.id_for_label }}">Reason for Return:</label>
+                            {{ form.reason }}
+                            {% if form.reason.errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.reason.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Return Request</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

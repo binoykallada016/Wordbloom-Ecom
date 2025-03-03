@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Add Address | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background-color: #2b5f5f;
+        color: #fff;
+        padding: 1rem;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    .card-body {
+        padding: 2rem;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-control {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-primary:hover {
+        background-color: #234c4c;
+    }
+    @media (max-width: 768px) {
+        .col-md-8 {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">Add New Address</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'cart:add-address' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone_number">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="house_name">House Name/Number</label>
+                            <input type="text" class="form-control" id="house_name" name="house_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="street_name">Street Name</label>
+                            <input type="text" class="form-control" id="street_name" name="street_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="district">District</label>
+                            <input type="text" class="form-control" id="district" name="district" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <input type="text" class="form-control" id="state" name="state" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <input type="text" class="form-control" id="country" name="country" value="India" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pin_number">PIN Code</label>
+                            <input type="text" class="form-control" id="pin_number" name="pin_number" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Add Address</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

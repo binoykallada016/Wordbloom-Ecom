@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordBloom Admin - Edit Product</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        body {
+            background-color: #f8f8f8;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #e0f7fa;
+            color: #333;
+            padding: 1rem;
+        }
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .sidebar-header img {
+            width: 40px;
+            height: auto;
+            margin-right: 0.5rem;
+        }
+        .sidebar-header h2 {
+            font-size: 1.2rem;
+        }
+        .sidebar-menu {
+            list-style: none;
+        }
+        .sidebar-menu li {
+            margin-bottom: 0.5rem;
+        }
+        .sidebar-menu a {
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border: 1px solid #333;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background-color: #b2ebf2;
+        }
+        .sidebar-menu i {
+            margin-right: 0.5rem;
+            width: 20px;
+        }
+        .main-content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .admin-profile {
+            display: flex;
+            align-items: center;
+        }
+        .admin-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        .notifications {
+            position: relative;
+        }
+        .notifications i {
+            font-size: 1.2rem;
+            color: #2b5f5f;
+        }
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #e53e3e;
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 2px 5px;
+            border-radius: 50%;
+        }
+        .edit-product-form {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .form-group textarea {
+            height: 100px;
+        }
+        .variant-container {
+            border: 1px solid #ccc;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+        .add-variant-btn,
+        .remove-variant-btn {
+            background-color: #2b5f5f;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .add-variant-btn:hover,
+        .remove-variant-btn:hover {
+            background-color: #234c4c;
+        }
+        .remove-variant-btn {
+            background-color: #e53e3e;
+        }
+        .remove-variant-btn:hover {
+            background-color: #c53030;
+        }
+        .submit-btn {
+            background-color: #2b5f5f;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .submit-btn:hover {
+            background-color: #234c4c;
+        }
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                padding-bottom: 1rem;
+            }
+            .sidebar-menu {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .sidebar-menu li {
+                margin: 0 0.5rem 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <img src="/static/userside/assets/imgs/theme/icons/logo_wordbloom.png" alt="WordBloom Logo">
+            <h2>WordBloom Admin</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="#"><i class="fas fa-shopping-cart"></i> Orders</a></li>
+            <li><a href="#" class="active"><i class="fas fa-box"></i> Products</a></li>
+            <li><a href="#"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="#"><i class="fas fa-th-list"></i> Categories</a></li>
+            <li><a href="#"><i class="fas fa-percent"></i> Coupons</a></li>
+            <li><a href="#"><i class="fas fa-image"></i> Banners</a></li>
+            <li><a href="#"><i class="fas fa-credit-card"></i> Payments</a></li>
+            <li><a href="#"><i class="fas fa-tags"></i> Offers</a></li>
+            <li><a href="#"><i class="fas fa-chart-line"></i> Sales report</a></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        <header class="header">
+            <h1>Edit Product</h1>
+            <div class="admin-profile">
+                <img src="/placeholder.svg?height=40&width=40" alt="Admin Avatar">
+                <span>Admin User</span>
+            </div>
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-count">3</span>
+            </div>
+        </header>
+        <form class="edit-product-form" id="editProductForm">
+            <div class="form-group">
+                <label for="product_name">Product Name</label>
+                <input type="text" id="product_name" name="product_name" required>
+            </div>
+            <div class="form-group">
+                <label for="product_description">Product Description</label>
+                <textarea id="product_description" name="product_description" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="category_id">Category</label>
+                <select id="category_id" name="category_id" required>
+                    <option value="">Select a category</option>
+                    <!-- Categories will be populated dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="author_id">Author</label>
+                <select id="author_id" name="author_id" required>
+                    <option value="">Select an author</option>
+                    <!-- Authors will be populated dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="price">Original Price</label>
+                <input type="number" id="price" name="price" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="discounted_price">Discounted Price</label>
+                <input type="number" id="discounted_price" name="discounted_price" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="stock">Stock</label>
+                <input type="number" id="stock" name="stock" required>
+            </div>
+            <div class="form-group">
+                <label for="is_active">Active</label>
+                <input type="checkbox" id="is_active" name="is_active">
+            </div>
+            <div class="form-group">
+                <label for="is_sold_out">Sold Out</label>
+                <input type="checkbox" id="is_sold_out" name="is_sold_out">
+            </div>
+            
+            <h3>Product Variants</h3>
+            <div id="variantsContainer">
+                <!-- Variant fields will be added here dynamically -->
+            </div>
+            <button type="button" class="add-variant-btn" id="addVariantBtn">Add Variant</button>
+            
+            <div class="form-group">
+                <label for="product_images">Product Images</label>
+                <input type="file" id="product_images" name="product_images" multiple accept="image/*">
+            </div>
+            
+            <button type="submit" class="submit-btn">Update Product</button>
+        </form>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('editProductForm');
+            const addVariantBtn = document.getElementById('addVariantBtn');
+            const variantsContainer = document.getElementById('variantsContainer');
+
+            // Function to add a new variant
+            function addVariant() {
+                const variantDiv = document.createElement('div');
+                variantDiv.className = 'variant-container';
+                variantDiv.innerHTML = `
+                    <div class="form-group">
+                        <label>Format</label>
+                        <select name="variant_format[]" required>
+                            <option value="Hardcover">Hardcover</option>
+                            <option value="Paperback">Paperback</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Price</label>
+                        <input type="number" name="variant_price[]" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" name="variant_stock[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Active</label>
+                        <input type="checkbox" name="variant_is_active[]">
+                    </div>
+                    <div class="form-group">
+                        <label>Sold Out</label>
+                        <input type="checkbox" name="variant_is_sold_out[]">
+                    </div>
+                    <button type="button" class="remove-variant-btn">Remove Variant</button>
+                `;
+                variantsContainer.appendChild(variantDiv);
+
+                // Add event listener to the remove button
+                variantDiv.querySelector('.remove-variant-btn').addEventListener('click', function() {
+                    variantsContainer.removeChild(variantDiv);
+                });
+            }
+
+            // Add event listener to the add variant button
+            addVariantBtn.addEventListener('click', addVariant);
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Here you would typically send the form data to your server
+                console.log('Form submitted');
+                // You can access form data using FormData API
+                const formData = new FormData(form);
+                // Log form data (for demonstration purposes)
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, value);
+                }
+                // In a real application, you would send this data to your server
+                // using fetch or XMLHttpRequest
+            });
+
+            // Add an initial variant
+            addVariant();
+        });
+    </script>
+</body>
+</html>

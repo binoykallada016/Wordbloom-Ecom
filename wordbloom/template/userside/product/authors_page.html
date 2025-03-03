@@ -1,0 +1,705 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordBloom - Explore Authors</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="{% static '/userside/assets/imgs/theme/icons/logo_wordbloom.png' %}" type="image/x-icon" width="32px" height="32px">
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        body {
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f8f8;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Header styles */
+        .header-top {
+            padding: 1rem 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logo-section img {
+            width: 40px;
+            height: auto;
+        }
+        .logo-section span {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2b5f5f;
+        }
+        .search-section {
+            flex: 1;
+            max-width: 600px;
+            margin: 0 2rem;
+        }
+        .search-bar {
+            width: 110%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>');
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            padding-left: 2.5rem;
+        }
+        .actions-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #2b5f5f;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .action-item i {
+            font-size: 1.25rem;
+        }
+        .navigation {
+            background-color: #2b5f5f;
+            padding: 1rem 0;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            list-style: none;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Main content styles */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        .authors-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .authors-title {
+            font-size: 2.5rem;
+            color: #2b5f5f;
+            margin-bottom: 0.5rem;
+        }
+        .authors-description {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .featured-authors {
+            margin-bottom: 4rem;
+        }
+        .section-title {
+            font-size: 2rem;
+            color: #2b5f5f;
+            margin-bottom: 1.5rem;
+        }
+        .authors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        .author-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .author-card:hover {
+            transform: translateY(-5px);
+        }
+        .author-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        .author-info {
+            padding: 1.5rem;
+        }
+        .author-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2b5f5f;
+            margin-bottom: 0.5rem;
+        }
+        .author-books {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        .view-profile {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #2b5f5f;
+            color: white;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .view-profile:hover {
+            background-color: #234c4c;
+        }
+        .new-authors {
+            margin-bottom: 4rem;
+        }
+        .new-authors-list {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+        .new-author-card {
+            flex: 0 0 200px;
+            text-align: center;
+        }
+        .new-author-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+        }
+        .new-author-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2b5f5f;
+        }
+        .popular-books {
+            margin-bottom: 4rem;
+        }
+        .book-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+        .book-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 1rem;
+            position: relative;
+            text-align: center;
+            max-width: 280px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .book-card .wishlist {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #dc2626;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .book-cover {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            margin: 0 auto 1rem;
+            display: block;
+        }
+
+        .book-title {
+            font-size: 1.25rem;
+            color: #000;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .book-author-label {
+            color: #000;
+            font-weight: 500;
+            margin-right: 0.25rem;
+        }
+
+        .book-author {
+            color: #4a5568;
+        }
+
+        .price-container {
+            margin: 1rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .current-price {
+            color: #dc2626;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .original-price {
+            color: #666;
+            text-decoration: line-through;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .buy-button {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .cart-button {
+            background-color: #374151;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .rating {
+            color: #fbbf24;
+            font-size: 1.25rem;
+        }
+
+        /* Footer styles */
+        .footer {
+            background-color: #2b5f5f;
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4rem;
+            margin-bottom: 2rem;
+        }
+        .footer-section h3 {
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        .footer-section ul {
+            list-style: none;
+        }
+        .footer-section ul li {
+            margin-bottom: 0.75rem;
+        }
+        .footer-section ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: opacity 0.2s;
+        }
+        .footer-section ul li a:hover {
+            opacity: 0.8;
+        }
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .social-icons a {
+            color: white;
+            font-size: 1.25rem;
+            transition: opacity 0.2s;
+        }
+        .social-icons a:hover {
+            opacity: 0.8;
+        }
+        .subscribe-text {
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        .subscribe-form {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .subscribe-form input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            color: #333;
+        }
+        .subscribe-form input::placeholder {
+            color: #666;
+        }
+        .subscribe-form button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            background-color: white;
+            color: #2b5f5f;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .subscribe-form button:hover {
+            opacity: 0.9;
+        }
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .search-section {
+                margin: 0.5rem 0;
+                width: 100%;
+            }
+            .actions-section {
+                width: 100%;
+                justify-content: space-around;
+            }
+            .nav-links {
+                gap: 1rem;
+                padding: 0 1rem;
+                flex-wrap: wrap;
+            }
+            .authors-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="logo-section">
+                <img src="/static/userside/assets/imgs/theme/icons/logo_wordbloom.png" alt="WordBloom Logo" />
+                <span>WordBloom</span>
+            </div>
+            
+            <div class="search-section">
+                <input 
+                    type="search" 
+                    class="search-bar"
+                    placeholder="Search by Author, Publisher, Book Type and more"
+                />
+            </div>
+
+            <div class="actions-section">
+                <a href="#" class="action-item">
+                    <i class="ri-shopping-cart-2-line"></i>
+                    <span>Cart</span>
+                </a>
+                <a href="#" class="action-item">
+                    <i class="ri-heart-line"></i>
+                    <span>WishList</span>
+                </a>
+                <a href="#" class="action-item">
+                    <i class="ri-user-line"></i>
+                    <span>Account</span>
+                </a>
+            </div>
+        </div>
+
+        <nav class="navigation">
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Shop</a></li>
+                <li><a href="#">Category</a></li>
+                <li><a href="#">Authors</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">About Us</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="authors-header">
+                <h1 class="authors-title">Explore Our Authors</h1>
+                <p class="authors-description">Discover talented writers from various genres and explore their captivating works. From bestselling authors to emerging voices, find your next favorite storyteller.</p>
+            </div>
+
+            <section class="featured-authors">
+                <h2 class="section-title">Featured Authors</h2>
+                <div class="authors-grid">
+                    <div class="author-card">
+                        <img src="/placeholder.svg?height=250&width=250" alt="Jane Doe" class="author-image">
+                        <div class="author-info">
+                            <h3 class="author-name">Jane Doe</h3>
+                            <p class="author-books">12 Books Published</p>
+                            <a href="#" class="view-profile">View Profile</a>
+                        </div>
+                    </div>
+                    <div class="author-card">
+                        <img src="/placeholder.svg?height=250&width=250" alt="John Smith" class="author-image">
+                        <div class="author-info">
+                            <h3 class="author-name">John Smith</h3>
+                            <p class="author-books">8 Books Published</p>
+                            <a href="#" class="view-profile">View Profile</a>
+                        </div>
+                    </div>
+                    <div class="author-card">
+                        <img src="/placeholder.svg?height=250&width=250" alt="Emily Brown" class="author-image">
+                        <div class="author-info">
+                            <h3 class="author-name">Emily Brown</h3>
+                            <p class="author-books">15 Books Published</p>
+                            <a href="#" class="view-profile">View Profile</a>
+                        </div>
+                    </div>
+                    <div class="author-card">
+                        <img src="/placeholder.svg?height=250&width=250" alt="Michael Johnson" class="author-image">
+                        <div class="author-info">
+                            <h3 class="author-name">Michael Johnson</h3>
+                            <p class="author-books">6 Books Published</p>
+                            <a href="#" class="view-profile">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="new-authors">
+                <h2 class="section-title">New Authors</h2>
+                <div class="new-authors-list">
+                    <div class="new-author-card">
+                        <img src="/placeholder.svg?height=150&width=150" alt="Sarah Wilson" class="new-author-image">
+                        <h3 class="new-author-name">Sarah Wilson</h3>
+                    </div>
+                    <div class="new-author-card">
+                        <img src="/placeholder.svg?height=150&width=150" alt="David Chen" class="new-author-image">
+                        <h3 class="new-author-name">David Chen</h3>
+                    </div>
+                    <div class="new-author-card">
+                        <img src="/placeholder.svg?height=150&width=150" alt="Laura Adams" class="new-author-image">
+                        <h3 class="new-author-name">Laura Adams</h3>
+                    </div>
+                    <div class="new-author-card">
+                        <img src="/placeholder.svg?height=150&width=150" alt="Robert Green" class="new-author-image">
+                        <h3 class="new-author-name">Robert Green</h3>
+                    </div>
+                    <div class="new-author-card">
+                        <img src="/placeholder.svg?height=150&width=150" alt="Sophia Lee" class="new-author-image">
+                        <h3 class="new-author-name">Sophia Lee</h3>
+                    </div>
+                </div>
+            </section>
+
+            <section class="popular-books">
+                <h2 class="section-title">Popular Books by Our Authors</h2>
+                <div class="book-list">
+                    <div class="book-card">
+                        <i class="ri-heart-line wishlist"></i>
+                        <img src="/placeholder.svg?height=300&width=200" alt="The Silent Echo" class="book-cover">
+                        <h3 class="book-title">The Silent Echo</h3>
+                        <p>
+                            <span class="book-author-label">Book Author:</span>
+                            <span class="book-author">Jane Doe</span>
+                        </p>
+                        <div class="price-container">
+                            <span class="current-price">₹1199</span>
+                            <span class="original-price">₹1499.00</span>
+                        </div>
+                        <div class="button-container">
+                            <button class="buy-button">BUY</button>
+                            <button class="cart-button">ADD TO CART</button>
+                        </div>
+                        <div class="rating">
+                            ★★★★★
+                        </div>
+                    </div>
+                    <div class="book-card">
+                        <i class="ri-heart-line wishlist"></i>
+                        <img src="/placeholder.svg?height=300&width=200" alt="Whispers in the Wind" class="book-cover">
+                        <h3 class="book-title">Whispers in the Wind</h3>
+                        <p>
+                            <span class="book-author-label">Book Author:</span>
+                            <span class="book-author">John Smith</span>
+                        </p>
+                        <div class="price-container">
+                            <span class="current-price">₹1699.00</span>
+                            <span class="original-price">₹2000.00</span>
+                        </div>
+                        <div class="button-container">
+                            <button class="buy-button">BUY</button>
+                            <button class="cart-button">ADD TO CART</button>
+                        </div>
+                        <div class="rating">
+                            ★★★★★
+                        </div>
+                    </div>
+                    <div class="book-card">
+                        <i class="ri-heart-line wishlist"></i>
+                        <img src="/placeholder.svg?height=300&width=200" alt="Echoes of Eternity" class="book-cover">
+                        <h3 class="book-title">Echoes of Eternity</h3>
+                        <p>
+                            <span class="book-author-label">Book Author:</span>
+                            <span class="book-author">Emily Brown</span>
+                        </p>
+                        <div class="price-container">
+                            <span class="current-price">₹1350.00</span>
+                            <span class="original-price">₹1680.00</span>
+                        </div>
+                        <div class="button-container">
+                            <button class="buy-button">BUY</button>
+                            <button class="cart-button">ADD TO CART</button>
+                        </div>
+                        <div class="rating">
+                            ★★★★★
+                        </div>
+                    </div>
+                    <div class="book-card">
+                        <i class="ri-heart-line wishlist"></i>
+                        <img src="/placeholder.svg?height=300&width=200" alt="The Forgotten Path" class="book-cover">
+                        <h3 class="book-title">The Forgotten Path</h3>
+                        <p>
+                            <span class="book-author-label">Book Author:</span>
+                            <span class="book-author">M. Johnson</span>
+                        </p>
+                        <div class="price-container">
+                            <span class="current-price">₹1100.00</span>
+                            <span class="original-price">₹1440.00</span>
+                        </div>
+                        <div class="button-container">
+                            <button class="buy-button">BUY</button>
+                            <button class="cart-button">ADD TO CART</button>
+                        </div>
+                        <div class="rating">
+                            ★★★★★
+                        </div>
+                    </div>
+                    <div class="book-card">
+                        <i class="ri-heart-line wishlist"></i>
+                        <img src="/placeholder.svg?height=300&width=200" alt="Shadows of Yesterday" class="book-cover">
+                        <h3 class="book-title">The Silent Echo</h3>
+                        <p>
+                            <span class="book-author-label">Book Author:</span>
+                            <span class="book-author">Sarah Wilson</span>
+                        </p>
+                        <div class="price-container">
+                            <span class="current-price">₹1599.00</span>
+                            <span class="original-price">₹1839.00</span>
+                        </div>
+                        <div class="button-container">
+                            <button class="buy-button">BUY</button>
+                            <button class="cart-button">ADD TO CART</button>
+                        </div>
+                        <div class="rating">
+                            ★★★★★
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Team</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><a href="#">Help & Support</a></li>
+                        <li><a href="#">Partner with us</a></li>
+                        <li><a href="#">Ride with us</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Refund & Cancellation</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>FOLLOW US</h3>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                    <p class="subscribe-text">Receive exclusive offers in your mailbox</p>
+                    <form class="subscribe-form">
+                        <input type="email" placeholder="Enter Your email">
+                        <button type="submit">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>All rights Reserved © WordBloom, 2024</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

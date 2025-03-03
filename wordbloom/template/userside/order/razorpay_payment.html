@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Payment | WordBloom{% endblock %}
+{% block page_styles %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .card {
+        margin-bottom: 1rem;
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .card-header {
+        background-color: #2b5f5f;
+        color: white;
+        font-weight: bold;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        border-color: #2b5f5f;
+    }
+    .btn-primary:hover {
+        background-color: #234c4c;
+        border-color: #234c4c;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+    .address-item {
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .address-item.selected {
+        border-color: #2b5f5f;
+        background-color: #f0f8f8;
+    }
+    @media (max-width: 768px) {
+        .col-md-8, .col-md-4 {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center mb-0">Complete Your Payment</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h5>Order ID: {{ order_id }}</h5>
+                        <h6>Amount: ₹{{ razorpay_amount|stringformat:'d'|slice:':-2' }}</h6>
+                    </div>
+                    <button id="rzp-button" class="btn btn-primary w-100">Pay Now</button>
+                    <div id="payment-error" class="alert alert-danger mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var options = {
+        "key": "{{ razorpay_merchant_key }}",
+        "amount": "{{ razorpay_amount }}",
+        "currency": "{{ currency }}",
+        "name": "WordBloom",
+        "description": "Order Payment",
+        "order_id": "{{ razorpay_order_id }}",
+        "handler": function (response) {
+            handlePaymentSuccess(response);
+        },
+        "prefill": {
+            "name": "{{ user_name }}",
+            "email": "{{ user_email }}",
+            "contact": "{{ user_contact }}"
+        },
+        "theme": {
+            "color": "#2b5f5f"
+        },
+        "modal": {
+            "ondismiss": function() {
+                handlePaymentFailure("Payment cancelled by user");
+            }
+        }
+    };
+
+    var rzp = new Razorpay(options);
+    document.getElementById('rzp-button').onclick = function(e) {
+        rzp.open();
+        e.preventDefault();
+    }
+
+    function handlePaymentSuccess(response) {
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'orders:razorpay-callback' %}";
+        
+        // Add CSRF token
+        var csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = "{{ csrf_token }}";
+        form.appendChild(csrfInput);
+
+        // Add payment details
+        var fields = {
+            'razorpay_payment_id': response.razorpay_payment_id,
+            'razorpay_order_id': response.razorpay_order_id,
+            'razorpay_signature': response.razorpay_signature
+        };
+        
+        for (var key in fields) {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = fields[key];
+            form.appendChild(input);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function handlePaymentFailure(error) {
+        var errorDiv = document.getElementById('payment-error');
+        errorDiv.textContent = error;
+        errorDiv.style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

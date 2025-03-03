@@ -1,0 +1,512 @@
+{% extends 'base.html' %}
+
+{% block title %}WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    /* Main content styles */
+    .container {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        margin-left: 2rem;
+    }
+    .shop-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .shop-title {
+        font-size: 2rem;
+        color: #2b5f5f;
+    }
+    .sort-dropdown {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: white;
+        font-size: 0.9rem;
+    }
+    .shop-layout {
+        display: flex;
+        gap: 2rem;
+    }
+    .filters {
+        width: 250px;
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .filter-section {
+        margin-bottom: 1.5rem;
+    }
+    .filter-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2b5f5f;
+    }
+    .filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .filter-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .filter-option input[type="checkbox"] {
+        accent-color: #2b5f5f;
+    }
+    .price-range {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .price-input {
+        width: 80px;
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .apply-filters {
+        background-color: #2b5f5f;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .apply-filters:hover {
+        background-color: #234c4c;
+    }
+    .book-grid {
+        flex: 1;
+        display: grid;
+        /* grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem; */
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+        justify-items: center;
+    }
+    
+    .book-card {
+        margin-bottom: 1rem;
+        background-color: #fff;
+        border: 1px solid #2b5f5f;
+        border-radius: 8px;
+        padding: 1rem;
+        padding-left: 0.80rem;
+        padding-top: 2rem;
+        position: relative;
+        text-align: center;
+        max-width: 282px;
+        width: 100%;
+        box-shadow: 0 2px 4px #d7f4f4;
+        /* height: 528px; */
+        height: 30.65rem;
+        line-height: normal;
+        /* width: fit-content; */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .book-card:hover {
+        transform: translateY(-10px);  /* Slight lift effect on hover */
+        box-shadow: 0 10px 20px #2b5f5fd7;
+    }
+
+    .book-card .wishlist {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: #dc2626;
+        background-color: white;
+        border-radius:20px;
+        border: white;
+        margin: -2px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    {% comment %} .book-cover {
+        width: 100%;
+        height: 270px;
+        object-fit: cover;
+        border-radius: 8px;
+    } {% endcomment %}
+
+    .book-cover {
+        width: 14rem;
+        height: 17rem;
+        object-fit: fill;
+        border-radius: 8px;
+    }
+
+    .book-title {
+        font-size: 1.25rem;
+        color: #2b5f5f;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .book-author-label {
+        color: #000;
+        font-weight: 500;
+        margin-right: 0.25rem;
+    }
+
+    .book-author {
+        color: #4a5568;
+    }
+
+    .price-container {
+        margin: 0.5rem 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .current-price {
+        color: #dc2626;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .original-price {
+        color: #666;
+        text-decoration: line-through;
+    }
+
+    .button-container {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: space-around;
+        margin-bottom: 0.5rem;
+        height: 2.5rem;
+    }
+
+    .buy-button {
+        background-color:rgb(105, 205, 205);
+        color: white;
+        border: none;
+        margin-left:1rem;
+        margin-right:1rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        cursor: pointer;
+        flex: 1;
+        font-weight: 500;
+        white-space: nowrap; /* Prevents text wrapping to a new line */
+        text-align: center; /* Ensures the text is centered */
+    }
+    .buy-button:hover{
+        background-color:rgb(102, 170, 226);
+    }
+
+    .cart-button {
+        background-color: #668be2;
+        color: white;
+        border: none;
+        padding: 0.5rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        flex: 1;
+        font-weight: 500;
+        white-space: nowrap; /* Prevents text wrapping to a new line */
+        text-align: center; /* Ensures the text is centered */
+    }
+
+    .rating {
+        color: #fbbf24;
+        font-size: 1.25rem;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+    .page-link {
+        padding: 0.5rem 1rem;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        color: #2b5f5f;
+        transition: background-color 0.3s;
+    }
+    .page-link:hover, .page-link.active {
+        background-color: #2b5f5f;
+        color: white;
+    }
+    /* Responsive design */
+    @media (max-width: 1024px) {
+        .shop-layout {
+            flex-direction: column;
+        }
+        .filters {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+    }
+    @media (max-width: 1200px) {
+        .book-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+    }
+    @media (max-width: 768px) {        
+        .shop-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        .book-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }        
+        .book-card {
+            padding: 1rem;
+        }        
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<main>
+    <div class="container">
+        <div class="shop-header">
+            <h1 class="shop-title">Shop Books</h1>
+            
+            {% comment %} <form method="get" action="{% url 'accounts:shop' %}" class="sort-form">
+                <select name="sort" id="sortDropdown" class="sort-dropdown" onchange="this.form.submit()">
+                    <option value="popularity" {% if sort_by == 'popularity' %}selected{% endif %}>Sort by Popularity</option>
+                    <option value="price-low-high" {% if sort_by == 'price-low-high' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price-high-low" {% if sort_by == 'price-high-low' %}selected{% endif %}>Price: High to Low</option>
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+                </select>
+            </form> {% endcomment %}
+
+            <form method="get" action="{% url 'accounts:shop' %}" class="sort-form">
+                <!-- Preserve other filter parameters -->
+                {% for key, value in request.GET.items %}
+                    {% if key != 'sort' and key != 'page' %}
+                        {% if value|length > 1 %}
+                            {% for v in value %}
+                                <input type="hidden" name="{{ key }}" value="{{ v }}">
+                            {% endfor %}
+                        {% else %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                
+                <select name="sort" id="sortDropdown" class="sort-dropdown" onchange="this.form.submit()">
+                    <option value="popularity" {% if sort_by == 'popularity' %}selected{% endif %}>Sort by Popularity</option>
+                    <option value="price-low-high" {% if sort_by == 'price-low-high' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price-high-low" {% if sort_by == 'price-high-low' %}selected{% endif %}>Price: High to Low</option>
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+                </select>
+            </form>
+
+        </div>
+        <div class="shop-layout">
+            <aside class="filters">
+                <form id="filterForm" method="get" action="{% url 'accounts:shop' %}">
+                    <div class="filter-section">
+                        <h3 class="filter-title">Categories</h3>
+                        <div class="filter-options">
+                            {% for category in categories %}
+                                <label class="filter-option">
+                                    <input type="checkbox" name="category" value="{{ category.id }}" 
+                                           {% if category.id|stringformat:"i" in selected_categories %}checked{% endif %}>
+                                    {{ category.name }}
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Add hidden input for current sort -->
+                    <input type="hidden" name="sort" value="{{ sort_by }}">
+
+                    <div class="filter-section">
+                        <h3 class="filter-title">Price Range</h3>
+                        <div class="price-range">
+                            <input type="number" name="min_price" class="price-input" placeholder="Min" value="{{ min_price }}">
+                            <span>-</span>
+                            <input type="number" name="max_price" class="price-input" placeholder="Max" value="{{ max_price }}">
+                        </div>
+                    </div>
+                
+                    {% comment %} <div class="filter-section">
+                        <h3 class="filter-title">Author</h3>
+                        <div class="filter-options">
+                            {% for author in authors %}
+                                <label class="filter-option">
+                                    <input type="checkbox" name="author" value="{{ author.id }}"
+                                           {% if author.id|stringformat:"i" in selected_authors %}checked{% endif %}>
+                                    {{ author.name }}
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div> {% endcomment %}
+                    
+                    <!-- Author filter section -->
+                    <div class="filter-section">
+                        <h3 class="filter-title">Author</h3>
+                        <div class="filter-options">
+                            {% for author in authors %}
+                            <label class="filter-option">
+                                <input type="checkbox" 
+                                    name="author" 
+                                    value="{{ author.author_id }}"
+                                    {% if author.author_id|stringformat:"i" in selected_authors %}checked{% endif %}>
+                                {{ author.name }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="apply-filters">Apply Filters</button>
+                </form>
+            </aside>
+
+            <div class="book-grid">
+                {% for product in products %}
+                    <div class="book-card">
+                        {% comment %} <i class="ri-heart-line wishlist"></i> {% endcomment %}
+                        
+                        {% comment %} <a href="#" class="wishlist">
+                            <i class="ri-heart-line"></i>
+                        </a> {% endcomment %}
+
+                        {% comment %} <a href="{% url 'userpanel:add_to_wishlist' product.product_id %}" class="wishlist">
+                            <i class="ri-heart-line"></i>
+                        </a> {% endcomment %}
+
+                        {% comment %} <form method="post" action="{% url 'userpanel:add_to_wishlist' product.product_id %}" style="display:inline;">
+                            {% csrf_token %}
+                             {% with preferred_variant=product.active_variants|first %}
+                                {% if preferred_variant %}
+                                 <input type="hidden" name="variant_id" value="{{ preferred_variant.id }}">
+                                {% endif %}
+                            {% endwith %}
+                            <button type="submit" class="wishlist">
+                                <i class="ri-heart-line"></i>
+                            </button>
+                        </form> {% endcomment %}
+
+                        {% with preferred_variant=product.active_variants|first %}
+                            {% if preferred_variant %}
+                                {% if request.user.is_authenticated and product.product_id in wishlisted_product_ids %}
+                                    <span class="wishlist">
+                                        <i class="ri-heart-fill"></i>
+                                    </span>
+                                {% else %}
+                                    <form method="post" action="{% url 'userpanel:add_to_wishlist' product.product_id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="variant_id" value="{{ preferred_variant.id }}">
+                                        <button type="submit" class="wishlist">
+                                            <i class="ri-heart-line"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        {% endwith %}
+
+                        {% comment %} <a href="{% url 'accounts:add_to_wishlist' product.product_id %}" class="wishlist">
+                            <i class="ri-heart-line"></i>
+                        </a> {% endcomment %}
+
+                        {% with preferred_variant=product.active_variants|first %}
+                            {% if preferred_variant %}
+                                {% if preferred_variant.primary_images %}
+                                    <img src="{{ preferred_variant.primary_images.0.image.url }}" alt="{{ product.product_name }}" class="book-cover">
+                                {% else %}
+                                    {% with first_image=preferred_variant.images.first %}
+                                        {% if first_image %}
+                                            <img src="{{ first_image.image.url }}" alt="{{ product.product_name }}" class="book-cover">
+                                        {% else %}
+                                            <img src="/placeholder.svg?height=300&width=200" alt="{{ product.product_name }}" class="book-cover">
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                                
+                                <h3 class="book-title">{{ product.product_name }}</h3>
+                                <p>
+                                    <span class="book-author-label">Book Author:</span>
+                                    <span class="book-author">{{ product.author.name }}</span>
+                                </p>
+                                <div class="price-container">
+                                    {% if preferred_variant.discounted_price %}
+                                        <span class="current-price">₹{{ preferred_variant.discounted_price }}</span>
+                                        <span class="original-price">₹{{ preferred_variant.price }}</span>
+                                    {% else %}
+                                        <span class="current-price">₹{{ preferred_variant.price }}</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <img src="/placeholder.svg?height=300&width=200" alt="{{ product.product_name }}" class="book-cover">
+                                <h3 class="book-title">{{ product.product_name }}</h3>
+                                <p>
+                                    <span class="book-author-label">Book Author:</span>
+                                    <span class="book-author">{{ product.author.name }}</span>
+                                </p>
+                                <div class="price-container">
+                                    <span class="error">No variant available</span>
+                                </div>
+                            {% endif %}
+                        {% endwith %}                        
+                        
+                        <div class="button-container">
+                            <a href="{% url 'accounts:product_detail' product.product_id %}" class="buy-button">VIEW DETAILS</a>
+                            {% comment %} <a href="#" class="cart-button">ADD TO CART</a> {% endcomment %}
+                        </div>
+
+                        {% comment %} <div class="button-container">
+                            <a href="{% url 'accounts:product_detail' product.product_id %}" class="buy-button">VIEW DETAILS</a>
+                            <a href="{% url 'accounts:add_to_cart' product.product_id %}" class="cart-button">ADD TO CART</a>
+                        </div> {% endcomment %}
+
+                        <div class="rating">
+                            {% for i in "★★★★★"|slice:":5" %}
+                                ★
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="pagination">
+            <a href="?page=1" class="page-link {% if current_page == 1 %}active{% endif %}">1</a>
+            <a href="?page=2" class="page-link {% if current_page == 2 %}active{% endif %}">2</a>
+            <a href="?page=3" class="page-link {% if current_page == 3 %}active{% endif %}">3</a>
+            <a href="?page=4" class="page-link {% if current_page == 4 %}active{% endif %}">4</a>
+            <a href="?page=5" class="page-link {% if current_page == 5 %}active{% endif %}">5</a>
+            <a href="?page={{ next_page }}" class="page-link">Next</a>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.getElementById('sortDropdown').addEventListener('change', function() {
+        // Get all current filter values
+        const filterForm = document.getElementById('filterForm');
+        const formData = new FormData(filterForm);
+        
+        // Update sort value
+        formData.set('sort', this.value);
+        
+        // Build URL with parameters
+        const params = new URLSearchParams(formData);
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    });
+</script>
+{% endblock %}
+
+
+

@@ -1,0 +1,337 @@
+{# wordbloom/templates/adminpanel/sales_report.html #}
+{% extends 'admin_base.html' %}
+{% block title %}Wordbloom : Sales Report{% endblock %}
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #2b5f5f;
+        --secondary-color: #dc2626;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+        --info-color: #3b82f6;
+        --text-color: #333;
+        --light-gray: #f3f4f6;
+        --medium-gray: #9ca3af;
+        --dark-gray: #4b5563;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.5;
+        color: var(--text-color);
+        background-color: var(--light-gray);
+    }
+
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .admin-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .report-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .filter-form {
+        margin-bottom: 2rem;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-select, .form-input {
+        padding: 0.75rem;
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    .form-select:focus, .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(43, 95, 95, 0.2);
+    }
+
+    .btn {
+        display: inline-block;
+        text-decoration: none;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #1e4545;
+    }
+
+    .download-options a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        width: fit-content;
+    }
+    
+    .btn-download-csv {
+        background-color:rgb(247, 186, 95);
+        color: white;
+    }
+    
+    .btn-download-csv:hover {
+        background-color: #047857;
+    }
+    
+    .btn-download-pdf {
+        background-color:rgb(96, 166, 241);
+        color: white;
+    }
+    
+    .btn-download-pdf:hover {
+        background-color:  #047857;
+    }
+
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-card.primary {
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .stats-card.danger {
+        border-left: 4px solid var(--danger-color);
+    }
+
+    .card-title {
+        font-size: 1rem;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .card-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    .download-options {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    th, td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--light-gray);
+    }
+
+    th {
+        background-color: var(--light-gray);
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    tr:hover {
+        background-color: rgba(43, 95, 95, 0.05);
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    @media (max-width: 992px) {
+        .filter-form {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+        
+        .download-options {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+        
+        table {
+            font-size: 0.9rem;
+        }
+        
+        th, td {
+            padding: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-content">
+        <h2 class="report-title">Sales Report</h2>
+
+        <form method="get" class="filter-form">
+            <div class="form-group">
+                <select name="filter" class="form-select" id="filter-select">
+                    <option value="daily" {% if filter_type == 'daily' %}selected{% endif %}>Daily</option>
+                    <option value="weekly" {% if filter_type == 'weekly' %}selected{% endif %}>Weekly</option>
+                    <option value="monthly" {% if filter_type == 'monthly' %}selected{% endif %}>Monthly</option>
+                    <option value="yearly" {% if filter_type == 'yearly' %}selected{% endif %}>Yearly</option>
+                    <option value="custom" {% if filter_type == 'custom' %}selected{% endif %}>Custom</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="date" name="start_date" class="form-input" id="start-date" value="{{ start_date|date:'Y-m-d' }}">
+            </div>
+            <div class="form-group">
+                <input type="date" name="end_date" class="form-input" id="end-date" value="{{ end_date|date:'Y-m-d' }}">
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Apply Filter</button>
+            </div>
+        </form>
+
+        <div class="stats-cards">
+            <div class="stats-card primary">
+                <h5 class="card-title">Total Sales</h5>
+                <p class="card-value">₹ {{ total_sales|floatformat:2 }}</p>
+            </div>
+            <div class="stats-card danger">
+                <h5 class="card-title">Total Discount</h5>
+                <p class="card-value">₹ {{ total_discount|floatformat:2 }}</p>
+            </div>
+        </div>
+
+        <div class="download-options">
+            <a href="?format=csv{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if start_date %}&start_date={{ start_date|date:'Y-m-d' }}{% endif %}{% if end_date %}&end_date={{ end_date|date:'Y-m-d' }}{% endif %}" class="btn-download-csv">
+                <i class="ri-file-download-line"></i> Download CSV
+            </a>
+            <a href="?format=pdf{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if start_date %}&start_date={{ start_date|date:'Y-m-d' }}{% endif %}{% if end_date %}&end_date={{ end_date|date:'Y-m-d' }}{% endif %}" class="btn-download-pdf">
+                <i class="ri-file-pdf-line"></i> Download PDF
+            </a>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th class="text-right">Total Amount</th>
+                    <th class="text-right">Discount Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.order_id }}</td>
+                        <td>{{ order.created_at }}</td>
+                        <td class="text-right">₹ {{ order.total_amount }}</td>
+                        <td class="text-right">₹ {{ order.discount_amount }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center;">No orders found for this period.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterSelect = document.getElementById('filter-select');
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+
+    function updateDateFields() {
+        if (filterSelect.value === 'custom') {
+            startDateInput.disabled = false;
+            endDateInput.disabled = false;
+        } else {
+            startDateInput.disabled = true;
+            endDateInput.disabled = true;
+        }
+    }
+
+    filterSelect.addEventListener('change', updateDateFields);
+    
+    // Initialize date inputs state
+    updateDateFields();
+});
+</script>
+{% endblock %}

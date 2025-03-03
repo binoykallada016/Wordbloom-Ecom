@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% block title %}My Orders | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    :root {
+        --primary-color: #2b5f5f;
+        --secondary-color: #4a90e2;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --light-gray: #f8f9fa;
+        --border-color: #e9ecef;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .profile-content {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .profile-main {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .order-item {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .order-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px #b3f4f4;
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .order-id {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .order-date {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .order-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .detail-label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .detail-value {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        background: lightcyan;
+    }
+
+    .bg-warning { background: #fff3cd; color: #856404; }
+    .bg-info { background: #cce5ff; color: #004085; width: 7rem; border-radius: 13px; height: 2.25rem;}
+    .bg-primary { background: #cff4fc; color: #055160; }
+    .bg-success { background: #d4edda; color: #155724; }
+    .bg-danger { background: #f8d7da; color: #721c24; }
+
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+
+    .btn-return {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    .btn-return:hover {
+        background: #ffeeba;
+    }
+
+    .btn-retry {
+        background: #cce5ff;
+        color: #004085;
+        border: 1px solid #b8daff;
+    }
+
+    .btn-retry:hover {
+        background: #b8daff;
+    }
+
+    .btn-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        height: 100%;
+    }
+
+    .btn-danger:hover {
+        background: #f5c6cb;
+    }
+
+    .btn-invoice {
+        background: #e2e6ea;
+        color: #383d41;
+        border: 1px solid #dae0e5;
+    }
+
+    .btn-invoice:hover {
+        background: #dae0e5;
+    }
+
+    @media (max-width: 992px) {
+        .profile-content {
+            grid-template-columns: 1fr;
+        }
+
+        .order-details {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .profile-main {
+            padding: 1rem;
+        }
+
+        .order-header {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .order-details {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-content">
+        {% include 'includes/_profile_menu.html' with active_tab='order-history' %}
+        <div class="profile-main">
+            <h2 class="section-title">My Orders</h2>
+            {% for order in orders %}
+                <div class="order-item">
+                    <div class="order-header">
+                        <span class="order-id">Order #{{ order.order_id }}</span>
+                        <span class="order-date">{{ order.created_at|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="order-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Status</span>
+                            <span class="badge {% if order.order_status == 'Pending' %}bg-warning
+                                             {% elif order.order_status == 'Confirmed' %}bg-info
+                                             {% elif order.order_status == 'Shipped' %}bg-primary
+                                             {% elif order.order_status == 'Delivered' %}bg-success
+                                             {% elif order.order_status == 'Cancelled' %}bg-danger
+                                             {% elif order.order_status == 'Return_Initiated' %}bg-warning
+                                             {% elif order.order_status == 'Return_Approved' %}bg-success
+                                             {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
+                                {% if order.order_status == 'Return_Initiated' %}
+                                    Return Initiated
+                                {% elif order.order_status == 'Return_Approved' %}
+                                    Return Approved
+                                {% elif order.order_status == 'Return_Rejected' %}
+                                    Return Rejected
+                                {% else %}
+                                    {{ order.order_status }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Total Amount</span>
+                            <span class="detail-value">₹{{ order.total_amount }}</span>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="{% url 'userpanel:user_order_detail' order.order_id %}" class="btn btn-secondary">
+                            <i class="ri-eye-line"></i> View Details
+                        </a>
+                        
+                        {% if order.order_status == 'Delivered' %}
+                            <a href="{% url 'orders:return-request' order.order_id %}" class="btn btn-return">
+                                <i class="ri-arrow-go-back-line"></i> Return Order
+                            </a>
+                        {% endif %}
+
+                        {% if order.order_status != 'Delivered' and order.order_status != 'Cancelled' and order.order_status != 'Return_Initiated' and order.order_status != 'Return_Approved' and order.order_status != 'Return_Rejected' %}
+                            <form method="post" action="{% url 'userpanel:cancel_order' order.order_id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="ri-close-circle-line"></i> Cancel Order
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        {% if order.payment_status == 'Failed' or order.order_status == 'Payment_Pending' %}
+                            <a href="{% url 'orders:retry-payment' order.order_id %}" class="btn btn-retry">
+                                <i class="ri-refresh-line"></i> Retry Payment
+                            </a>
+                        {% endif %}
+
+                        <a href="{% url 'userpanel:generate_invoice' order.order_id %}" class="btn btn-invoice">
+                            <i class="ri-file-text-line"></i> Download Invoice
+                        </a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <p>You haven't placed any orders yet.</p>
+                    <a href="{% url 'accounts:shop' %}" class="btn btn-secondary">Start Shopping</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

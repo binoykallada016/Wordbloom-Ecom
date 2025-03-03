@@ -1,0 +1,158 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Wordbloom : Admin Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #2b5f5f;
+        --secondary-color: #dc2626;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+        --text-color: #333;
+        --light-gray: #f3f4f6;
+        --medium-gray: #9ca3af;
+        --dark-gray: #4b5563;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--light-gray);
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }    
+
+    .admin-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .orders-table th,
+    .orders-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--medium-gray);
+    }
+
+    .orders-table th {
+        background-color: var(--light-gray);
+        font-weight: 600;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .status-pending { background-color: var(--warning-color); color: white; }
+    .status-confirmed { background-color: var(--success-color); color: white; }
+    .status-shipped { background-color: var(--primary-color); color: white; }
+    .status-delivered { background-color: var(--dark-gray); color: white; }
+    .status-cancelled { background-color: var(--danger-color); color: white; }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #1e4545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-content">
+        <h2>Orders</h2>
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Generated Order ID</th>
+                    <th>User</th>
+                    <th>Total Price</th>
+                    <th>Order Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="orders-table-body">
+                <!-- Orders will be populated here dynamically -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Sample order data (replace with actual data from your backend)
+    const orders = [
+        { order_main_id: 1, generated_order_id: 'WB-2023-001', user_id: 1, total_price: 5999, order_date: '2023-05-15', status: 'Pending' },
+        { order_main_id: 2, generated_order_id: 'WB-2023-002', user_id: 2, total_price: 8999, order_date: '2023-05-14', status: 'Confirmed' },
+        { order_main_id: 3, generated_order_id: 'WB-2023-003', user_id: 3, total_price: 12999, order_date: '2023-05-13', status: 'Shipped' },
+        { order_main_id: 4, generated_order_id: 'WB-2023-004', user_id: 4, total_price: 4599, order_date: '2023-05-12', status: 'Delivered' },
+        { order_main_id: 5, generated_order_id: 'WB-2023-005', user_id: 5, total_price: 7999, order_date: '2023-05-11', status: 'Cancelled' },
+    ];
+
+    // Function to populate the orders table
+    function populateOrdersTable() {
+        const tableBody = document.getElementById('orders-table-body');
+        tableBody.innerHTML = '';
+
+        orders.forEach(order => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${order.order_main_id}</td>
+                <td>${order.generated_order_id}</td>
+                <td>User ${order.user_id}</td>
+                <td>₹${order.total_price.toFixed(2)}</td>
+                <td>${order.order_date}</td>
+                <td><span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span></td>
+                <td>
+                    <a href="{% url 'products:admin_orders_view_details' %}" class="btn btn-primary">View Details</a>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Populate the orders table when the page loads
+    document.addEventListener('DOMContentLoaded', populateOrdersTable);
+</script>
+{% endblock %}
+
+

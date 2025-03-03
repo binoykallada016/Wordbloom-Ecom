@@ -1,0 +1,64 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+env/
+venv/
+wordbloomenv/
+
+# Django-specific
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+
+# Environment variables
+.env
+
+# Node modules (if applicable)
+node_modules/
+
+# IDE-specific files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Other backups and generated files
+*.bak
+*.swp
+*.tmp
+
+# Coverage reports
+htmlcov/
+*.cover
+.coverage
+.cache
+.nox/
+coverage.xml
+*.lcov
+
+# Testing and CI
+.tox/
+.pytest_cache/
+nosetests.xml
+test-results.xml
+junit*.xml
+
+# Migrations (optional)
+migrations/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+.eggs/

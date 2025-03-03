@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Edit Address | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    .profile-content {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    .profile-main {
+        flex: 3;
+        background-color: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .section-title {
+        font-size: 1.5rem;
+        color: #2b5f5f;
+        margin-bottom: 1rem;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    .form-input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-primary:hover {
+        background-color: #234c4c;
+    }
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    @media (max-width: 768px) {
+        .profile-content {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-content">
+        {% include 'includes/_profile_menu.html' with active_tab='addresses' %}
+        <div class="profile-main">
+            <h2 class="section-title">Edit Address</h2>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="error-message">{{ field.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

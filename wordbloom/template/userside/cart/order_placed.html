@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Order Placed | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .order-success {
+        text-align: center;
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .order-success i {
+        font-size: 5rem;
+        color: #28a745;
+        margin-bottom: 1rem;
+    }
+    .order-success h1 {
+        color: #28a745;
+        margin-bottom: 1rem;
+    }
+    .order-details, .next-steps {
+        margin-top: 2rem;
+        text-align: left;
+    }
+    .order-details h2, .next-steps h2 {
+        color: #2b5f5f;
+        margin-bottom: 1rem;
+    }
+    .next-steps ul {
+        padding-left: 1.5rem;
+    }
+    .actions {
+        margin-top: 2rem;
+    }
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        margin: 0.5rem;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        color: white;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+    .btn:hover {
+        opacity: 0.9;
+    }
+    @media (max-width: 768px) {
+        .order-success {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="order-success">
+        <i class="fas fa-check-circle"></i>
+        <h1>Order Placed Successfully!</h1>
+        <p>Thank you for your purchase. Your order has been placed and is being processed.</p>
+        <div class="order-details">
+            <h2>Order Details</h2>
+            <p><strong>Order Number:</strong> {{ order.order_id }}</p>
+            <p><strong>Order Date:</strong> {{ order.date }}</p>
+            <p><strong>Total Amount:</strong> ₹{{ order.final_amount }}</p>
+        </div>
+        <div class="next-steps">
+            <h2>What's Next?</h2>
+            <ul>
+                <li>You will receive an order confirmation email shortly.</li>
+                <li>We will notify you when your order has been shipped.</li>
+                <li>You can track your order status in your account.</li>
+            </ul>
+        </div>
+        <div class="actions">
+            <a href="{% url 'userpanel:order_list' %}" class="btn btn-primary">View My Orders</a>
+            <a href="{% url 'accounts:shop' %}" class="btn btn-secondary">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

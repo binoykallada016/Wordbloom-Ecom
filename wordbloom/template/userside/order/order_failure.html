@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Order Failed | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .order-failure {
+        text-align: center;
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .order-failure i {
+        font-size: 5rem;
+        color: #dc3545;
+        margin-bottom: 1rem;
+    }
+    .order-failure h1 {
+        color: #dc3545;
+        margin-bottom: 1rem;
+    }
+    .error-details, .next-steps {
+        margin-top: 2rem;
+        text-align: left;
+    }
+    .error-details h2, .next-steps h2 {
+        color: #2b5f5f;
+        margin-bottom: 1rem;
+    }
+    .next-steps ul {
+        padding-left: 1.5rem;
+    }
+    .actions {
+        margin-top: 2rem;
+    }
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        margin: 0.5rem;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        color: white;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+    .btn:hover {
+        opacity: 0.9;
+    }
+    @media (max-width: 768px) {
+        .order-failure {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="order-failure">
+        <i class="fas fa-times-circle"></i>
+        <h1>Order Failed</h1>
+        <p>We're sorry, but there was an issue processing your order.</p>
+        <div class="error-details">
+            <h2>Error Details</h2>
+            <p>Order ID: {{ order.order_id }}</p>
+            <p>Error Message: Payment could not be processed.</p>
+        </div>
+        <div class="next-steps">
+            <h2>What to do next?</h2>
+            <ul>
+                <li>Check your payment details and try again.</li>
+                <li>Ensure you have sufficient funds in your account.</li>
+                <li>If the problem persists, please contact our customer support.</li>
+            </ul>
+        </div>
+        <div class="actions">
+            <a href="{% url 'cart:checkout' %}" class="btn btn-primary">Try Again</a>
+            <a href="{% url 'accounts:shop' %}" class="btn btn-secondary">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% block title %}Order Details | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    :root {
+        --primary-color: #2b5f5f;
+        --secondary-color: #4a90e2;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --light-gray: #f8f9fa;
+        --border-color: #e9ecef;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .profile-content {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .profile-main {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+    }
+
+    .order-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .order-header h2 {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .order-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .info-value {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .bg-warning { background: #fff3cd; color: #856404; }
+    .bg-info { background: #cce5ff; color: #004085; }
+    .bg-primary { background: #cff4fc; color: #055160; }
+    .bg-success { background: #d4edda; color: #155724; }
+    .bg-danger { background: #f8d7da; color: #721c24; }
+
+    .order-items {
+        margin-top: 2rem;
+    }
+
+    .order-items h3 {
+        color: var(--primary-color);
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .order-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: var(--light-gray);
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .item-image {
+        width: 5rem;
+        height: 8rem;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .item-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .item-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .item-meta {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .item-price {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .item-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-return {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .btn-return:hover {
+        background: #ffeeba;
+    }
+
+    .btn-danger {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .btn-danger:hover {
+        background: #f5c6cb;
+    }
+
+    @media (max-width: 992px) {
+        .profile-content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .profile-main {
+            padding: 1rem;
+        }
+
+        .order-item {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .item-image {
+            width: 100%;
+            height: 200px;
+        }
+
+        .item-actions {
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-content">
+        {% include 'includes/_profile_menu.html' with active_tab='order-history' %}
+        <div class="profile-main">
+            <div class="order-header">
+                <h2>Order Details</h2>
+                <div class="order-info">
+                    <div class="info-item">
+                        <span class="info-label">Order ID</span>
+                        <span class="info-value">{{ order.order_id }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Order Date</span>
+                        <span class="info-value">{{ order.created_at|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status</span>
+                        <span class="badge {% if order.order_status == 'Pending' %}bg-warning
+                                         {% elif order.order_status == 'Confirmed' %}bg-info
+                                         {% elif order.order_status == 'Shipped' %}bg-primary
+                                         {% elif order.order_status == 'Delivered' %}bg-success
+                                         {% elif order.order_status == 'Cancelled' %}bg-danger
+                                         {% elif order.order_status == 'Return_Initiated' %}bg-warning
+                                         {% elif order.order_status == 'Return_Approved' %}bg-success
+                                         {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
+                            {% if order.order_status == 'Return_Initiated' %}
+                                Return Initiated
+                            {% elif order.order_status == 'Return_Approved' %}
+                                Return Approved
+                            {% elif order.order_status == 'Return_Rejected' %}
+                                Return Rejected
+                            {% else %}
+                                {{ order.order_status }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-items">
+                <h3>Order Items</h3>
+                {% for item in order_items %}
+                    <div class="order-item">
+                        <img src="{{ item.product_variant.get_primary_image.image.url }}" 
+                             alt="{{ item.product_variant.product.product_name }}"
+                             class="item-image">
+                        <div class="item-details">
+                            <h4 class="item-title">{{ item.product_variant.product.product_name }}</h4>
+                            <span class="item-meta">Format: {{ item.product_variant.format }}</span>
+                            <span class="item-meta">Quantity: {{ item.quantity }}</span>
+                            <span class="item-price">₹{{ item.price }}</span>
+                        </div>
+                        <div class="item-actions">
+                            {% if order.order_status == 'Delivered' and not item.is_returned %}
+                                <a href="{% url 'orders:return-request' order.order_id %}?item_id={{ item.id }}" 
+                                   class="btn btn-return">
+                                    <i class="ri-arrow-go-back-line"></i> Return Item
+                                </a>
+                            {% endif %}
+
+                            {% if order.order_status != 'Delivered' and order.order_status != 'Cancelled' and not item.is_cancelled %}
+                                <form method="post" action="{% url 'userpanel:cancel_item' item.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="ri-close-circle-line"></i> Cancel Item
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

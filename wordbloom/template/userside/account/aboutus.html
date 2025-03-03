@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}WordBloom : About Us{% endblock %}
+
+{% block page_styles %}
+<style>
+    /* Main content styles */
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .about-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .about-title {
+        font-size: 2.5rem;
+        color: #2b5f5f;
+        margin-bottom: 0.5rem;
+    }
+    .about-subtitle {
+        font-size: 1.1rem;
+        color: #666;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .about-section {
+        background-color: white;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .about-section h2 {
+        color: #2b5f5f;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    .about-section p {
+        margin-bottom: 1rem;
+    }
+    .mission-values {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    .mission, .values {
+        flex: 1;
+    }
+    .values ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .values li {
+        margin-bottom: 0.5rem;
+        padding-left: 1.5rem;
+        position: relative;
+    }
+    .values li::before {
+        content: "\2022";
+        color: #2b5f5f;
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+    }
+    .team-section {
+        margin-top: 3rem;
+    }
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    .team-member {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+    }
+    .team-member:hover {
+        transform: translateY(-5px);
+    }
+    .member-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+    }
+    .member-info {
+        padding: 1rem;
+        text-align: center;
+    }
+    .member-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2b5f5f;
+        margin-bottom: 0.5rem;
+    }
+    .member-role {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    /* Responsive design */
+    @media (max-width: 768px) {
+    .header-top {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    .search-section {
+        margin: 0.5rem 0;
+        width: 100%;
+    }
+    .actions-section {
+        width: 100%;
+        justify-content: space-around;
+    }
+    .nav-links {
+        gap: 1rem;
+        padding: 0 1rem;
+        flex-wrap: wrap;
+    }
+    .mission-values {
+        flex-direction: column;
+    }
+    .team-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="container">
+        <div class="about-header">
+            <h1 class="about-title">About WordBloom</h1>
+            <p class="about-subtitle">Cultivating a love for reading, one book at a time</p>
+        </div>
+
+        <section class="about-section">
+            <h2>Our Story</h2>
+            <p>WordBloom was founded in 2020 by a group of passionate book lovers who wanted to create a better online bookstore experience. We believe that books have the power to inspire, educate, and transform lives, and we're committed to making great literature accessible to everyone.</p>
+            <p>Since our inception, we've grown from a small startup to a thriving online community of readers, authors, and book enthusiasts. Our curated collection spans across genres, from timeless classics to contemporary bestsellers, ensuring there's something for every reader.</p>
+            <div class="mission-values">
+                <div class="mission">
+                    <h3>Our Mission</h3>
+                    <p>To foster a love for reading by providing a diverse selection of high-quality books, creating an engaging community for book lovers, and supporting both established and emerging authors.</p>
+                </div>
+                <div class="values">
+                    <h3>Our Values</h3>
+                    <ul>
+                        <li>Passion for Literature</li>
+                        <li>Customer-Centric Approach</li>
+                        <li>Diversity and Inclusion</li>
+                        <li>Innovation in Book Discovery</li>
+                        <li>Supporting Authors and Publishers</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="team-section">
+            <h2>Meet Our Team</h2>
+            <div class="team-grid">
+                <div class="team-member">
+                    <img src="/placeholder.svg?height=250&width=250" alt="Sarah Johnson" class="member-image">
+                    <div class="member-info">
+                        <h3 class="member-name">Sarah Johnson</h3>
+                        <p class="member-role">Founder & CEO</p>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <img src="/placeholder.svg?height=250&width=250" alt="Michael Chen" class="member-image">
+                    <div class="member-info">
+                        <h3 class="member-name">Michael Chen</h3>
+                        <p class="member-role">Chief Technology Officer</p>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <img src="/placeholder.svg?height=250&width=250" alt="Emily Rodriguez" class="member-image">
+                    <div class="member-info">
+                        <h3 class="member-name">Emily Rodriguez</h3>
+                        <p class="member-role">Head of Curation</p>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <img src="/placeholder.svg?height=250&width=250" alt="David Okonkwo" class="member-image">
+                    <div class="member-info">
+                        <h3 class="member-name">David Okonkwo</h3>
+                        <p class="member-role">Marketing Director</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}

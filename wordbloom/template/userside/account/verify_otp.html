@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}WordBloom : OTP Verification{% endblock %}
+
+{% block page_styles %}
+<style>
+    /* Main content styles */
+    main {
+        background-color: #e6f7f7;
+        min-height: calc(100vh - 200px);
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 0.2rem;
+    }
+    .otp-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        background-color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .otp-title {
+        color: #2b5f5f;
+        font-size: 24px;
+        margin-bottom: 1rem;
+    }
+    .otp-description {
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    .otp-inputs {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    .otp-input {
+        width: 40px;
+        height: 40px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 1.2rem;
+        margin: 0 0.25rem;
+    }
+    .otp-input:focus {
+        border-color: #2b5f5f;
+        outline: none;
+    }
+    .timer {
+        color: #e53e3e;
+        font-size: 0.9rem;
+        margin-left: 0.5rem;
+    }
+    .resend-link {
+        display: block;
+        text-align: right;
+        color: #2b5f5f;
+        font-size: 0.9rem;
+        margin: 1rem 0;
+        cursor: pointer;
+    }
+    .resend-link:hover {
+        text-decoration: underline;
+    }
+    .submit-btn {
+        background-color: #2b5f5f;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        cursor: pointer;
+        width: 100%;
+        max-width: 300px;
+        margin: 1rem auto;
+    }
+    .submit-btn:hover {
+        background-color: #234c4c;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="container">
+        <div class="otp-container">
+            <h1 class="otp-title">OTP Verification</h1>
+            <p class="otp-description">Enter the 6-digit number you received in your registered Email Address</p>
+            
+            <form action="{% url 'accounts:verify_otp' %}" method="POST" id="otpForm">
+                {% csrf_token %}
+                <div class="otp-inputs">
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" name="otp_digit_1" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" name="otp_digit_2" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" name="otp_digit_3" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" name="otp_digit_4" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" name="otp_digit_5" required>
+                    <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" name="otp_digit_6" required>
+                </div>
+                <span class="timer">01:59</span>
+                <a href="{% url 'accounts:resend_otp' %}" class="resend-link">Resend OTP</a>
+                <button type="submit" class="submit-btn">Submit</button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script>
+    const otpInputs = document.querySelectorAll('.otp-input');
+    const submitBtn = document.querySelector('.submit-btn');
+    const timerElement = document.querySelector('.timer');
+    const resendLink = document.querySelector('.resend-link');
+    const expiredMessage = document.createElement('p');
+
+    expiredMessage.textContent = "OTP has expired. Please click on Resend OTP.";
+    expiredMessage.style.color = "#e53e3e";
+    expiredMessage.style.display = "none";
+    expiredMessage.style.marginTop = "1rem";
+    expiredMessage.style.fontSize = "0.9rem";
+
+    document.querySelector('.otp-container').appendChild(expiredMessage);
+
+    let timeLeft = parseInt(sessionStorage.getItem('otpTimer'), 10) || 120;
+
+    const disableInputsAndButton = () => {
+        otpInputs.forEach(input => input.disabled = true);
+        submitBtn.disabled = true;
+        expiredMessage.style.display = "block";
+    };
+
+    const updateTimerDisplay = () => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const timer = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            disableInputsAndButton();
+            timerElement.textContent = '00:00';
+            return;
+        }
+        timeLeft--;
+        sessionStorage.setItem('otpTimer', timeLeft);
+        updateTimerDisplay();
+    }, 1000);
+
+    updateTimerDisplay();
+
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            const currentValue = e.target.value;
+            if (currentValue && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && index > 0 && !input.value) {
+                otpInputs[index - 1].focus();
+            }
+        });
+    });
+
+    resendLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearInterval(timer);
+        timeLeft = 120;
+        sessionStorage.setItem('otpTimer', timeLeft);
+        updateTimerDisplay();
+        otpInputs.forEach(input => input.disabled = false);
+        submitBtn.disabled = false;
+        expiredMessage.style.display = "none";
+        window.location.href = resendLink.href; // Redirect to trigger server-side OTP resend
+    });
+
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('otpTimer', timeLeft);
+    });
+
+</script>
+
+{% endblock %}

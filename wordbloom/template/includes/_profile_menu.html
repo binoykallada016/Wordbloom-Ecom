@@ -1,0 +1,163 @@
+{% comment %} template/includes/_profile_menu.html {% endcomment %}
+<style>
+    .profile-sidebar {
+        flex: 1;
+        max-width: 300px;
+        background-color: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: sticky; /* Make it sticky */
+        top: 20px; /* Distance from the top of the viewport when sticky */
+        height: fit-content; /* Ensures it doesn’t stretch unnecessarily */
+    }
+    
+    .user-profile-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.8rem;
+        background: white;
+        border: 1px solid #e1e7ef;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+    
+    .user-profile-section img {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+    }
+    
+    .user-profile-section .user-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .user-profile-section .greeting {
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+    
+    .user-profile-section .user-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    
+    .profile-menu {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .profile-menu a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        color: #1e293b;
+        text-decoration: none;
+        border: 1px solid #e1e7ef;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+    
+    .profile-menu a:hover {
+        background-color: #f8fafc;
+    }
+    
+    .profile-menu a.active {
+        background-color: #e0f2fe;
+        border-color: #bae6fd;
+    }
+    
+    .profile-menu i {
+        font-size: 1.25rem;
+        color: #0369a1;
+    }
+    
+    .logout-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        margin-top: 0.75rem;
+        padding: 0.875rem;
+        background-color: #fee2e2;
+        color: #ef4444;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .logout-btn:hover {
+        background-color: #fecaca;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .profile-sidebar {
+            max-width: 100%;
+            position: static; /* Disable sticky on mobile */
+        }
+    }
+</style>
+
+
+<aside class="profile-sidebar">
+    <div class="user-profile-section">
+        {% comment %} <img src="/placeholder.svg?height=48&width=48" alt="User Avatar"> {% endcomment %}
+        <i class="fas fa-user-circle" style="font-size: 48px; color: rgb(44, 162, 162);;"></i>
+        <div class="user-info">
+            <span class="greeting">Hello,</span>
+            <span class="user-name">{{ request.user.first_name }} {{ request.user.last_name }}</span>
+        </div>
+    </div>
+    
+    <ul class="profile-menu">
+        <li>
+            <a href="{% url 'userpanel:profile' %}" class="{% if active_tab == 'personal-info' %}active{% endif %}">
+                <i class="fas fa-user"></i>
+                Account Overview
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'userpanel:order_list' %}" class="{% if active_tab == 'order-history' %}active{% endif %}">
+                <i class="fas fa-box"></i>
+                My Orders
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'userpanel:manage_addresses' %}" class="{% if active_tab == 'addresses' %}active{% endif %}">
+                <i class="fas fa-map-marker-alt"></i>
+                Manage Addresses
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'userpanel:wishlist' %}" class="{% if active_tab == 'wishlist' %}active{% endif %}">
+                <i class="fas fa-heart"></i>
+                My Wishlist
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'userpanel:wallet' %}" class="{% if active_tab == 'wallet' %}active{% endif %}">
+                <i class="fas fa-wallet"></i>
+                My Wallet
+            </a>
+        </li>        
+        <li>
+            <a href="{% url 'userpanel:change_password' %}" class="{% if active_tab == 'account-settings' %}active{% endif %}">
+                <i class="fas fa-lock"></i>
+                Change Password
+            </a>
+        </li>
+    </ul>
+
+    <a href="{% url 'accounts:logout' %}" class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+</aside>

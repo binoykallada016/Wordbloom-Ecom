@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block title %}Wallet | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    .profile-content {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    .profile-main {
+        flex: 3;
+        background-color: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .section-title {
+        font-size: 1.5rem;
+        color: #2b5f5f;
+        margin-bottom: 1rem;
+    }
+    .wallet-balance {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #dc2626;
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid #e1e7ef;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        text-align: center;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 1rem;
+    }
+    .btn-primary:hover {
+        background-color: #234c4c;
+    }
+
+    /* Table Styling */
+    .transaction-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+    }
+    .transaction-table th,
+    .transaction-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e1e7ef;
+    }
+    .transaction-table th {
+        background-color: #5fa5a5;
+        color: white;
+        font-weight: bold;
+        text-transform: uppercase;
+        border: 2px solid #c6f1f1;
+    }
+    .transaction-table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .transaction-table tbody tr:hover {
+        background-color: #e1f1f1;
+    }
+    .no-transactions {
+        text-align: center;
+        font-style: italic;
+        color: #777;
+        padding: 1rem;
+    }
+    .add-funds-form {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #f3f4f6;
+        border-radius: 8px;
+    }
+    .add-funds-form input[type="number"] {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .transaction-type-credit {
+        color: #10b981;
+    }
+    .transaction-type-debit {
+        color: #ef4444;
+    }
+    @media (max-width: 768px) {
+        .profile-content {
+            flex-direction: column;
+        }
+        .transaction-table th,
+        .transaction-table td {
+            font-size: 0.9rem;
+            padding: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-content">
+        {% include 'includes/_profile_menu.html' with active_tab='wallet' %}
+        <div class="profile-main">
+            <h2 class="section-title">My Wallet</h2>
+            <div class="wallet-balance">
+                Balance: ₹{{ wallet.balance }}
+            </div>
+            <div class="add-funds-form">
+                <h3>Add Funds</h3>
+                <form method="post" action="{% url 'userpanel:add_funds' %}">
+                    {% csrf_token %}
+                    <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount" required>
+                    <button type="submit" class="btn-primary">Add Funds</button>
+                </form>
+            </div>
+            <h2 class="section-title">Transaction History</h2>
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.timestamp|date:"M d, Y H:i" }}</td>
+                            <td class="transaction-type-{{ transaction.transaction_type }}">
+                                {{ transaction.get_transaction_type_display }}
+                            </td>
+                            <td>₹{{ transaction.amount }}</td>
+                            <td>{{ transaction.description }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="no-transactions">No transactions yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Order Details | WordBloom Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .order-header {
+        margin-bottom: 2rem;
+    }
+    .order-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+    .customer-info, .shipping-info, .order-status {
+        flex-basis: 30%;
+    }
+    .order-items {
+        margin-bottom: 2rem;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    .order-summary {
+        background-color: #f9f9f9;
+        padding: 1rem;
+        border-radius: 4px;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-primary:hover {
+        background-color: #234c4c;
+    }
+    select {
+        padding: 0.5rem;
+        margin-right: 1rem;
+    }
+    .btn-approve {
+        background-color: #10b981;
+        color: white;
+    }
+    .btn-reject {
+        background-color: #ef4444;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="order-header">
+        <h1>Order Details</h1>
+        <p>Order ID: {{ order.order_id }}</p>
+        <p>Date: {{ order.created_at }}</p>
+    </div>
+
+    <div class="order-info">
+        <div class="customer-info">
+            <h2>Customer Information</h2>
+            <p><strong>Name:</strong> {{ order.user.full_name }}</p>
+            <p><strong>Email:</strong> {{ order.user.email }}</p>
+            <p><strong>Phone:</strong> {{ order.user.phone_number }}</p>
+        </div>
+
+        <div class="shipping-info">
+            <h2>Shipping Information</h2>
+            <p>{{ order.address.name }}</p>
+            <p>{{ order.address.house_name }}, {{ order.address.street_name }}</p>
+            <p>{{ order.address.district }}, {{ order.address.state }}</p>
+            <p>{{ order.address.country }} - {{ order.address.pin_number }}</p>
+            <p>Phone: {{ order.address.phone_number }}</p>
+        </div>
+
+        <div class="order-status">
+            <h2>Order Status</h2>
+            <form method="post" action="{% url 'orders:change_order_status' order.id %}">
+                {% csrf_token %}
+                <select name="order_status" id="order_status">
+                    {% for status, label in order.ORDER_STATUS_CHOICES %}
+                        <option value="{{ status }}" {% if order.order_status == status %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Update Status</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="order-items">
+        <h2>Order Items</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Variant</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_items %}
+                <tr>
+                    <td>{{ item.product_variant.product.product_name }}</td>
+                    <td>{{ item.product_variant.format }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.price }}</td>
+                    <td>₹{{ item.get_cost }}</td>
+                    <td>
+                        {% if item.is_cancelled %}
+                            Cancelled
+                        {% elif item.is_returned %}
+                            Returned
+                        {% else %}
+                            Active
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="order-summary">
+        <h2>Order Summary</h2>
+        <p><strong>Subtotal:</strong> ₹{{ order.total_amount }}</p>
+        <p><strong>Discount:</strong> ₹{{ order.discount_amount }}</p>
+        <p><strong>Grand Total:</strong> ₹{{ order.total_amount }}</p>
+        <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+        <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
+    </div>
+
+    {% if order.order_status == 'Return_Initiated' %}
+    <div class="return-request">
+        <h2>Return Request</h2>
+        <p><strong>Reason:</strong> {{ order.returnrequest_set.first.reason }}</p>
+        <form method="post" action="{% url 'orders:approve_return' order.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-approve">Approve Return</button>
+        </form>
+        <form method="post" action="{% url 'orders:reject_return' order.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-reject">Reject Return</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

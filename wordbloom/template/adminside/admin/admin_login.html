@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordBloom Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="{% static 'userside/assets/imgs/theme/icons/logo_wordbloom.png' %}" type="image/x-icon" width="32px" height="32px">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        body {
+            background-color: #e6f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            line-height: 1.6;
+            color: #333;
+        }
+        .login-container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-header img {
+            width: 80px;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+        .login-header h1 {
+            color: #2b5f5f;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2b5f5f;
+            font-weight: 600;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #2b5f5f;
+        }
+        .login-button {
+            background-color: #2b5f5f;
+            color: #ffffff;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .login-button:hover {
+            background-color: #234c4c;
+        }
+        .forgot-password {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .forgot-password a {
+            color: #2b5f5f;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <img src="{% static 'userside/assets/imgs/theme/icons/logo_wordbloom.png' %}" alt="WordBloom Logo">
+            <h1>Admin Login</h1>
+        </div>
+        <!-- <form class="login-form" method="post" action="{% url 'admindashboard:admin_dashboard' %}"> -->
+            <form class="login-form" method="post" action="{% url 'admindashboard:admin_login' %}">
+            {% csrf_token %}
+            {% if messages %}
+            <div>
+                {% for message in messages %}
+                <p style="color: red;">{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-group">
+                <label for="username">Email</label>
+                <input type="email" id="email" name="email" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="login-button">Log In</button>
+            <!-- {% if error %}
+                <br>
+                <div class="error-message" style="color: green;">
+                    {{ error }}
+                </div>
+            {% endif %} -->            
+        </form>
+        <!-- <div class="forgot-password">
+            <a href="#">Forgot Password?</a>
+        </div> -->
+    </div>
+</body>
+</html>

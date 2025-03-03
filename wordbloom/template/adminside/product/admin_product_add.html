@@ -1,0 +1,855 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Wordbloom : Admin Dashboard{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+<style>
+    :root {
+        --primary-color: #2b5f5f;
+        --secondary-color: #dc2626;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+        --text-color: #333;
+        --light-gray: #f3f4f6;
+        --medium-gray: #9ca3af;
+        --dark-gray: #4b5563;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--light-gray);
+    }
+
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }   
+
+    .admin-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+    .error {
+        color: red;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .alert {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.25rem;
+    }
+    
+    .alert-success {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    
+    .alert-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.25rem;
+    }
+    
+    
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        padding: 0.5rem;
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    
+    /* Base button reset */
+    button {
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: none;
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    /* Add variant button */
+    .add-variant-btn {
+        padding: 0.75rem 1.5rem;
+        background-color: var(--success-color);
+        color: white;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-top: 1rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .add-variant-btn:hover {
+        background-color: #047857;
+    }
+
+    /* Remove variant button */
+    .remove-variant-btn {
+        padding: 0.5rem 1rem;
+        background-color: var(--danger-color);
+        color: white;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-left: 1rem;
+        font-size: 0.875rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .remove-variant-btn:hover {
+        background-color: #b91c1c;
+    }
+
+    /* Add image button */
+    .add-image-btn {
+        padding: 0.75rem 1.5rem;
+        background-color: var(--success-color);
+        color: white;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-top: 1rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .add-image-btn:hover {
+        background-color: #047857;
+    }
+
+    /* Remove image button */
+    .remove-image {
+        padding: 0.5rem 1rem;
+        background-color: var(--danger-color);
+        color: white;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .remove-image:hover {
+        background-color: #b91c1c;
+    }
+
+    /* Submit button */
+    .submit-product-btn {
+        padding: 0.75rem 2rem;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-top: 2rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .submit-product-btn:hover {
+        background-color: #1e4545;
+    }
+
+    .variant-container {
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        padding: 1rem;
+        margin-top: 1rem;
+        background-color:rgb(175, 234, 195);
+    }
+
+    .variant-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .variant-title {
+        font-weight: 600;
+    }
+
+    .add-variant-btn {
+        background-color: var(--success-color);
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .add-variant-btn:hover {
+        background-color: #047857;
+    }
+
+    .variant-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .variant-item {
+        background-color: var(--light-gray);
+        border-radius: 4px;
+        padding: 1rem;
+    }
+
+    .variant-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .variant-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: white;
+        border-radius: 4px;
+    }
+
+    #variants-container{
+        margin-top: 2rem;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.25rem;
+    }
+
+    .image-container {
+        margin-top: 2rem;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.25rem;
+    }
+
+    .image-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .image-item {
+        background-color: var(--light-gray);
+        border-radius: 4px;
+        padding: 1rem;
+    }
+
+    .image-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .image-field {
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .cropper-container {
+        max-width: 100%;
+        height: 400px;
+        margin-top: 1rem;
+    }
+    .image-preview {
+        max-width: 200px;
+        max-height: 200px;
+        object-fit: cover;
+        margin-top: 1rem;
+    }
+
+    .remove-image {
+        margin-top: 0.5rem;
+    }
+
+    .remove-image-btn {
+        margin-top: 0.5rem;
+    }
+
+    .cropper-container {
+        max-width: 100%;
+        height: 300px;
+        margin-top: 1rem;
+    }
+
+    .image-field {
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .remove-image {
+        margin-top: 0.5rem;
+    }
+
+    .image-preview {
+        max-width: 200px;
+        max-height: 200px;
+        object-fit: cover;
+        margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        .variant-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .add-variant-btn,
+        .remove-variant-btn,
+        .add-image-btn,
+        .remove-image,
+        .submit-product-btn {
+            width: 100%;
+            margin-left: 0;
+            margin-right: 0;
+        }
+        
+        .remove-variant-btn {
+            margin-top: 0.5rem;
+            margin-left: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-content">
+        <h2>Add New Product</h2>
+        
+        {% comment %} {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %} {% endcomment %}
+
+        {% comment %} <form method="POST" enctype="multipart/form-data" id="add-product-form">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="product_name">Product Name*</label>
+                    {{ form.product_name }}
+                    {% if form.product_name.errors %}
+                    <div class="error">{{ form.product_name.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category*</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <div class="error">{{ form.category.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="author">Author*</label>
+                    {{ form.author }}
+                    {% if form.author.errors %}
+                    <div class="error">{{ form.author.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="format">Format*</label>
+                    {{ form.format }}
+                    {% if form.format.errors %}
+                    <div class="error">{{ form.format.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="isbn">ISBN*</label>
+                    {{ form.isbn }}
+                    {% if form.isbn.errors %}
+                    <div class="error">{{ form.isbn.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Price*</label>
+                    {{ form.price }}
+                    {% if form.price.errors %}
+                    <div class="error">{{ form.price.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="discounted_price">Discounted Price</label>
+                    {{ form.discounted_price }}
+                    {% if form.discounted_price.errors %}
+                    <div class="error">{{ form.discounted_price.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="stock">Stock*</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                    <div class="error">{{ form.stock.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="publication_date">Publication Date*</label>
+                    {{ form.publication_date }}
+                    {% if form.publication_date.errors %}
+                    <div class="error">{{ form.publication_date.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="language">Language*</label>
+                    {{ form.language }}
+                    {% if form.language.errors %}
+                    <div class="error">{{ form.language.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="page_count">Page Count*</label>
+                    {{ form.page_count }}
+                    {% if form.page_count.errors %}
+                    <div class="error">{{ form.page_count.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="product_description">Product Description*</label>
+                {{ form.product_description }}
+                {% if form.product_description.errors %}
+                <div class="error">{{ form.product_description.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="image-container">
+                <h4>Product Images</h4>
+                <div id="image-list">
+                    <!-- Images will be added here dynamically -->
+                </div>
+                <button type="button" id="add-image-btn" class="btn btn-success">Add Image</button>
+            </div>
+
+            <div class="form-group">
+                <label>Status</label>
+                {{ form.is_active }}
+            </div>
+            <button type="submit" class="btn btn-primary">Add Product</button>
+        </form> {% endcomment %}
+        <form method="POST" enctype="multipart/form-data" id="product-form">
+            {% csrf_token %}
+            <input type="hidden" name="variant_count" id="variant-count" value="1">
+            
+            <!-- Product Information -->
+            <div class="form-grid">
+                <!-- Basic Product Info -->
+                {% for field in product_form %}
+                <div class="form-group {% if field.name == 'product_description' %}full-width{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}*{% endif %}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Variants Section -->
+            <div id="variants-container">
+                {% for variant_form, prefix in variants_data %}
+                <div class="variant-section" data-prefix="{{ prefix }}">
+                    <h3>Variant #{{ forloop.counter }}</h3>
+                    <div class="form-grid">
+                        {% for field in variant_form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}*{% endif %}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <div class="error">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Variant Images -->
+                    <div class="image-container">
+                        <h4>Variant Images</h4>
+                        <div class="image-list" id="{{ prefix }}-image-list"></div>
+                        <button type="button" class="add-image-btn" data-prefix="{{ prefix }}">
+                            Add Image
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="button" id="add-variant-btn" class="add-variant-btn">Add Another Variant</button>
+            <button type="submit" class="submit-product-btn">Add Product</button>
+        </form>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+{% comment %} <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('add-product-form');
+        const imageList = document.getElementById('image-list');
+        const addImageBtn = document.getElementById('add-image-btn');
+        let imageCount = 0;
+
+        function addImageField() {
+            const imageField = document.createElement('div');
+            imageField.className = 'image-field';
+            imageField.innerHTML = `
+                <div class="form-group">
+                    <label for="image_${imageCount}">Image</label>
+                    <input type="file" id="image_${imageCount}" name="image" class="form-control image-input" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label for="is_primary_${imageCount}">Primary Image</label>
+                    <input type="checkbox" id="is_primary_${imageCount}" name="is_primary_${imageCount}">
+                </div>
+                <div class="form-group">
+                    <label for="display_order_${imageCount}">Display Order</label>
+                    <input type="number" id="display_order_${imageCount}" name="display_order_${imageCount}" class="form-control" value="0" min="0">
+                </div>
+                <div class="cropper-container"></div>
+                <img class="image-preview" style="display: none;">
+                <button type="button" class="btn btn-danger remove-image">Remove</button>
+                <input type="hidden" name="cropped_data_${imageCount}" class="cropped-data">
+            `;
+            imageList.appendChild(imageField);
+            initializeCropper(imageField.querySelector('.image-input'));
+            imageCount++;
+        }
+
+        addImageBtn.addEventListener('click', addImageField);
+
+        imageList.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-image')) {
+                e.target.closest('.image-field').remove();
+            }
+        });
+
+        function initializeCropper(input) {
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imageField = input.closest('.image-field');
+                        const cropperContainer = imageField.querySelector('.cropper-container');
+                        const imagePreview = imageField.querySelector('.image-preview');
+                        cropperContainer.innerHTML = '<img src="' + event.target.result + '" style="max-width: 100%;">';
+                        const image = cropperContainer.querySelector('img');
+                        const cropper = new Cropper(image, {
+                            aspectRatio: NaN,
+                            viewMode: 1,
+                            crop: function(event) {
+                                const croppedDataInput = imageField.querySelector('.cropped-data');
+                                croppedDataInput.value = JSON.stringify(event.detail);
+                                
+                                // Update preview
+                                const canvas = this.cropper.getCroppedCanvas();
+                                imagePreview.src = canvas.toDataURL();
+                                imagePreview.style.display = 'block';
+                            }
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            const required = form.querySelectorAll('[required]');
+            
+            required.forEach(field => {
+                if (!field.value) {
+                    isValid = false;
+                    field.classList.add('error');
+                } else {
+                    field.classList.remove('error');
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+    
+        // Price validation
+        const priceInput = form.querySelector('[name="price"]');
+        const discountedPriceInput = form.querySelector('[name="discounted_price"]');
+        
+        discountedPriceInput.addEventListener('change', function() {
+            const price = parseFloat(priceInput.value);
+            const discountedPrice = parseFloat(this.value);
+            
+            if (discountedPrice >= price) {
+                alert('Discounted price must be less than regular price');
+                this.value = '';
+            }
+        });
+    
+        // Stock validation
+        const stockInput = form.querySelector('[name="stock"]');
+        stockInput.addEventListener('change', function() {
+            if (parseInt(this.value) < 0) {
+                alert('Stock cannot be negative');
+                this.value = 0;
+            }
+        });
+
+        // Add at least one image field when the page loads
+        addImageField();
+    });
+</script> {% endcomment %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let variantCount = 1;
+        
+        // Add Variant
+        document.getElementById('add-variant-btn').addEventListener('click', function() {
+            variantCount++;
+            const prefix = `variant_${variantCount-1}`;
+            
+            const variantTemplate = document.querySelector('.variant-section').cloneNode(true);
+            variantTemplate.dataset.prefix = prefix;
+            variantTemplate.querySelector('h3').textContent = `Variant #${variantCount}`;
+            
+            // Add remove variant button
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-danger remove-variant-btn';
+            removeBtn.textContent = 'Remove Variant';
+            variantTemplate.querySelector('h3').appendChild(removeBtn);
+            
+            // Update form field names and IDs
+            variantTemplate.querySelectorAll('input, select').forEach(field => {
+                field.name = field.name.replace('variant_0', prefix);
+                field.id = field.id.replace('variant_0', prefix);
+                field.value = '';
+            });
+            
+            // Clear image list
+            const imageList = variantTemplate.querySelector('.image-list');
+            imageList.id = `${prefix}-image-list`;
+            imageList.innerHTML = '';
+            
+            // Update image button prefix
+            const addImageBtn = variantTemplate.querySelector('.add-image-btn');
+            addImageBtn.dataset.prefix = prefix;
+            
+            document.getElementById('variants-container').appendChild(variantTemplate);
+            document.getElementById('variant-count').value = variantCount;
+            
+            // Setup image handling for new variant
+            setupImageHandling(prefix);
+        });
+    
+        // Remove Variant
+        document.getElementById('variants-container').addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-variant-btn')) {
+                if (document.querySelectorAll('.variant-section').length > 1) {
+                    e.target.closest('.variant-section').remove();
+                    variantCount--;
+                    document.getElementById('variant-count').value = variantCount;
+                    
+                    // Update variant numbers
+                    document.querySelectorAll('.variant-section').forEach((section, index) => {
+                        section.querySelector('h3').textContent = `Variant #${index + 1}`;
+                    });
+                } else {
+                    alert('At least one variant is required.');
+                }
+            }
+        });
+        
+        // Image handling setup
+        function setupImageHandling(prefix) {
+            const imageList = document.getElementById(`${prefix}-image-list`);
+            const addImageBtn = document.querySelector(`[data-prefix="${prefix}"].add-image-btn`);
+            let imageCount = 0;
+            
+            function addImageField() {
+                const imageField = document.createElement('div');
+                imageField.className = 'image-field';
+                imageField.innerHTML = `
+                    <div class="form-group">
+                        <label>Image File*</label>
+                        <input type="file" name="${prefix}-image" class="image-input" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Primary Image</label>
+                        <input type="checkbox" name="${prefix}-is_primary_${imageCount}">
+                    </div>
+                    <div class="form-group">
+                        <label>Display Order</label>
+                        <input type="number" name="${prefix}-display_order_${imageCount}" value="${imageCount}" min="0">
+                    </div>
+                    <div class="cropper-container"></div>
+                    <img class="image-preview" style="display: none;">
+                    <input type="hidden" name="${prefix}-cropped_data_${imageCount}" class="cropped-data">
+                    <button type="button" class="remove-image">Remove Image</button>
+                `;
+                
+                imageList.appendChild(imageField);
+                initializeCropper(imageField.querySelector('.image-input'));
+                imageCount++;
+            }
+            
+            // Initialize Cropper
+            function initializeCropper(input) {
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            const imageField = input.closest('.image-field');
+                            const cropperContainer = imageField.querySelector('.cropper-container');
+                            const imagePreview = imageField.querySelector('.image-preview');
+                            
+                            // Clear existing content
+                            cropperContainer.innerHTML = '';
+                            
+                            // Create and setup new image element
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.style.maxWidth = '100%';
+                            cropperContainer.appendChild(img);
+                            
+                            // Initialize Cropper
+                            if (imageField.cropper) {
+                                imageField.cropper.destroy();
+                            }
+                            
+                            imageField.cropper = new Cropper(img, {
+                                aspectRatio: NaN,
+                                viewMode: 1,
+                                crop: function(event) {
+                                    const croppedDataInput = imageField.querySelector('.cropped-data');
+                                    croppedDataInput.value = JSON.stringify(event.detail);
+                                    
+                                    // Update preview
+                                    const canvas = this.cropper.getCroppedCanvas();
+                                    imagePreview.src = canvas.toDataURL();
+                                    imagePreview.style.display = 'block';
+                                }
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+            
+            // Remove Image
+            imageList.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-image')) {
+                    const imageField = e.target.closest('.image-field');
+                    if (imageField.cropper) {
+                        imageField.cropper.destroy();
+                    }
+                    imageField.remove();
+                }
+            });
+            
+            addImageBtn.addEventListener('click', addImageField);
+            addImageField(); // Add first image field by default
+        }
+        
+        // Form Validation
+        const form = document.getElementById('product-form');
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            const required = form.querySelectorAll('[required]');
+            
+            required.forEach(field => {
+                if (!field.value) {
+                    isValid = false;
+                    field.classList.add('error');
+                } else {
+                    field.classList.remove('error');
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+        
+        // Setup initial variant
+        setupImageHandling('variant_0');
+        
+        // Add remove button to first variant
+        const firstVariant = document.querySelector('.variant-section');
+        const firstRemoveBtn = document.createElement('button');
+        firstRemoveBtn.type = 'button';
+        firstRemoveBtn.className = 'btn btn-danger remove-variant-btn';
+        firstRemoveBtn.textContent = 'Remove Variant';
+        firstVariant.querySelector('h3').appendChild(firstRemoveBtn);
+    });
+</script>
+{% endblock %}

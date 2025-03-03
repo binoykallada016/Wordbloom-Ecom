@@ -1,0 +1,522 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block title %}Edit Product - {{ product.product_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+<style>
+    :root {
+        --primary-color: #2b5f5f;
+        --secondary-color: #dc2626;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+        --text-color: #333;
+        --light-gray: #f3f4f6;
+        --medium-gray: #9ca3af;
+        --dark-gray: #4b5563;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--light-gray);
+    }
+
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }    
+
+    .admin-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    h2 {
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary, .btn-success {
+        background-color: #4a5568;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover, .btn-success:hover {
+        background-color: #2d3748;
+    }
+
+    .btn-danger {
+        background-color: var(--danger-color);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #b91c1c;
+    }
+
+    .btn-warning {
+        background-color: var(--warning-color);
+        color: white;
+    }
+
+    .btn-warning:hover {
+        background-color: #b45309;
+    }
+
+    .error {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .variant-section {
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        padding: 1rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+        background-color: rgb(255, 255, 255);
+    }
+
+    .image-container {
+        margin-top: 2rem;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.25rem;
+    }
+
+    .image-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .image-item {
+        background-color: var(--light-gray);
+        border-radius: 4px;
+        padding: 1rem;
+    }
+
+    .image-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .image-field {
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .cropper-container {
+        max-width: 100%;
+        height: 400px;
+        margin-top: 1rem;
+    }
+
+    .preview {
+        width: 100%;
+        height: 150px;
+        border: 2px dashed var(--medium-gray);
+        margin-top: 1rem;
+        overflow: hidden;
+    }
+
+    .image-preview {
+        max-width: 200px;
+        max-height: 200px;
+        object-fit: cover;
+        margin-top: 1rem;
+    }
+
+    .remove-image {
+        margin-top: 0.5rem;
+    }
+    /* Add variant button */
+    .add-variant-btn {
+        padding: 0.75rem 1.5rem;
+        background-color: var(--success-color);
+        color: white;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-top: 1rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .add-variant-btn:hover {
+        background-color: #047857;
+    }
+
+    /* Submit button */
+    .update-product-btn {
+        padding: 0.75rem 2rem;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-top: 2rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .update-product-btn:hover {
+        background-color: #1e4545;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .image-list {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-content">
+        <h2>Edit Product: {{ product.product_name }}</h2>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" id="edit-product-form">
+            {% csrf_token %}
+            <input type="hidden" name="variant_count" id="variant-count" value="{{ variants_data|length }}">
+
+            <!-- Product Information -->
+            <div class="form-grid">
+                {% for field in product_form %}
+                <div class="form-group {% if field.name == 'product_description' %}full-width{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}*{% endif %}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Variants Section -->
+            <div id="variants-container">
+                {% for variant_form, prefix in variants_data %}
+                <div class="variant-section" data-prefix="{{ prefix }}">
+                    <h3>Variant #{{ forloop.counter }}</h3>
+                    <div class="form-grid">
+                        {{ variant_form.id }}
+                        {% for field in variant_form %}
+                            {% if field.name != 'id' and field.name != 'DELETE' %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}*{% endif %}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                <div class="error">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Variant Images -->
+                    <div class="image-container">
+                        <h4>Variant Images</h4>
+                        <div class="image-list" id="{{ prefix }}-image-list">
+                            {% for image in variant_form.instance.images.all %}
+                            <div class="image-field">
+                                <img src="{{ image.image.url }}" alt="Variant Image" class="image-preview">
+                                
+                                <div class="image-actions">
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="radio" name="{{ prefix }}-primary_image" 
+                                                value="{{ image.image_id }}" 
+                                                {% if image.is_primary %}checked{% endif %}>
+                                            Primary
+                                        </label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Order</label>
+                                        <input type="number" 
+                                            name="{{ prefix }}-display_order_{{ image.image_id }}" 
+                                            value="{{ image.display_order }}" 
+                                            min="0"
+                                            style="width: 60px;">
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm replace-image-btn" data-image-id="{{ image.image_id }}">
+                                        Replace Image
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm remove-existing-image" 
+                                        data-image-id="{{ image.image_id }}">
+                                        Remove Image
+                                    </button>
+                                </div>
+                                
+                                <input type="file" class="replace-image-input" 
+                                       name="{{ prefix }}-replace_image_{{ image.image_id }}"
+                                       accept="image/*"
+                                       style="display: none;">
+                                <input type="hidden" name="{{ prefix }}-replace_cropped_data_{{ image.image_id }}" 
+                                       class="cropped-data">
+                                <input type="checkbox" name="{{ prefix }}-delete_images" 
+                                    value="{{ image.image_id }}" 
+                                    id="delete_{{ image.image_id }}" 
+                                    style="display: none;">
+                                
+                                <div class="cropper-container" style="display: none;"></div>
+                                <div class="preview" style="display: none;"></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-success add-image-btn" data-prefix="{{ prefix }}">
+                            Add New Image
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-group" style="margin-top: 2rem;">
+                <button type="button" id="add-variant-btn" class="add-variant-btn">Add Another Variant</button>
+                <button type="submit" class="update-product-btn">Update Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('edit-product-form');
+    const variantContainer = document.getElementById('variants-container');
+    let variantCount = {{ variants_data|length }};
+
+    // Handle existing image deletion
+    document.querySelectorAll('.remove-existing-image').forEach(button => {
+        button.addEventListener('click', function() {
+            const imageId = this.dataset.imageId;
+            const checkbox = document.querySelector(`#delete_${imageId}`);
+            checkbox.checked = !checkbox.checked;
+            this.closest('.image-field').style.opacity = checkbox.checked ? '0.5' : '1';
+        });
+    });
+
+    // Add Variant
+    document.getElementById('add-variant-btn').addEventListener('click', function() {
+        variantCount++;
+        const newVariant = document.querySelector('.variant-section').cloneNode(true);
+        const prefix = `variant_new_${variantCount}`;
+        
+        // Update variant identifiers
+        newVariant.dataset.prefix = prefix;
+        newVariant.querySelector('h3').innerHTML = `Variant #${variantCount} 
+            <button type="button" class="btn btn-danger variant-remove-btn">&times;</button>`;
+
+        // Reset form fields
+        newVariant.querySelectorAll('input, select, textarea').forEach(field => {
+            if (field.name) {
+                field.name = field.name.replace(/variant_\d+/, prefix);
+                field.value = '';
+                if (field.type === 'checkbox' || field.type === 'radio') {
+                    field.checked = false;
+                }
+            }
+        });
+
+        // Clear existing images
+        newVariant.querySelector('.image-list').innerHTML = '';
+
+        // Add remove functionality
+        newVariant.querySelector('.variant-remove-btn').addEventListener('click', function() {
+            newVariant.remove();
+            variantCount--;
+            document.getElementById('variant-count').value = variantCount;
+        });
+
+        variantContainer.appendChild(newVariant);
+        document.getElementById('variant-count').value = variantCount;
+    });
+
+    // Cropper initialization
+    function initializeCropper(input, cropperContainer, previewContainer) {
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                cropperContainer.innerHTML = `
+                    <img src="${event.target.result}" style="max-width: 100%;">
+                `;
+
+                const img = cropperContainer.querySelector('img');
+                const cropper = new Cropper(img, {
+                    aspectRatio: 1
+                    viewMode: 1,
+                    preview: previewContainer,
+                });
+
+                // Store cropper instance
+                input.cropper = cropper;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Handle new image uploads
+    variantContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-image-btn')) {
+            const prefix = e.target.dataset.prefix;
+            const imageList = document.getElementById(`${prefix}-image-list`);
+            
+            const newImageField = document.createElement('div');
+            newImageField.className = 'image-field';
+            newImageField.innerHTML = `
+                <div class="form-group">
+                    <input type="file" class="new-image-input" accept="image/*" required>
+                    <input type="hidden" name="${prefix}-cropped_data" class="cropped-data">
+                </div>
+                <div class="cropper-container"></div>
+                <div class="preview"></div>
+                <div class="image-actions">
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="${prefix}-primary_image" value="new">
+                            Primary
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Order</label>
+                        <input type="number" name="${prefix}-display_order_new" 
+                            value="0" min="0" style="width: 60px;">
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm remove-image">Remove Image</button>
+                </div>
+            `;
+
+            imageList.appendChild(newImageField);
+            initializeCropper(
+                newImageField.querySelector('.new-image-input'),
+                newImageField.querySelector('.cropper-container'),
+                newImageField.querySelector('.preview')
+            );
+        }
+    });
+
+    // Remove new images
+    variantContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-image')) {
+            e.target.closest('.image-field').remove();
+        }
+    });
+
+    // Handle image replacement
+    document.querySelectorAll('.replace-image-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const imageField = this.closest('.image-field');
+            const input = imageField.querySelector('.replace-image-input');
+            const cropperContainer = imageField.querySelector('.cropper-container');
+            const previewContainer = imageField.querySelector('.preview');
+            
+            if (cropperContainer.style.display === 'none') {
+                cropperContainer.style.display = 'block';
+                previewContainer.style.display = 'block';
+                input.click();
+            } else {
+                cropperContainer.style.display = 'none';
+                previewContainer.style.display = 'none';
+            }
+        });
+    });
+
+    // Initialize croppers for replacement inputs
+    document.querySelectorAll('.replace-image-input').forEach(input => {
+        const imageField = input.closest('.image-field');
+        const cropperContainer = imageField.querySelector('.cropper-container');
+        const previewContainer = imageField.querySelector('.preview');
+        initializeCropper(input, cropperContainer, previewContainer);
+    });
+
+    // Form submission handler
+    form.addEventListener('submit', function(e) {
+        // Handle cropped images (new and replacements)
+        document.querySelectorAll('.new-image-input, .replace-image-input').forEach(input => {
+            if (input.files.length > 0 && input.cropper) {
+                const canvas = input.cropper.getCroppedCanvas();
+                const dataURL = canvas.toDataURL('image/jpeg');
+                input.closest('.image-field').querySelector('.cropped-data').value = dataURL;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

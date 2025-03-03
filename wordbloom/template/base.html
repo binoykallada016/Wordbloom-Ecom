@@ -1,0 +1,516 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}WordBloom{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="{% static 'userside/assets/imgs/theme/icons/logo_wordbloom.png' %}" type="image/x-icon" width="32px" height="32px">
+    <style>
+        /* Include global styles here */
+        /* body {
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+            color: #333;
+        } */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        body {
+            line-height: 1.6;
+            color: #333;
+            background-color: #e6f7f7;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Header styles */
+        header {
+            position: sticky;
+            top: 0; /* Keeps the header at the top of the viewport */
+            z-index: 1000; /* Ensures the header stays on top of other elements */
+            background-color: white; /* Prevents transparency issues when scrolling */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adds subtle shadow for visibility */
+        }
+
+
+        .header-top {
+            padding: 1rem 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logo-section img {
+            width: 40px;
+            height: auto;
+        }
+        .logo-section span {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2b5f5f;
+        }
+        .search-section {
+            flex: 1;
+            max-width: 600px;
+            margin: 0 2rem;
+        }
+        .search-bar {
+            width: 110%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>');
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            padding-left: 2.5rem;
+        }
+        .actions-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #2b5f5f;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .action-item i {
+            font-size: 1.25rem;
+        }
+        .navigation {
+            background-color: #2b5f5f;
+            padding: 1rem 0;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            list-style: none;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .user-menu-container {
+            position: relative;
+            display: inline-block;
+        }
+        #userMenu {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            padding: 0.5rem;
+            z-index: 10;
+        }
+        #userMenu a {
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #374151;
+            font-weight: 500;
+        }
+        #userMenu a:hover {
+            background-color: #f3f4f6;
+        }
+        #userMenuButton {
+            background-color: transparent;
+            border: none;
+            color: #2b5f5f;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .message-container {
+            position: fixed;
+            border: #3b40d3;
+            border-radius: 10px;
+            top: center;
+            left: center;        
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width:100%;
+            width:100%
+        }
+
+        .message {
+            padding: 10px 20px;
+            border:#26852b;
+            border-radius: 5px;
+            color: #26852b;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+            display:flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: fadeIn 0.5s ease-in-out;
+            box-shadow: 0px 4px 6px rgba(183, 70, 211, 0.116);
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .message.warning {  background-color: #ffc107; color: #333; }
+
+        .message-close {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 10px;
+        }
+
+        /* Animation for fade-in and fade-out effect */
+        /* @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(-20px); }
+            10%, 90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        } */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer styles */
+        .footer {
+            background-color: #2b5f5f;
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4rem;
+            margin-bottom: 2rem;
+        }
+        .footer-section h3 {
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        .footer-section ul {
+            list-style: none;
+        }
+        .footer-section ul li {
+            margin-bottom: 0.75rem;
+        }
+        .footer-section ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: opacity 0.2s;
+        }
+        .footer-section ul li a:hover {
+            opacity: 0.8;
+        }
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .social-icons a {
+            color: white;
+            font-size: 1.25rem;
+            transition: opacity 0.2s;
+        }
+        .social-icons a:hover {
+            opacity: 0.8;
+        }
+        .subscribe-text {
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        .subscribe-form {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .subscribe-form input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            color: #333;
+        }
+        .subscribe-form input::placeholder {
+            color: #666;
+        }
+        .subscribe-form button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            background-color: white;
+            color: #2b5f5f;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .subscribe-form button:hover {
+            opacity: 0.9;
+        }
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .search-section {
+                margin: 0.5rem 0;
+                width: 100%;
+            }
+            .actions-section {
+                width: 100%;
+                justify-content: space-around;
+            }
+            .nav-links {
+                gap: 1rem;
+                padding: 0 1rem;
+                flex-wrap: wrap;
+            }
+            .message-container {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+    </style>
+    {% block page_styles %}
+    <!--Extra styles for specific pages -->    
+    {% endblock %}
+</head>
+<body>
+<header>
+    <div class="header-top">
+        <div class="logo-section">
+            <img src="{% static 'userside/assets/imgs/theme/icons/logo_wordbloom.png' %}" alt="WordBloom Logo">
+            <span>WordBloom</span>
+        </div>
+        <div class="search-section">
+            <input type="search" class="search-bar" placeholder="Search by Author, Publisher, Book Type and more">
+        </div>
+        <!-- <div class="actions-section">
+            <a href="#" class="action-item"><i class="ri-shopping-cart-2-line"></i><span>Cart</span></a>
+            <a href="#" class="action-item"><i class="ri-heart-line"></i><span>Wishlist</span></a>
+            <a href="{% url 'accounts:user_login' %}" class="action-item"><i class="ri-user-line"></i><span>Account</span></a>
+        </div> -->
+        {% comment %} <div class="actions-section">
+            <a href="{% url 'cart:cart-view' %}" class="action-item"><i class="ri-shopping-cart-2-line"></i><span>Cart</span></a>
+            <a href="#" class="action-item"><i class="ri-heart-line"></i><span>Wishlist</span></a>
+            {% if user.is_authenticated %}
+                <!-- <a href="#" class="action-item"><i class="ri-user-line"></i><span>{{ user.first_name }}</span></a> -->
+                <div class="user-menu-container">
+                    <button id="userMenuButton">Hello, {{ request.user.first_name }}</button>                  
+
+                    <div id="userMenu">
+                        <a href="{% url 'userpanel:profile' %}">My Profile</a>
+                        <a href="{% url 'userpanel:order_list' %}">My Orders</a>
+                        <a href="{% url 'userpanel:wishlist' %}">My Wishlist</a>
+                        <a href="{% url 'accounts:logout' %}">Logout</a>
+                    </div>
+
+                </div>
+            {% else %}
+                <a href="{% url 'accounts:user_login' %}" class="action-item"><i class="ri-user-line"></i><span>Account</span></a>
+            {% endif %}
+        </div>         {% endcomment %}
+        <div class="actions-section">
+            {% if user.is_authenticated %}
+                <a href="{% url 'cart:cart-view' %}" class="action-item"><i class="ri-shopping-cart-2-line"></i><span>Cart</span></a>
+                <a href="#" class="action-item"><i class="ri-heart-line"></i><span>Wishlist</span></a>
+                <div class="user-menu-container">
+                    <button id="userMenuButton">Hello, {{ request.user.first_name }}</button>
+                    <div id="userMenu">
+                        <a href="{% url 'userpanel:profile' %}">My Profile</a>
+                        <a href="{% url 'userpanel:order_list' %}">My Orders</a>
+                        <a href="{% url 'userpanel:wishlist' %}">My Wishlist</a>
+                        <a href="{% url 'accounts:logout' %}">Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'accounts:user_login' %}?next={% url 'cart:cart-view' %}" class="action-item"><i class="ri-shopping-cart-2-line"></i><span>Cart</span></a>
+                <a href="{% url 'accounts:user_login' %}" class="action-item"><i class="ri-heart-line"></i><span>Wishlist</span></a>
+                <a href="{% url 'accounts:user_login' %}" class="action-item"><i class="ri-user-line"></i><span>Account</span></a>
+            {% endif %}
+        </div>
+    </div>
+    <nav class="navigation">
+        <ul class="nav-links">
+            <li><a href="{% url 'accounts:home' %}">Home</a></li>
+            <li><a href="{% url 'accounts:shop' %}">Shop</a></li>
+            <li><a href="{% url 'accounts:category' %}">Category</a></li>
+            <li><a href="{% url 'accounts:authors' %}">Authors</a></li>
+            <li><a href="{% url 'accounts:contact' %}">Contact</a></li>
+            <li><a href="{% url 'accounts:aboutus' %}">About Us</a></li>
+        </ul>
+    </nav>
+</header>
+<main>
+    {% if messages %}
+    <div id="messages" class="message-container">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="message-close" onclick="this.parentElement.remove()">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}
+    
+    <!-- Page-specific content will go here -->
+    {% endblock %}
+</main>
+<footer>
+    <div class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Team</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><a href="#">Help & Support</a></li>
+                        <li><a href="#">Partner with us</a></li>
+                        <li><a href="#">Ride with us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Refund & Cancellation</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Follow Us</h3>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                    <p class="subscribe-text">Receive exclusive offers in your mailbox</p>
+                    <form class="subscribe-form">
+                        <input type="email" placeholder="Enter Your email">
+                        <button type="submit">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>All rights Reserved © WordBloom, 2024</p>
+            </div>
+        </div>
+    </div>
+</footer>
+<script>
+    // Toggle user menu visibility
+    document.getElementById('userMenuButton').addEventListener('click', function() {
+        const menu = document.getElementById('userMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Close menu if clicked outside
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('userMenu');
+        const button = document.getElementById('userMenuButton');
+        if (e.target !== menu && e.target !== button) {
+            menu.style.display = 'none';
+        }
+    });
+</script>
+<!-- <script>
+    // Automatically remove messages after 5 seconds
+    document.addEventListener("DOMContentLoaded", function() {
+        const messages = document.getElementById("messages");
+        if (messages) {
+            setTimeout(() => {
+                messages.remove();
+            }, 10000); // 5 seconds
+        }
+    });
+</script> -->
+<script>
+    // ... (previous scripts remain unchanged) ...
+
+    // Automatically remove messages after 10 seconds
+    document.addEventListener("DOMContentLoaded", function() {
+        const messages = document.querySelectorAll(".message");
+        messages.forEach(message => {
+            setTimeout(() => {
+                message.style.animation = 'fadeIn 0.5s ease-in-out reverse';
+                setTimeout(() => message.remove(), 500);
+            }, 10000); // 10 seconds
+        });
+    });
+</script>
+</body>
+</html>

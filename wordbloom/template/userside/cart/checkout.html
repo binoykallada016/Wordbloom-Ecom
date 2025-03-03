@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block title %}Checkout | WordBloom{% endblock %}
+
+{% block page_styles %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .card {
+        margin-bottom: 1rem;
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .card-header {
+        background-color: #2b5f5f;
+        color: white;
+        font-weight: bold;
+    }
+    .btn-primary {
+        background-color: #a9c4fd;
+        border-color: #2b5f5f;
+        border-radius: 12px;
+        width: 120px;
+        height: 36px;
+        margin-top: 10px;
+        padding: 7px;
+        font-size: medium;
+    }
+    .btn-primary:hover {
+        background-color:rgb(194, 242, 225);
+        border-color: #234c4c;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+    .address-item {
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .address-item.selected {
+        border-color: #2b5f5f;
+        background-color: #f0f8f8;
+    }
+    .wallet-balance {
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background-color: #f0f8ff; /* Light blue background */
+        border: 1px solid #b4d2f1;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    @media (max-width: 768px) {
+        .col-md-8, .col-md-4 {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center mb-4">Checkout</h1>
+    {% comment %} <form method="post" action="{% url 'orders:place-order' %}"> {% endcomment %}
+    <form method="post" action="{% url 'cart:checkout' %}">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2>Shipping Address</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if user_addresses %}
+                            {% for address in user_addresses %}
+                                <div class="address-item {% if forloop.first %}selected{% endif %}" 
+                                     data-address-id="{{ address.id }}">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="address" 
+                                               id="address{{ address.id }}" 
+                                               value="{{ address.id }}" 
+                                               {% if forloop.first %}checked{% endif %}>
+                                        <label class="form-check-label" for="address{{ address.id }}">
+                                            <strong>{{ address.name }}</strong><br>
+                                            {{ address.house_name }}, {{ address.street_name }},<br>
+                                            {{ address.district }}, {{ address.state }}, 
+                                            {{ address.country }} - {{ address.pin_number }}<br>
+                                            Phone: {{ address.phone_number }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No addresses found. Please add a new address.</p>
+                        {% endif %}
+                        <a href="{% url 'cart:add-address' %}" class="btn btn-secondary mt-3">Add New Address</a>
+                    </div>
+                </div>   
+                
+                <!-- Payment Method -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Payment Method</h2>
+                    </div>
+                     <div class="card-body">
+                        {% if wallet_balance > 0 %}
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="use_wallet" id="use_wallet" {% if wallet_balance >= total_after_discount %}checked{% endif %}>
+                                <label class="form-check-label" for="use_wallet">
+                                    Use Wallet Balance (₹{{ wallet_balance|floatformat:2 }})
+                                </label>
+                            </div>
+                        {% endif %}
+
+                        <div class="form-check mb-3">
+                            {% comment %} <input class="form-check-input" type="radio" name="payment_method" id="cod" value="Cash on Delivery" checked>
+                            <label class="form-check-label" for="cod">
+                                <i class="fas fa-money-bill-wave me-2"></i>Cash on Delivery
+                            </label> {% endcomment %}
+                            <input class="form-check-input" type="radio" name="payment_method" id="cod" value="Cash on Delivery"
+                                {% if total_after_discount > 1000 %} disabled {% endif %}>
+                            <label class="form-check-label" for="cod">
+                                <i class="fas fa-money-bill-wave me-2"></i>Cash on Delivery
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" id="razorpay" value="Razorpay">
+                            <label class="form-check-label" for="razorpay">
+                                <i class="fas fa-credit-card me-2"></i>Pay Online (Razorpay)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Order Summary</h2>
+                    </div>
+                    <div class="card-body">
+                        {% for item in cart_items %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>
+                                    {{ item.variant.product.product_name }} 
+                                    - {{ item.variant.format }} 
+                                    (x{{ item.quantity }})
+                                </span>
+                                <span>₹{{ item.sub_total }}</span>
+                            </div>
+                        {% endfor %}
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping:</span>
+                            <span>₹{{ shipping_charge }}</span>
+                        </div>
+                        {% comment %} <div class="d-flex justify-content-between mb-2">
+                            <strong>Total:</strong>
+                            <strong>₹{{ total_after_discount|floatformat:2 }}</strong>
+                        </div> {% endcomment %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <strong>Amount to Pay:</strong>
+                            <strong>₹<span id="amount-to-pay">{{ total_after_discount|floatformat:2 }}</span></strong>
+                        </div>                        
+                        <button type="submit" class="btn btn-primary btn-block mt-3">
+                            Place Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let useWalletCheckbox = document.getElementById("use_wallet");
+        let amountToPayElement = document.getElementById("amount-to-pay");
+
+        let walletBalance = parseFloat("{{ wallet_balance|floatformat:2 }}");
+        let totalAmount = parseFloat("{{ total_after_discount|floatformat:2 }}");
+
+        function updateAmountToPay() {
+            let amountToPay = totalAmount;
+
+            if (useWalletCheckbox.checked) {
+                if (walletBalance >= totalAmount) {
+                    amountToPay = 0;
+                } else {
+                    amountToPay = totalAmount - walletBalance;
+                }
+            }
+            
+            amountToPayElement.textContent = amountToPay.toFixed(2);
+        }
+
+        // Initial calculation
+        updateAmountToPay();
+
+        // Add event listener
+        useWalletCheckbox.addEventListener("change", updateAmountToPay);
+    });
+</script>
+
+{% endblock %}
+
+
+
+
+
+
+
+

@@ -1,0 +1,636 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Wordbloom : Admin Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #2b5f5f;
+        --secondary-color: #dc2626;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+        --info-color: #3b82f6;
+        --text-color: #333;
+        --light-gray: #f3f4f6;
+        --medium-gray: #9ca3af;
+        --dark-gray: #4b5563;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+        background-color: #f8f8f8;
+        color: #333;
+        display: flex;
+        min-height: 100vh;
+    }
+
+    
+
+    .main-content {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .admin-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+    }
+
+    .admin-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .search-and-add {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .search-form {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .search-form input {
+        min-width: 250px;
+    }
+    
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #1e4545;
+    }
+
+    .btn-edit {
+        background-color: var(--info-color);
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background-color: #2563eb;
+    }
+
+    .btn-delete {
+        background-color: var(--danger-color);
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background-color: #b91c1c;
+    }
+
+    .btn-restore {
+        background-color: var(--success-color);
+        color: white;
+    }
+
+    .btn-restore:hover {
+        background-color: #047857;
+    }
+
+    tr.deleted {
+        background-color: #f8f8f8;
+    }
+
+    tr.deleted td {
+        opacity: 0.6;
+    }
+
+    /* Keep all buttons in the action cell visible */
+    tr.deleted td:last-child {
+        opacity: 1 !important;
+    }
+
+    /* Disable all buttons except restore */
+    tr.deleted .btn {
+        opacity: 0.4;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    /* Keep restore button active */
+    tr.deleted .btn-restore {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+
+    .btn-offer {
+        background-color: var(--warning-color);
+        color: white;
+    }
+
+    .btn-offer:hover {
+        background-color: #994500;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    th, td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--light-gray);
+    }
+
+    th {
+        background-color: var(--light-gray);
+        font-weight: 600;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .active-offer {
+        font-weight: bold;
+        color: var(--warning-color);
+    }
+
+    .deleted {
+        opacity: 0.5;
+        background-color: #f8d7da;
+    }
+    
+    /* Add this to your existing styles */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding: 1rem;
+    }
+
+    .pagination a {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--primary-color);
+        border-radius: 4px;
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .pagination a:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .pagination .current {
+        padding: 0.5rem 1rem;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 4px;
+    }
+
+    .pagination .disabled {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--medium-gray);
+        color: var(--medium-gray);
+        border-radius: 4px;
+        pointer-events: none;
+    }
+
+    @media (max-width: 768px) {
+        .admin-controls {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+        .admin-controls h2 {
+            text-align: center;
+        }
+        .search-and-add {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .search-form {
+            width: 100%;
+        }
+        
+        .search-form input {
+            min-width: 0;
+            flex: 1;
+        }
+        table, thead, tbody, th, td, tr {
+            display: block;
+        }
+        thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+        tr {
+            margin-bottom: 1rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: 4px;
+        }
+        td {
+            border: none;
+            position: relative;
+            padding-left: 50%;
+        }
+        td:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 10px;
+            font-weight: bold;
+        }
+        .action-buttons {
+            flex-direction: column;
+        }
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .modal-content {
+            width: 95%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+        <div class="admin-content">
+            <div class="admin-controls">
+                <h2>Categories</h2>
+                <div class="search-and-add">
+                    <form method="GET" class="search-form">
+                        <input 
+                            type="text" 
+                            name="search" 
+                            placeholder="Search categories..."
+                            value="{{ search_query }}"
+                            class="form-control"
+                        >
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ri-search-line"></i> Search
+                        </button>
+                    </form>
+                    <button onclick="showAddCategoryModal()" class="btn btn-primary">
+                        <i class="ri-add-line"></i> Add New Category
+                    </button>
+                </div>
+                {% comment %} <button onclick="showAddCategoryModal()" class="btn btn-primary">
+                    <i class="ri-add-line"></i> Add New Category
+                </button> {% endcomment %}
+            </div>
+            
+            <table id="categoryTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Offer Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr data-id="{{ category.id }}" class="{% if not category.is_active %}deleted{% endif %}">
+                        <td>{{ category.id }}</td>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.description }}</td>
+                        <td>{% if category.is_active %}Active{% else %}Inactive{% endif %}</td>
+                        <td class="{% if category.offers.exists %}active-offer{% endif %}">
+                            {% if category.offers.exists %}Active Offer{% else %}No Offer{% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button onclick="showEditCategoryModal('{{ category.id }}', '{{ category.name }}', '{{ category.description }}')" 
+                                        class="btn btn-edit">
+                                    <i class="ri-edit-line"></i> Edit
+                                </button>
+                                
+                                <button onclick="confirmCategoryAction('{{ category.id }}', '{% if category.is_active %}deactivate{% else %}restore{% endif %}')"
+                                        class="btn {% if category.is_active %}btn-delete{% else %}btn-restore{% endif %}">
+                                    <i class="{% if category.is_active %}ri-delete-bin-line{% else %}ri-refresh-line{% endif %}"></i>
+                                    {% if category.is_active %}Delete{% else %}Restore{% endif %}
+                                </button>
+                                
+                                <button onclick="showOfferModal('{{ category.id }}')"
+                                        class="btn btn-offer">
+                                    <i class="ri-price-tag-3-line"></i> Category Offer
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            {% if categories.paginator.num_pages > 1 %}
+            <div class="pagination">
+                {% if categories.has_previous %}
+                    <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="first">
+                        <i class="ri-arrow-left-double-line"></i> First
+                    </a>
+                    <a href="?page={{ categories.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                        <i class="ri-arrow-left-line"></i> Previous
+                    </a>
+                {% else %}
+                    <span class="disabled"><i class="ri-arrow-left-double-line"></i> First</span>
+                    <span class="disabled"><i class="ri-arrow-left-line"></i> Previous</span>
+                {% endif %}
+
+                {% for num in categories.paginator.page_range %}
+                    {% if categories.number == num %}
+                        <span class="current">{{ num }}</span>
+                    {% elif num > categories.number|add:'-3' and num < categories.number|add:'3' %}
+                        <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if categories.has_next %}
+                    <a href="?page={{ categories.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                        Next <i class="ri-arrow-right-line"></i>
+                    </a>
+                    <a href="?page={{ categories.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="last">
+                        Last <i class="ri-arrow-right-double-line"></i>
+                    </a>
+                {% else %}
+                    <span class="disabled">Next <i class="ri-arrow-right-line"></i></span>
+                    <span class="disabled">Last <i class="ri-arrow-right-double-line"></i></span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="addCategoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addCategoryModal')">&times;</span>
+            <h2>Add New Category</h2>
+            <form id="addCategoryForm" action="{% url 'category:add_category' %}" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="addCategoryName">Category Name</label>
+                    <input type="text" id="addCategoryName" name="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label for="addCategoryDescription">Description</label>
+                    <textarea id="addCategoryDescription" name="categoryDescription"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Category</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div id="editCategoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editCategoryModal')">&times;</span>
+            <h2>Edit Category</h2>
+            <form id="editCategoryForm" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="editCategoryName">Category Name</label>
+                    <input type="text" id="editCategoryName" name="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCategoryDescription">Description</label>
+                    <textarea id="editCategoryDescription" name="categoryDescription"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Category</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Offer Modal -->
+    <div id="offerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('offerModal')">&times;</span>
+            <h2>Add Category Offer</h2>
+            <form id="offerForm" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="offerName">Offer Name</label>
+                    <input type="text" id="offerName" name="offerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="discountType">Discount Type</label>
+                    <select id="discountType" name="discountType" required>
+                        <option value="Percentage">Percentage</option>
+                        <option value="Flat">Flat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="discountValue">Discount Value</label>
+                    <input type="number" id="discountValue" name="discountValue" required step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="minimumPurchaseAmount">Minimum Purchase Amount</label>
+                    <input type="number" id="minimumPurchaseAmount" name="minimumPurchaseAmount" required step="0.01" min="0">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Offer</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Show modals
+        function showAddCategoryModal() {
+            document.getElementById('addCategoryModal').style.display = 'block';
+        }
+
+        // function showEditCategoryModal(categoryId, name, description) {
+        //     const modal = document.getElementById('editCategoryModal');
+        //     const form = document.getElementById('editCategoryForm');
+        //     form.action = `/category/category-edit/${categoryId}/`;
+        //     document.getElementById('editCategoryName').value = name;
+        //     document.getElementById('editCategoryDescription').value = description;
+        //     modal.style.display = 'block';
+        // }
+
+        // A more robust way using Django's URL routing
+        function showEditCategoryModal(categoryId, name, description) {
+            const modal = document.getElementById('editCategoryModal');
+            const form = document.getElementById('editCategoryForm');
+            form.action = "{% url 'category:edit_category' 999 %}".replace('999', categoryId);
+            document.getElementById('editCategoryName').value = name;
+            document.getElementById('editCategoryDescription').value = description;
+            modal.style.display = 'block';
+        }
+
+        // function showOfferModal(categoryId) {
+        //     const modal = document.getElementById('offerModal');
+        //     const form = document.getElementById('offerForm');
+        //     form.action = `/category/category-offer-add/${categoryId}/`;
+        //     modal.style.display = 'block';
+        // }
+        function showOfferModal(categoryId) {
+            const modal = document.getElementById('offerModal');
+            const form = document.getElementById('offerForm');
+            form.action = "{% url 'category:add_category_offer' 999 %}".replace('999', categoryId);
+            modal.style.display = 'block';
+        }
+
+
+        // Close modals
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function confirmCategoryAction(categoryId, action) {
+            Swal.fire({
+                title: `Are you sure?`,
+                text: `Do you want to ${action} this category?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: `Yes, ${action} it!`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "{% url 'category:delete_category' 999 %}".replace('999', categoryId);
+                }
+            });
+        }
+
+            // Close modals
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Display Django messages using SweetAlert2
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    title: '{{ message.tags|title }}!',
+                    text: '{{ message }}',
+                    icon: '{{ message.tags }}',
+                    confirmButtonText: 'OK'
+                });
+            {% endfor %}
+        {% endif %}
+
+        // Form submission with SweetAlert2
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Saving...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                this.submit();
+            });
+        });
+    </script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+

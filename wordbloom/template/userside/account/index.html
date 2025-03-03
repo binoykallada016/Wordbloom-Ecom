@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+
+{% block title %}WordBloom : Home{% endblock %}
+
+{% block page_styles %}
+<style>
+    /* Main content styles */
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .hero-banner {
+        background-image: url('/placeholder.svg?height=400&width=1400');
+        background-size: cover;
+        background-position: center;
+        height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .hero-content {
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 2rem;
+        border-radius: 8px;
+    }
+    .hero-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    .hero-subtitle {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .cta-button {
+        background-color: #e53e3e;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: background-color 0.3s;
+    }
+    .cta-button:hover {
+        background-color: #c53030;
+    }
+    .section-title {
+        font-size: 1.5rem;
+        color: #2b5f5f;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    .book-grid {
+        display: flex;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .book-card {
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 1rem;
+        position: relative;
+        text-align: center;
+        max-width: 280px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .book-card .wishlist {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: #dc2626;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .book-cover {
+        width: 100%;
+        max-width: 200px;
+        height: auto;
+        margin: 0 auto 1rem;
+        display: block;
+    }
+
+    .book-title {
+        font-size: 1.25rem;
+        color: #000;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .book-author-label {
+        color: #000;
+        font-weight: 500;
+        margin-right: 0.25rem;
+    }
+
+    .book-author {
+        color: #4a5568;
+    }
+
+    .price-container {
+        margin: 1rem 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .current-price {
+        color: #dc2626;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .original-price {
+        color: #666;
+        text-decoration: line-through;
+    }
+
+    .button-container {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .buy-button {
+        background-color: #dc2626;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        flex: 1;
+        font-weight: 500;
+    }
+
+    .cart-button {
+        background-color: #374151;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        flex: 1;
+        font-weight: 500;
+    }
+
+    .rating {
+        color: #fbbf24;
+        font-size: 1.25rem;
+    }
+    .categories {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 3rem;
+    }
+    .category-card {
+        flex: 1;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+    }
+    .category-card:hover {
+        transform: translateY(-5px);
+    }
+    .category-image {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+    }
+    .category-name {
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+        color: #2b5f5f;
+    }
+    
+    /* Responsive design */
+        @media (max-width: 768px) {        
+        .hero-title {
+            font-size: 2rem;
+        }
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+        .book-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+        .categories {
+            flex-direction: column;
+        }
+    }   
+</style>
+{% endblock %}
+
+
+{% block content %}
+<main>
+    <!-- <header>
+        <div class="container">
+            <h1>Welcome, {{ request.user.first_name }}</h1>
+            <div class="user-menu-container">
+                <button id="userMenuButton">Hello, {{ request.user.first_name }}</button>
+                <div id="userMenu">
+                    <a href="{% url 'userpanel:profile' %}">My Profile</a>
+                    <a href="{% url 'userpanel:order_list' %}">My Orders</a>
+                    <a href="{% url 'userpanel:wishlist' %}">My Wishlist</a>
+                    <a href="{% url 'accounts:logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header> -->
+    <div class="hero-banner">
+        <div class="hero-content">
+            <h1 class="hero-title">Discover Your Next Great Read</h1>
+            <p class="hero-subtitle">Explore thousands of books from bestselling authors and emerging talents</p>
+            <a href="{% url 'accounts:shop' %}" class="cta-button">Shop Now</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <section>
+            <h2 class="section-title">Featured Books</h2>
+            <div class="book-grid">
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>                    
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>                    
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>                    
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>                    
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Popular Categories</h2>
+            <div class="categories">
+                <div class="category-card">
+                    <img src="/placeholder.svg?height=150&width=300" alt="Fiction" class="category-image">
+                    <div class="category-name">Fiction</div>
+                </div>
+                <div class="category-card">
+                    <img src="/placeholder.svg?height=150&width=300" alt="Non-Fiction" class="category-image">
+                    <div class="category-name">Non-Fiction</div>
+                </div>
+                <div class="category-card">
+                    <img src="/placeholder.svg?height=150&width=300" alt="Mystery" class="category-image">
+                    <div class="category-name">Mystery</div>
+                </div>
+                <div class="category-card">
+                    <img src="/placeholder.svg?height=150&width=300" alt="Science Fiction" class="category-image">
+                    <div class="category-name">Science Fiction</div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">New Arrivals</h2>
+            <div class="book-grid">
+                
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>
+                <div class="book-card">
+                    <i class="ri-heart-line wishlist"></i>
+                    <img src="/placeholder.svg?height=300&width=200" alt="Ratan Tata A Life" class="book-cover">
+                    <h3 class="book-title">Ratan Tata A Life</h3>
+                    <p>
+                        <span class="book-author-label">Book Author:</span>
+                        <span class="book-author">Thomas Mathew</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="current-price">₹1199</span>
+                        <span class="original-price">₹1499.00</span>
+                    </div>
+                    <div class="button-container">
+                        <button class="buy-button">BUY</button>
+                        <button class="cart-button">ADD TO CART</button>
+                    </div>
+                    <div class="rating">
+                        ★★★★★
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+<!-- <script>
+    // Toggle user menu visibility
+    document.getElementById('userMenuButton').addEventListener('click', function() {
+        const menu = document.getElementById('userMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Close menu if clicked outside
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('userMenu');
+        const button = document.getElementById('userMenuButton');
+        if (e.target !== menu && e.target !== button) {
+            menu.style.display = 'none';
+        }
+    });
+</script> -->
+{% endblock %}
