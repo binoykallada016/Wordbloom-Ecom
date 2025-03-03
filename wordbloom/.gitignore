@@ -18,7 +18,7 @@ media/
 staticfiles/
 
 # Environment variables
-# .env
+.env
 
 # Node modules (if applicable)
 node_modules/
@@ -62,3 +62,6 @@ dist/
 build/
 *.egg-info/
 .eggs/
+
+# Virtual environment - wordbloomenv
+wordbloomenv/
