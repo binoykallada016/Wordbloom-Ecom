@@ -18,7 +18,7 @@ media/
 staticfiles/
 
 # Environment variables
-.env
+# .env
 
 # Node modules (if applicable)
 node_modules/
