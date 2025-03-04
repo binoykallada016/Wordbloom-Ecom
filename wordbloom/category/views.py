@@ -30,7 +30,7 @@ def category_list(request):
     
     # Pagination
     page = request.GET.get('page', 1)
-    items_per_page = 7  # You can adjust this number
+    items_per_page = 7
     
     paginator = Paginator(categories, items_per_page)
     

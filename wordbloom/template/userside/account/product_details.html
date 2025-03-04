@@ -539,46 +539,8 @@
                                     oninput="this.value = this.value.replace(/[eE+-]/g, ''); if (this.value > parseInt(this.max)) this.value = this.max;">
                             <button type="button" class="quantity-btn quantity-increase">+</button>
                         </div>
-                    </div>
-                    
-                    {% comment %} <div class="action-buttons">
-                        <button class="btn btn-primary">
-                            <i class="fas fa-shopping-cart"></i>
-                            Buy Now
-                        </button>
-                        <form id="add-to-cart-form" method="post" action="{% url 'cart:add-to-cart' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="variant_id" id="variant_id" value="{{ default_variant.id }}">
-                            <input type="hidden" name="quantity" id="cart-quantity" value="1">
-                            <button type="submit" class="btn btn-secondary">
-                                <i class="fas fa-cart-plus"></i>
-                                Add to Cart
-                            </button>
-                        </form>
-                        {% if request.user.is_authenticated %}
-                            <span class="btn btn-accent wishlisted" id="wishlist-added" style="display: none;">
-                                <i class="fas fa-heart"></i>
-                                Added to Wishlist
-                            </span>
-                            <form method="post" action="{% url 'userpanel:add_to_wishlist' product.product_id %}" 
-                                id="wishlist-form" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="variant_id" id="wishlist-variant-id" value="{{ default_variant.id }}">
-                                <button type="submit" class="btn btn-accent" id="wishlist-button">
-                                    <i class="fas fa-heart"></i>
-                                    Add to Wishlist
-                                </button>
-                            </form>
-                        {% else %}
-                            <a href="{% url 'accounts:user_login' %}" class="btn btn-accent">
-                                <i class="fas fa-heart"></i>
-                                Login to Wishlist
-                            </a>
-                        {% endif %}                        
-                    </div> {% endcomment %}
-
+                    </div>       
                     <div class="action-buttons">
-                        
                         {% if request.user.is_authenticated %}
                             <button class="btn btn-primary">
                                 <i class="fas fa-shopping-cart"></i>
@@ -593,7 +555,6 @@
                                     Add to Cart
                                 </button>
                             </form>
-
                             <span class="btn btn-accent wishlisted" id="wishlist-added" style="display: none;">
                                 <i class="fas fa-heart"></i>
                                 Added to Wishlist
@@ -623,7 +584,6 @@
                             </a>
                         {% endif %}                        
                     </div>
-
                 </div>
             </div>
             <div class="tabs">
@@ -635,16 +595,7 @@
                 <div class="tab-content active" id="description">
                     <h3>About the Book</h3>
                     <p>{{ product.product_description }}</p>
-                </div>
-                {% comment %} <div class="tab-content" id="details">
-                    <div class="product-details">
-                        <p><strong>Author:</strong> {{ product.author.name }}</p>
-                        <p><strong>ISBN:</strong> {{ default_variant.isbn  }}</p>
-                        <p><strong>Pages:</strong> {{ default_variant.page_count }}</p>
-                        <p><strong>Language:</strong> {{ product.language }}</p>
-                        <p><strong>Publication Date:</strong> {{ product.publication_date }}</p>
-                    </div>
-                </div> {% endcomment %}
+                </div>                
                 <div class="tab-content" id="details">
                     <div class="product-details">
                         <p><strong>Author:</strong> {{ product.author.name }}</p>
@@ -666,8 +617,7 @@
 
                     <div class="review-list"> 
                         {% for review in product.reviews.all %}
-                        <div class="review-item"> 
-                            {% comment %} <div class="stars">{{ review.rating|stars }}</div>  {% endcomment %}
+                        <div class="review-item">                             
                             <p><strong>{{ review.user.name }}</strong></p> 
                             <p>{{ review.content }}</p> 
                             <small>{{ review.created_at|date }}</small> 
@@ -676,8 +626,7 @@
                     </div> 
 
                     <div class="review-form"> 
-                        <h3>Write a Review</h3> 
-                        {% comment %} <form action="{% url 'add_review' product.id %}" method="POST">  {% endcomment %}
+                        <h3>Write a Review</h3>                         
                             {% csrf_token %}
                             <div class="form-group"> 
                                 <label class="form-label">Rating</label> 
@@ -967,18 +916,4 @@
         });
     });
 </script>
-
-
-{% comment %} <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-  {% for message in messages %}
-    Swal.fire({
-      icon: "{{ message.tags }}",
-      title: "{{ message }}",
-      showConfirmButton: false,
-      timer: 3000
-    });
-  {% endfor %}
-</script> {% endcomment %}
-
 {% endblock %}

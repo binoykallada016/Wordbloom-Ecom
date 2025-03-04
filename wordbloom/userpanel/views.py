@@ -23,8 +23,6 @@ from django.conf import settings
 
 
 # Create your views here.
-
-
 @login_required
 def profile(request):
     return render(request, 'userside/userpanel/profile.html')
@@ -288,21 +286,7 @@ def generate_invoice(request, order_id):
     for detail in order_details:
         elements.append(Paragraph(detail, styles['Normal']))
     elements.append(Spacer(1, 12))
-
-    # # Billing and Shipping Address (Simplified for brevity)
-    # elements.append(Paragraph("Billing Address:", styles['h2']))
-    # elements.append(Paragraph(f"{request.user.full_name}", styles['Normal'])) #Using get full name method
-    # elements.append(Paragraph(f"{request.user.email}", styles['Normal']))
-    # elements.append(Paragraph(f"{order.address.name}", styles['Normal']))
-    # elements.append(Paragraph(f"{order.address.house_name}, {order.address.street_name}", styles['Normal']))
-    # elements.append(Paragraph(f"{order.address.district}, {order.address.state}", styles['Normal']))
-    # elements.append(Paragraph(f"{order.address.country} - {order.address.pin_number}", styles['Normal']))
-    # elements.append(Paragraph(f"Phone: {order.address.phone_number}", styles['Normal']))
-
-    elements.append(Spacer(1, 12))
     elements.append(Paragraph("Shipping Address:", styles['h2']))
-    # elements.append(Paragraph(f"{request.user.full_name}", styles['Normal']))
-    # elements.append(Paragraph(f"{request.user.email}", styles['Normal']))
     elements.append(Paragraph(f"{order.address.name}", styles['Normal']))
     elements.append(Paragraph(f"{order.address.house_name}, {order.address.street_name}", styles['Normal']))
     elements.append(Paragraph(f"{order.address.district}, {order.address.state}", styles['Normal']))

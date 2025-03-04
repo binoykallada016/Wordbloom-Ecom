@@ -281,15 +281,7 @@
                         {% for variant in product.variants.all %}
                             {{ variant.format }}: {{ variant.stock }}<br>
                         {% endfor %}
-                    </td>
-                    {% comment %} <td>
-                        {% for variant in product.variants.all %}
-                            {{ variant.format }}: 
-                            <span class="{% if variant.is_active %}status-active{% else %}status-inactive{% endif %}">
-                                {% if variant.is_active %}Active{% else %}Inactive{% endif %}
-                            </span><br>
-                        {% endfor %}
-                    </td> {% endcomment %}
+                    </td>                    
                     <td>
                         {% for variant in product.variants.all %}
                             <div class="variant-status">

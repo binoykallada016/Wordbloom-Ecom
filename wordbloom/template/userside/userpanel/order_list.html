@@ -16,7 +16,7 @@
     .container {
         max-width: 1400px;
         margin: 0 auto;
-        padding: 2rem;
+        padding: 1rem;
     }
 
     .profile-content {
@@ -26,27 +26,48 @@
         margin-top: 2rem;
     }
 
+    
+
     .profile-main {
+        position: sticky;
+        top: 0px;
         background-color: white;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         padding: 2rem;
+        height: 80vh; /* Adjust height based on preference */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
-
+    
     .section-title {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+        padding: 1rem 0;
         color: var(--primary-color);
         font-size: 1.5rem;
         font-weight: 600;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
+        margin-bottom: 1rem;
         border-bottom: 2px solid var(--border-color);
     }
+    
+    .orders-container {
+        margin-bottom:0.5rem;
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 10px; /* Prevents scrollbar overlap */
+    }
+    
 
     .order-item {
         background: white;
-        border: 1px solid var(--border-color);
+        border: 1px solid #6fd5d5;
         border-radius: 10px;
         padding: 1.5rem;
+        margin-top:1rem;
         margin-bottom: 1.5rem;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
@@ -231,76 +252,81 @@
         {% include 'includes/_profile_menu.html' with active_tab='order-history' %}
         <div class="profile-main">
             <h2 class="section-title">My Orders</h2>
-            {% for order in orders %}
-                <div class="order-item">
-                    <div class="order-header">
-                        <span class="order-id">Order #{{ order.order_id }}</span>
-                        <span class="order-date">{{ order.created_at|date:"F d, Y" }}</span>
-                    </div>
-                    <div class="order-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Status</span>
-                            <span class="badge {% if order.order_status == 'Pending' %}bg-warning
-                                             {% elif order.order_status == 'Confirmed' %}bg-info
-                                             {% elif order.order_status == 'Shipped' %}bg-primary
-                                             {% elif order.order_status == 'Delivered' %}bg-success
-                                             {% elif order.order_status == 'Cancelled' %}bg-danger
-                                             {% elif order.order_status == 'Return_Initiated' %}bg-warning
-                                             {% elif order.order_status == 'Return_Approved' %}bg-success
-                                             {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
-                                {% if order.order_status == 'Return_Initiated' %}
-                                    Return Initiated
-                                {% elif order.order_status == 'Return_Approved' %}
-                                    Return Approved
-                                {% elif order.order_status == 'Return_Rejected' %}
-                                    Return Rejected
-                                {% else %}
-                                    {{ order.order_status }}
-                                {% endif %}
-                            </span>
+            
+
+            <div class="orders-container">
+                {% for order in orders %}
+                    <div class="order-item">
+                        <div class="order-header">
+                            <span class="order-id">Order #{{ order.order_id }}</span>
+                            <span class="order-date">{{ order.created_at|date:"F d, Y" }}</span>
                         </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Total Amount</span>
-                            <span class="detail-value">₹{{ order.total_amount }}</span>
+                        <div class="order-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Status</span>
+                                <span class="badge {% if order.order_status == 'Pending' %}bg-warning
+                                                {% elif order.order_status == 'Confirmed' %}bg-info
+                                                {% elif order.order_status == 'Shipped' %}bg-primary
+                                                {% elif order.order_status == 'Delivered' %}bg-success
+                                                {% elif order.order_status == 'Cancelled' %}bg-danger
+                                                {% elif order.order_status == 'Return_Initiated' %}bg-warning
+                                                {% elif order.order_status == 'Return_Approved' %}bg-success
+                                                {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
+                                    {% if order.order_status == 'Return_Initiated' %}
+                                        Return Initiated
+                                    {% elif order.order_status == 'Return_Approved' %}
+                                        Return Approved
+                                    {% elif order.order_status == 'Return_Rejected' %}
+                                        Return Rejected
+                                    {% else %}
+                                        {{ order.order_status }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Total Amount</span>
+                                <span class="detail-value">₹{{ order.total_amount }}</span>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <a href="{% url 'userpanel:user_order_detail' order.order_id %}" class="btn btn-secondary">
+                                <i class="ri-eye-line"></i> View Details
+                            </a>
+                            
+                            {% if order.order_status == 'Delivered' %}
+                                <a href="{% url 'orders:return-request' order.order_id %}" class="btn btn-return">
+                                    <i class="ri-arrow-go-back-line"></i> Return Order
+                                </a>
+                            {% endif %}
+
+                            {% if order.order_status != 'Delivered' and order.order_status != 'Cancelled' and order.order_status != 'Return_Initiated' and order.order_status != 'Return_Approved' and order.order_status != 'Return_Rejected' %}
+                                <form method="post" action="{% url 'userpanel:cancel_order' order.order_id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="ri-close-circle-line"></i> Cancel Order
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            {% if order.payment_status == 'Failed' or order.order_status == 'Payment_Pending' %}
+                                <a href="{% url 'orders:retry-payment' order.order_id %}" class="btn btn-retry">
+                                    <i class="ri-refresh-line"></i> Retry Payment
+                                </a>
+                            {% endif %}
+
+                            <a href="{% url 'userpanel:generate_invoice' order.order_id %}" class="btn btn-invoice">
+                                <i class="ri-file-text-line"></i> Download Invoice
+                            </a>
                         </div>
                     </div>
-                    <div class="action-buttons">
-                        <a href="{% url 'userpanel:user_order_detail' order.order_id %}" class="btn btn-secondary">
-                            <i class="ri-eye-line"></i> View Details
-                        </a>
-                        
-                        {% if order.order_status == 'Delivered' %}
-                            <a href="{% url 'orders:return-request' order.order_id %}" class="btn btn-return">
-                                <i class="ri-arrow-go-back-line"></i> Return Order
-                            </a>
-                        {% endif %}
-
-                        {% if order.order_status != 'Delivered' and order.order_status != 'Cancelled' and order.order_status != 'Return_Initiated' and order.order_status != 'Return_Approved' and order.order_status != 'Return_Rejected' %}
-                            <form method="post" action="{% url 'userpanel:cancel_order' order.order_id %}" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="ri-close-circle-line"></i> Cancel Order
-                                </button>
-                            </form>
-                        {% endif %}
-
-                        {% if order.payment_status == 'Failed' or order.order_status == 'Payment_Pending' %}
-                            <a href="{% url 'orders:retry-payment' order.order_id %}" class="btn btn-retry">
-                                <i class="ri-refresh-line"></i> Retry Payment
-                            </a>
-                        {% endif %}
-
-                        <a href="{% url 'userpanel:generate_invoice' order.order_id %}" class="btn btn-invoice">
-                            <i class="ri-file-text-line"></i> Download Invoice
-                        </a>
+                {% empty %}
+                    <div class="empty-state">
+                        <p>You haven't placed any orders yet.</p>
+                        <a href="{% url 'accounts:shop' %}" class="btn btn-secondary">Start Shopping</a>
                     </div>
-                </div>
-            {% empty %}
-                <div class="empty-state">
-                    <p>You haven't placed any orders yet.</p>
-                    <a href="{% url 'accounts:shop' %}" class="btn btn-secondary">Start Shopping</a>
-                </div>
-            {% endfor %}
+                {% endfor %}
+                
+            </div>
         </div>
     </div>
 </div>

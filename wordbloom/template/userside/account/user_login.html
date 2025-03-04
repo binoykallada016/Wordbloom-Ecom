@@ -145,16 +145,8 @@
 <main>
     <div class="container">
         <div class="login-container">
-            <h1 class="login-title">Great to have you back again</h1>
-            <!-- {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                <li class="{{ message.tags }}">{{ message }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %} -->
-            <form method = "POST" action = "{% url 'accounts:user_login' %}">
-            <!-- <form id="login-form" method = "POST" action = "{% url 'accounts:user_login' %}"> -->
+            <h1 class="login-title">Great to have you back again</h1>            
+            <form method = "POST" action = "{% url 'accounts:user_login' %}">            
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="email">Email Address</label>
@@ -165,11 +157,7 @@
                     <input type="password" name = "password" id="password" required>
                 </div>
                 <a href="{% url 'accounts:forgot_password' %}" class="forgot-password">Forgot password</a>
-                <button type="submit" class="login-button">Login</button>
-                <!-- <button type="button" class="google-button">
-                    <img src="/static/userside/assets/imgs/theme/google_logo.png" alt="Google"/>
-                    Sign in with Google
-                </button> -->
+                <button type="submit" class="login-button">Login</button>                
                 <a href="{% url 'social:begin' 'google-oauth2' %}" class="google-button">
                     <img src="/static/userside/assets/imgs/theme/google_logo.png" alt="Google"/>
                     Sign in with Google
@@ -181,27 +169,4 @@
         </div>
     </div>
 </main>
-<!-- <script> // This script let the home page open in another tab when we click on login button.  For this we add an ID to the form.
-    document.getElementById('login-form').onsubmit = function(event){
-        event.preventDefault(); // Prevent the default form submission
-        const form = event.target;
-        const formData = new FormData(form);
-
-        fetch(form.action, {
-            method:form.method,
-            body: formData,
-        }).then(response => {
-            if (response.ok) {
-                window.open("{% url 'accounts:home' %}", '_blank'); // Open home page in a new tab
-            } else {
-                response.text().then(text => {
-                    console.error(text);
-                });
-            }
-        }).catch(error => {
-            console.error(error);
-        });
-    };
-</script> -->
-
 {% endblock %}

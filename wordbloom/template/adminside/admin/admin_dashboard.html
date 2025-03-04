@@ -248,28 +248,7 @@
 
 {% block content %}
 <div class="container">
-    <h1>Admin Dashboard</h1>
-    <!-- Dashboard Overview Cards (Commented Out) -->
-    {% comment %}
-    <div class="dashboard-overview">
-        <div class="overview-card">
-            <h3>Total Orders</h3>
-            <p>{{ total_orders }}</p>
-        </div>
-        <div class="overview-card">
-            <h3>Total Revenue</h3>
-            <p>₹{{ total_revenue|floatformat:2 }}</p>
-        </div>
-        <div class="overview-card">
-            <h3>Active Customers</h3>
-            <p>{{ active_customers }}</p>
-        </div>
-        <div class="overview-card">
-            <h3>Products Sold</h3>
-            <p>{{ total_products_sold }}</p>
-        </div>
-    </div>
-    {% endcomment %}
+    <h1>Admin Dashboard</h1>    
     <div class="quick-filters">
         <button class="filter-btn {% if default_range == 'daily' %}active{% endif %}" data-filter="daily" onclick="applyFilter('daily')">Today</button>
         <button class="filter-btn {% if default_range == 'weekly' %}active{% endif %}" data-filter="weekly" onclick="applyFilter('weekly')">This Week</button>

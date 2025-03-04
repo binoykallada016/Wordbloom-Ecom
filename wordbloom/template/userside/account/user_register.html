@@ -24,30 +24,7 @@
         /* Styling for error messages */
         .error-messages{
             color:red;
-        }
-        /* .error-messages {
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            background-color: #ffe6e6; 
-            border: 1px solid #e53e3e; 
-            border-radius: 6px;
-        }
-
-        .error-messages ul {
-            list-style-type: none; 
-            margin: 0;
-            padding: 0;
-        }
-
-        .error-messages li {
-            color: #b22222; 
-            font-size: 10px;
-            line-height: 1;
-        }
-
-        .error-messages strong {
-            font-weight: 400;
-        } */
+        }        
         .form-title {
             color: #2b5f5f;
             font-size: 24px;
@@ -105,12 +82,12 @@
             width: 50%;
             max-width: 300px;
             margin: 2rem auto;
-            display: flex; /* Change to flex for centering */
-            align-items: center; /* Vertically centers content */
-            justify-content: center; /* Horizontally centers content */
-            text-align: center; /* Ensures text alignment */
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            text-align: center; 
             transition: background-color 0.2s;
-            text-decoration: none; /* Removes the underline for <a> */
+            text-decoration: none; 
         }
         .submit-btn:hover {
             background-color: #219f9f;
@@ -136,14 +113,7 @@
 <div class="container">
     <form class="signup-form" method="POST">
         {% csrf_token %}
-        <h1 class="form-title">Sign Up - Create New Account</h1>
-        <!-- {% if errors %}
-            <ul class="form-errors">
-                {% for field, error_list in errors.items %}
-                    <li><strong>{{ field }}:</strong> {{ error_list|join:', ' }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}     -->
+        <h1 class="form-title">Sign Up - Create New Account</h1>        
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="id_first_name">{{ form.first_name.label }}</label>
@@ -201,8 +171,7 @@
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="id_password">{{ form.password.label }}</label>
-                {{ form.password }}
-                <!-- <div class="help-text">Password must meet the following requirements</div> -->
+                {{ form.password }}                
                 <div class="help-text">"Your password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one number, and one special character."</div>
                 {% if form.password.errors %}
                     <div class="error-messages">

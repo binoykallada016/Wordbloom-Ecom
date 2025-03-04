@@ -9,13 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="{% static 'userside/assets/imgs/theme/icons/logo_wordbloom.png' %}" type="image/x-icon" width="32px" height="32px">
-    <style>
-        /* Include global styles here */
-        /* body {
-            font-family: 'Outfit', sans-serif;
-            line-height: 1.6;
-            color: #333;
-        } */
+    <style>        
         * {
             margin: 0;
             padding: 0;
@@ -35,12 +29,11 @@
         /* Header styles */
         header {
             position: sticky;
-            top: 0; /* Keeps the header at the top of the viewport */
-            z-index: 1000; /* Ensures the header stays on top of other elements */
-            background-color: white; /* Prevents transparency issues when scrolling */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adds subtle shadow for visibility */
+            top: 0; 
+            z-index: 1000; 
+            background-color: white; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
         }
-
 
         .header-top {
             padding: 1rem 0.5rem;
@@ -204,13 +197,7 @@
             padding: 0;
             margin-left: 10px;
         }
-
-        /* Animation for fade-in and fade-out effect */
-        /* @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(-20px); }
-            10%, 90% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-20px); }
-        } */
+        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -348,32 +335,7 @@
         </div>
         <div class="search-section">
             <input type="search" class="search-bar" placeholder="Search by Author, Publisher, Book Type and more">
-        </div>
-        <!-- <div class="actions-section">
-            <a href="#" class="action-item"><i class="ri-shopping-cart-2-line"></i><span>Cart</span></a>
-            <a href="#" class="action-item"><i class="ri-heart-line"></i><span>Wishlist</span></a>
-            <a href="{% url 'accounts:user_login' %}" class="action-item"><i class="ri-user-line"></i><span>Account</span></a>
-        </div> -->
-        {% comment %} <div class="actions-section">
-            <a href="{% url 'cart:cart-view' %}" class="action-item"><i class="ri-shopping-cart-2-line"></i><span>Cart</span></a>
-            <a href="#" class="action-item"><i class="ri-heart-line"></i><span>Wishlist</span></a>
-            {% if user.is_authenticated %}
-                <!-- <a href="#" class="action-item"><i class="ri-user-line"></i><span>{{ user.first_name }}</span></a> -->
-                <div class="user-menu-container">
-                    <button id="userMenuButton">Hello, {{ request.user.first_name }}</button>                  
-
-                    <div id="userMenu">
-                        <a href="{% url 'userpanel:profile' %}">My Profile</a>
-                        <a href="{% url 'userpanel:order_list' %}">My Orders</a>
-                        <a href="{% url 'userpanel:wishlist' %}">My Wishlist</a>
-                        <a href="{% url 'accounts:logout' %}">Logout</a>
-                    </div>
-
-                </div>
-            {% else %}
-                <a href="{% url 'accounts:user_login' %}" class="action-item"><i class="ri-user-line"></i><span>Account</span></a>
-            {% endif %}
-        </div>         {% endcomment %}
+        </div>        
         <div class="actions-section">
             {% if user.is_authenticated %}
                 <a href="{% url 'cart:cart-view' %}" class="action-item"><i class="ri-shopping-cart-2-line"></i><span>Cart</span></a>
@@ -487,20 +449,8 @@
         }
     });
 </script>
-<!-- <script>
-    // Automatically remove messages after 5 seconds
-    document.addEventListener("DOMContentLoaded", function() {
-        const messages = document.getElementById("messages");
-        if (messages) {
-            setTimeout(() => {
-                messages.remove();
-            }, 10000); // 5 seconds
-        }
-    });
-</script> -->
-<script>
-    // ... (previous scripts remain unchanged) ...
 
+<script>   
     // Automatically remove messages after 10 seconds
     document.addEventListener("DOMContentLoaded", function() {
         const messages = document.querySelectorAll(".message");

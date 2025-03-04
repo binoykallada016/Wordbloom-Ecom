@@ -69,4 +69,3 @@ class CouponForm(forms.ModelForm):
             self.add_error('maximum_amount', "Maximum amount cannot be negative.")
 
         return cleaned_data
-

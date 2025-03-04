@@ -3,33 +3,66 @@
 
 {% block page_styles %}
 <style>
+    :root {
+        --primary-color: #2b5f5f;
+        --secondary-color: #4a90e2;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --light-gray: #f8f9fa;
+        --border-color: #e9ecef;
+    }
     .container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 2rem 1rem;
     }
-    .card {
-        margin-bottom: 1rem;
-        border: none;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    .page-title {
+        color: #2b5f5f;
+        font-size: 2rem;
+        text-align: center;
+        margin-bottom: 0.5rem;
     }
-    .card-header {
-        background-color: #2b5f5f;
-        color: white;
-        font-weight: bold;
+    
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 2rem;
+    }
+
+    .checkout-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .checkout-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+    }
+
+    .section-title {
+        color: #2b5f5f;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border-color);
     }
     .btn-primary {
-        background-color: #a9c4fd;
+        background-color: #c2f2e1;
         border-color: #2b5f5f;
-        border-radius: 12px;
-        width: 120px;
+        border-radius: 5px;
+        width: 100%;
         height: 36px;
         margin-top: 10px;
         padding: 7px;
         font-size: medium;
     }
     .btn-primary:hover {
-        background-color:rgb(194, 242, 225);
+        background-color: #a9c4fd;
         border-color: #234c4c;
     }
     .btn-secondary {
@@ -39,6 +72,32 @@
     .btn-secondary:hover {
         background-color: #5a6268;
         border-color: #545b62;
+    }
+
+    .btn-add-address {
+        display: inline-block;
+        text-decoration: none;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        background-color: #a8ecec;
+        color: #2b5f5f;
+        width:15rem;
+    }
+
+    .btn-add-address:hover {
+        background-color:rgb(95, 164, 221);
+        color:white;
+    }
+
+    .address-list {
+        display: grid;
+        gap: 1rem;
     }
     .address-item {
         border: 1px solid #e0e0e0;
@@ -50,17 +109,89 @@
         border-color: #2b5f5f;
         background-color: #f0f8f8;
     }
+    .payment-methods {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .payment-method {
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .payment-method:hover {
+        border-color: var(--primary-color);
+        background-color: #f0f8ff; /* Light blue background */
+    }
+
+    .payment-radio {
+        margin-right: 0.5rem;
+    }
+
     .wallet-balance {
         margin-bottom: 1rem;
         padding: 0.5rem;
-        background-color: #f0f8ff; /* Light blue background */
         border: 1px solid #b4d2f1;
         border-radius: 4px;
         font-weight: bold;
     }
+    .order-summary {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        height: fit-content;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .summary-items {
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        color: #666;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 2px solid var(--border-color);
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1rem;
+    }
+    @media (max-width: 1200px) {
+        .checkout-grid {
+            grid-template-columns: 1fr 320px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .order-summary {
+            position: static;
+        }
+    }
+
     @media (max-width: 768px) {
-        .col-md-8, .col-md-4 {
-            width: 100%;
+        .container {
+            padding: 1rem;
+        }
+
+        .checkout-section {
+            padding: 1rem;
         }
     }
 </style>
@@ -68,17 +199,17 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="text-center mb-4">Checkout</h1>
+    <h1 class="page-title">Checkout</h1>
     {% comment %} <form method="post" action="{% url 'orders:place-order' %}"> {% endcomment %}
     <form method="post" action="{% url 'cart:checkout' %}">
         {% csrf_token %}
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card mb-4">
-                    <div class="card-header">
+        <div class="checkout-grid">
+            <div class="checkout-main">
+                <div class="checkout-section">
+                    <div class="section-title">
                         <h2>Shipping Address</h2>
                     </div>
-                    <div class="card-body">
+                    <div class="address-list">
                         {% if user_addresses %}
                             {% for address in user_addresses %}
                                 <div class="address-item {% if forloop.first %}selected{% endif %}" 
@@ -102,80 +233,72 @@
                         {% else %}
                             <p>No addresses found. Please add a new address.</p>
                         {% endif %}
-                        <a href="{% url 'cart:add-address' %}" class="btn btn-secondary mt-3">Add New Address</a>
+                        <a href="{% url 'cart:add-address' %}" class="btn btn-add-address"><i class="ri-add-line"></i>Add New Address</a>
                     </div>
                 </div>   
                 
                 <!-- Payment Method -->
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Payment Method</h2>
-                    </div>
-                     <div class="card-body">
-                        {% if wallet_balance > 0 %}
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" name="use_wallet" id="use_wallet" {% if wallet_balance >= total_after_discount %}checked{% endif %}>
-                                <label class="form-check-label" for="use_wallet">
+                <div class="checkout-section">
+                    <h2 class="section-title">Payment Method</h2>
+                    {% if wallet_balance > 0 %}
+                        <div class="wallet-balance">
+                            <div class="form-check">
+                                <input type="checkbox" name="use_wallet" id="use_wallet" class="form-check-input"
+                                       {% if wallet_balance >= total_after_discount %}checked{% endif %}>
+                                <label for="use_wallet" class="form-check-label">
                                     Use Wallet Balance (₹{{ wallet_balance|floatformat:2 }})
                                 </label>
                             </div>
-                        {% endif %}
+                        </div>
+                    {% endif %}
 
-                        <div class="form-check mb-3">
-                            {% comment %} <input class="form-check-input" type="radio" name="payment_method" id="cod" value="Cash on Delivery" checked>
-                            <label class="form-check-label" for="cod">
-                                <i class="fas fa-money-bill-wave me-2"></i>Cash on Delivery
-                            </label> {% endcomment %}
-                            <input class="form-check-input" type="radio" name="payment_method" id="cod" value="Cash on Delivery"
-                                {% if total_after_discount > 1000 %} disabled {% endif %}>
-                            <label class="form-check-label" for="cod">
-                                <i class="fas fa-money-bill-wave me-2"></i>Cash on Delivery
+                    <div class="payment-methods">
+                        <div class="payment-method">
+                            <input type="radio" name="payment_method" id="cod" value="Cash on Delivery"
+                                   class="payment-radio" {% if total_after_discount > 1000 %}disabled{% endif %}>
+                            <label for="cod">
+                                <i class="ri-money-dollar-box-line"></i>
+                                Cash on Delivery
+                                {% if total_after_discount > 1000 %}
+                                    <small>(Not available for orders above ₹1000)</small>
+                                {% endif %}
                             </label>
                         </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="radio" name="payment_method" id="razorpay" value="Razorpay">
-                            <label class="form-check-label" for="razorpay">
-                                <i class="fas fa-credit-card me-2"></i>Pay Online (Razorpay)
+
+                        <div class="payment-method">
+                            <input type="radio" name="payment_method" id="razorpay" value="Razorpay"
+                                   class="payment-radio">
+                            <label for="razorpay">
+                                <i class="ri-bank-card-line"></i>
+                                Pay Online (Razorpay)
                             </label>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Order Summary</h2>
-                    </div>
-                    <div class="card-body">
-                        {% for item in cart_items %}
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>
-                                    {{ item.variant.product.product_name }} 
-                                    - {{ item.variant.format }} 
-                                    (x{{ item.quantity }})
-                                </span>
-                                <span>₹{{ item.sub_total }}</span>
-                            </div>
-                        {% endfor %}
-                        <hr>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Shipping:</span>
-                            <span>₹{{ shipping_charge }}</span>
+            <div class="order-summary">
+                <h2 class="section-title">Order Summary</h2>
+                <div class="summary-items">
+                    {% for item in cart_items %}
+                        <div class="summary-item">
+                            <span>{{ item.variant.product.product_name }} (x{{ item.quantity }})</span>
+                            <span>₹{{ item.sub_total }}</span>
                         </div>
-                        {% comment %} <div class="d-flex justify-content-between mb-2">
-                            <strong>Total:</strong>
-                            <strong>₹{{ total_after_discount|floatformat:2 }}</strong>
-                        </div> {% endcomment %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <strong>Amount to Pay:</strong>
-                            <strong>₹<span id="amount-to-pay">{{ total_after_discount|floatformat:2 }}</span></strong>
-                        </div>                        
-                        <button type="submit" class="btn btn-primary btn-block mt-3">
-                            Place Order
-                        </button>
-                    </div>
+                    {% endfor %}
                 </div>
+
+                <div class="summary-item">
+                    <span>Shipping</span>
+                    <span>₹{{ shipping_charge }}</span>
+                </div>
+
+                <div class="summary-total">
+                    <span>Amount to Pay</span>
+                    <span>₹<span id="amount-to-pay">{{ total_after_discount|floatformat:2 }}</span></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Place Order</button>
             </div>
         </div>
     </form>

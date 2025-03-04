@@ -80,5 +80,3 @@ def remove_coupon(request):
         cart.save()
         messages.success(request, 'Coupon removed successfully!')
     return redirect('cart:cart-view')
-
-

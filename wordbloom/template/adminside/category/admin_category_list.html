@@ -369,10 +369,7 @@
                     <button onclick="showAddCategoryModal()" class="btn btn-primary">
                         <i class="ri-add-line"></i> Add New Category
                     </button>
-                </div>
-                {% comment %} <button onclick="showAddCategoryModal()" class="btn btn-primary">
-                    <i class="ri-add-line"></i> Add New Category
-                </button> {% endcomment %}
+                </div>                
             </div>
             
             <table id="categoryTable">
@@ -535,16 +532,6 @@
         function showAddCategoryModal() {
             document.getElementById('addCategoryModal').style.display = 'block';
         }
-
-        // function showEditCategoryModal(categoryId, name, description) {
-        //     const modal = document.getElementById('editCategoryModal');
-        //     const form = document.getElementById('editCategoryForm');
-        //     form.action = `/category/category-edit/${categoryId}/`;
-        //     document.getElementById('editCategoryName').value = name;
-        //     document.getElementById('editCategoryDescription').value = description;
-        //     modal.style.display = 'block';
-        // }
-
         // A more robust way using Django's URL routing
         function showEditCategoryModal(categoryId, name, description) {
             const modal = document.getElementById('editCategoryModal');
@@ -554,13 +541,7 @@
             document.getElementById('editCategoryDescription').value = description;
             modal.style.display = 'block';
         }
-
-        // function showOfferModal(categoryId) {
-        //     const modal = document.getElementById('offerModal');
-        //     const form = document.getElementById('offerForm');
-        //     form.action = `/category/category-offer-add/${categoryId}/`;
-        //     modal.style.display = 'block';
-        // }
+        
         function showOfferModal(categoryId) {
             const modal = document.getElementById('offerModal');
             const form = document.getElementById('offerForm');
@@ -624,13 +605,3 @@
         });
     </script>
 {% endblock %}
-
-
-
-
-
-
-
-
-
-

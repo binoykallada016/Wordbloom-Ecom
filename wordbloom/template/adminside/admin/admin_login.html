@@ -108,8 +108,7 @@
         <div class="login-header">
             <img src="{% static 'userside/assets/imgs/theme/icons/logo_wordbloom.png' %}" alt="WordBloom Logo">
             <h1>Admin Login</h1>
-        </div>
-        <!-- <form class="login-form" method="post" action="{% url 'admindashboard:admin_dashboard' %}"> -->
+        </div>        
             <form class="login-form" method="post" action="{% url 'admindashboard:admin_login' %}">
             {% csrf_token %}
             {% if messages %}
@@ -127,17 +126,8 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required autocomplete="current-password">
             </div>
-            <button type="submit" class="login-button">Log In</button>
-            <!-- {% if error %}
-                <br>
-                <div class="error-message" style="color: green;">
-                    {{ error }}
-                </div>
-            {% endif %} -->            
-        </form>
-        <!-- <div class="forgot-password">
-            <a href="#">Forgot Password?</a>
-        </div> -->
+            <button type="submit" class="login-button">Log In</button>                        
+        </form>        
     </div>
 </body>
 </html>

@@ -85,9 +85,7 @@
     }
     .book-grid {
         flex: 1;
-        display: grid;
-        /* grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem; */
+        display: grid;        
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 1rem;
         justify-items: center;
@@ -105,11 +103,9 @@
         text-align: center;
         max-width: 282px;
         width: 100%;
-        box-shadow: 0 2px 4px #d7f4f4;
-        /* height: 528px; */
+        box-shadow: 0 2px 4px #d7f4f4;        
         height: 30.65rem;
-        line-height: normal;
-        /* width: fit-content; */
+        line-height: normal;        
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .book-card:hover {
@@ -280,17 +276,7 @@
 <main>
     <div class="container">
         <div class="shop-header">
-            <h1 class="shop-title">Shop Books</h1>
-            
-            {% comment %} <form method="get" action="{% url 'accounts:shop' %}" class="sort-form">
-                <select name="sort" id="sortDropdown" class="sort-dropdown" onchange="this.form.submit()">
-                    <option value="popularity" {% if sort_by == 'popularity' %}selected{% endif %}>Sort by Popularity</option>
-                    <option value="price-low-high" {% if sort_by == 'price-low-high' %}selected{% endif %}>Price: Low to High</option>
-                    <option value="price-high-low" {% if sort_by == 'price-high-low' %}selected{% endif %}>Price: High to Low</option>
-                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
-                </select>
-            </form> {% endcomment %}
-
+            <h1 class="shop-title">Shop Books</h1>          
             <form method="get" action="{% url 'accounts:shop' %}" class="sort-form">
                 <!-- Preserve other filter parameters -->
                 {% for key, value in request.GET.items %}
@@ -341,20 +327,6 @@
                             <input type="number" name="max_price" class="price-input" placeholder="Max" value="{{ max_price }}">
                         </div>
                     </div>
-                
-                    {% comment %} <div class="filter-section">
-                        <h3 class="filter-title">Author</h3>
-                        <div class="filter-options">
-                            {% for author in authors %}
-                                <label class="filter-option">
-                                    <input type="checkbox" name="author" value="{{ author.id }}"
-                                           {% if author.id|stringformat:"i" in selected_authors %}checked{% endif %}>
-                                    {{ author.name }}
-                                </label>
-                            {% endfor %}
-                        </div>
-                    </div> {% endcomment %}
-                    
                     <!-- Author filter section -->
                     <div class="filter-section">
                         <h3 class="filter-title">Author</h3>
@@ -378,28 +350,6 @@
             <div class="book-grid">
                 {% for product in products %}
                     <div class="book-card">
-                        {% comment %} <i class="ri-heart-line wishlist"></i> {% endcomment %}
-                        
-                        {% comment %} <a href="#" class="wishlist">
-                            <i class="ri-heart-line"></i>
-                        </a> {% endcomment %}
-
-                        {% comment %} <a href="{% url 'userpanel:add_to_wishlist' product.product_id %}" class="wishlist">
-                            <i class="ri-heart-line"></i>
-                        </a> {% endcomment %}
-
-                        {% comment %} <form method="post" action="{% url 'userpanel:add_to_wishlist' product.product_id %}" style="display:inline;">
-                            {% csrf_token %}
-                             {% with preferred_variant=product.active_variants|first %}
-                                {% if preferred_variant %}
-                                 <input type="hidden" name="variant_id" value="{{ preferred_variant.id }}">
-                                {% endif %}
-                            {% endwith %}
-                            <button type="submit" class="wishlist">
-                                <i class="ri-heart-line"></i>
-                            </button>
-                        </form> {% endcomment %}
-
                         {% with preferred_variant=product.active_variants|first %}
                             {% if preferred_variant %}
                                 {% if request.user.is_authenticated and product.product_id in wishlisted_product_ids %}
@@ -417,11 +367,6 @@
                                 {% endif %}
                             {% endif %}
                         {% endwith %}
-
-                        {% comment %} <a href="{% url 'accounts:add_to_wishlist' product.product_id %}" class="wishlist">
-                            <i class="ri-heart-line"></i>
-                        </a> {% endcomment %}
-
                         {% with preferred_variant=product.active_variants|first %}
                             {% if preferred_variant %}
                                 {% if preferred_variant.primary_images %}
@@ -463,15 +408,8 @@
                         {% endwith %}                        
                         
                         <div class="button-container">
-                            <a href="{% url 'accounts:product_detail' product.product_id %}" class="buy-button">VIEW DETAILS</a>
-                            {% comment %} <a href="#" class="cart-button">ADD TO CART</a> {% endcomment %}
-                        </div>
-
-                        {% comment %} <div class="button-container">
-                            <a href="{% url 'accounts:product_detail' product.product_id %}" class="buy-button">VIEW DETAILS</a>
-                            <a href="{% url 'accounts:add_to_cart' product.product_id %}" class="cart-button">ADD TO CART</a>
-                        </div> {% endcomment %}
-
+                            <a href="{% url 'accounts:product_detail' product.product_id %}" class="buy-button">VIEW DETAILS</a>                            
+                        </div>                      
                         <div class="rating">
                             {% for i in "★★★★★"|slice:":5" %}
                                 ★

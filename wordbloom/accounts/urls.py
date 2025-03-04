@@ -3,8 +3,7 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
-    path('',views.home,name="home"),
-    # path('register/', views.register, name='register'),
+    path('',views.home,name="home"),    
     path('register/', views.user_register, name='user_register'),
     path('otp_verification/',views.verify_otp, name = 'verify_otp'),
     path('resend_otp/', views.resend_otp, name = 'resend_otp'),    

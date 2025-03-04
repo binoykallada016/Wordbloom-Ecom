@@ -77,15 +77,6 @@ def admin_login(request):
     # Render the admin login page
     return render(request, 'adminside/admin/admin_login.html')
 
-
-# @never_cache
-# @cache_control(no_cache=True, must_revalidate=True, no_store=True)
-# @admin_required
-# def admin_dashboard(request):
-#     if not request.user.is_staff:
-#         return redirect('admindashboard:admin_login')
-#     return render(request, 'adminside/admin/admin_dashboard.html')
-
 @never_cache
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @admin_required
@@ -271,14 +262,7 @@ def list_users(request):
     users = User.objects.filter(is_active=True)
     
     # Apply search filter from backend
-    if search_query:
-        # users = users.filter(
-        #     Q(first_name__icontains=search_query) | 
-        #     Q(last_name__icontains=search_query) |
-        #     Q(full_name__icontains=search_query) |
-        #     Q(email__icontains=search_query) |
-        #     Q(phone_number__icontains=search_query)
-        # )
+    if search_query:        
         users = users.annotate(
             full_name=Concat('first_name', Value(' '), 'last_name', output_field=CharField())
         ).filter(

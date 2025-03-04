@@ -330,9 +330,3 @@ def add_address(request):
     else:
         form = AddressForm()
     return render(request, 'userside/cart/add_address.html', {'form': form})
-
-
-
-
-
-

@@ -65,25 +65,7 @@ class ProductVariantForm(forms.ModelForm):
                 pk=self.instance.pk if self.instance else None
             ).exists():
                 raise ValidationError("This ISBN is already in use")
-        return isbn
-
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     price = cleaned_data.get('price')
-    #     discounted_price = cleaned_data.get('discounted_price')
-    #     stock = cleaned_data.get('stock')
-
-    #     if price and discounted_price and discounted_price >= price:
-    #         raise ValidationError({
-    #             'discounted_price': "Discounted price must be less than regular price"
-    #         })
-
-    #     if stock is not None and stock < 0:
-    #         raise ValidationError({
-    #             'stock': "Stock cannot be negative"
-    #         })
-
-    #     return cleaned_data
+        return isbn    
 
     def clean(self):
         cleaned_data = super().clean()
