@@ -4,10 +4,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Virtual environment
-env/
-venv/
-wordbloomenv/
 
 # Django-specific
 *.log
@@ -63,5 +59,8 @@ build/
 *.egg-info/
 .eggs/
 
-# Virtual environment - wordbloomenv
+# Virtual environment
+env/
+venv/
 wordbloomenv/
+/wordbloomenv/
