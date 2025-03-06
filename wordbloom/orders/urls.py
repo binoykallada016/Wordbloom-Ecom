@@ -14,6 +14,8 @@ urlpatterns = [
     path('admin/change-order-status/<int:order_id>/', views.change_order_status, name='change_order_status'),
     path('razorpay-callback/', views.razorpay_callback, name='razorpay-callback'),
     path('retry-payment/<str:order_id>/', views.retry_payment, name='retry-payment'),
-    path('admin/approve-return/<int:order_id>/', views.approve_return, name='approve_return'),
-    path('admin/reject-return/<int:order_id>/', views.reject_return, name='reject_return'),
+    # path('admin/approve-return/<int:order_id>/', views.approve_return, name='approve_return'),
+    # path('admin/reject-return/<int:order_id>/', views.reject_return, name='reject_return'),
+    path('admin/approve-return/<int:return_request_id>/', views.approve_return, name='approve_return'),
+    path('admin/reject-return/<int:return_request_id>/', views.reject_return, name='reject_return'),
 ]

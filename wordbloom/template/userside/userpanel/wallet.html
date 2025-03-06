@@ -122,14 +122,14 @@
             <div class="wallet-balance">
                 Balance: ₹{{ wallet.balance }}
             </div>
-            <div class="add-funds-form">
+            {% comment %} <div class="add-funds-form">
                 <h3>Add Funds</h3>
                 <form method="post" action="{% url 'userpanel:add_funds' %}">
                     {% csrf_token %}
                     <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount" required>
                     <button type="submit" class="btn-primary">Add Funds</button>
                 </form>
-            </div>
+            </div> {% endcomment %}
             <h2 class="section-title">Transaction History</h2>
             <table class="transaction-table">
                 <thead>

@@ -203,21 +203,7 @@
 
 
 {% block content %}
-<main>
-    <!-- <header>
-        <div class="container">
-            <h1>Welcome, {{ request.user.first_name }}</h1>
-            <div class="user-menu-container">
-                <button id="userMenuButton">Hello, {{ request.user.first_name }}</button>
-                <div id="userMenu">
-                    <a href="{% url 'userpanel:profile' %}">My Profile</a>
-                    <a href="{% url 'userpanel:order_list' %}">My Orders</a>
-                    <a href="{% url 'userpanel:wishlist' %}">My Wishlist</a>
-                    <a href="{% url 'accounts:logout' %}">Logout</a>
-                </div>
-            </div>
-        </div>
-    </header> -->
+<main>    
     <div class="hero-banner">
         <div class="hero-content">
             <h1 class="hero-title">Discover Your Next Great Read</h1>
@@ -226,7 +212,7 @@
         </div>
     </div>
 
-    <div class="container">
+    {% comment %} <div class="container">
         <section>
             <h2 class="section-title">Featured Books</h2>
             <div class="book-grid">
@@ -461,22 +447,7 @@
                 </div>
             </div>
         </section>
-    </div>
+    </div> {% endcomment %}
 </main>
-<!-- <script>
-    // Toggle user menu visibility
-    document.getElementById('userMenuButton').addEventListener('click', function() {
-        const menu = document.getElementById('userMenu');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-    });
 
-    // Close menu if clicked outside
-    document.addEventListener('click', function(e) {
-        const menu = document.getElementById('userMenu');
-        const button = document.getElementById('userMenuButton');
-        if (e.target !== menu && e.target !== button) {
-            menu.style.display = 'none';
-        }
-    });
-</script> -->
 {% endblock %}

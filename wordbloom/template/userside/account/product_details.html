@@ -499,10 +499,10 @@
                 <div class="product-info">
                     <h1 class="product-title">{{ product.product_name }}</h1>
                     <p>By {{ product.author.name }}</p>
-                    <div class="rating-section">
+                    {% comment %} <div class="rating-section">
                         <div class="stars">★★★★☆</div>
                         <span class="review-count">(128 reviews)</span>
-                    </div>
+                    </div> {% endcomment %}
                     <div class="price-section">
                         <span class="current-price" id="variant-price"></span>
                         <span class="original-price" id="variant-original-price"></span>
@@ -542,10 +542,10 @@
                     </div>       
                     <div class="action-buttons">
                         {% if request.user.is_authenticated %}
-                            <button class="btn btn-primary">
+                            {% comment %} <button class="btn btn-primary">
                                 <i class="fas fa-shopping-cart"></i>
                                 Buy Now
-                            </button>
+                            </button> {% endcomment %}
                             <form id="add-to-cart-form" method="post" action="{% url 'cart:add-to-cart' %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="variant_id" id="variant_id" value="{{ default_variant.id }}">
@@ -569,10 +569,10 @@
                                 </button>
                             </form>
                         {% else %}
-                            <a href="{% url 'accounts:user_login' %}?next={{ request.path }}" class="btn btn-primary">
+                            {% comment %} <a href="{% url 'accounts:user_login' %}?next={{ request.path }}" class="btn btn-primary">
                                 <i class="fas fa-shopping-cart"></i>
                                 Buy Now
-                            </a>
+                            </a> {% endcomment %}
                             
                             <a href="{% url 'accounts:user_login' %}?next={{ request.path }}" class="btn btn-secondary">
                                 <i class="fas fa-cart-plus"></i>
@@ -590,7 +590,7 @@
                 <div class="tab-buttons">
                     <button class="tab-button active" data-tab="description">Description</button>
                     <button class="tab-button" data-tab="details">Product Details</button>
-                    <button class="tab-button" data-tab="reviews">Reviews</button>
+                    {% comment %} <button class="tab-button" data-tab="reviews">Reviews</button> {% endcomment %}
                 </div>
                 <div class="tab-content active" id="description">
                     <h3>About the Book</h3>

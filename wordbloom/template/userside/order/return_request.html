@@ -73,14 +73,24 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h2 class="text-center">Submit Return Request</h2>
+                    <h2 class="text-center">{% if item %}Return Item{% else %}Return Order{% endif %}</h2>
                 </div>
                 <div class="card-body">
+                    
+                    {% if item %}
+                    <!-- Item Return Details -->
+                    <h3>Returning: {{ item.product_variant.product.product_name }}</h3>
+                    <p><strong>Format:</strong> {{ item.product_variant.format }}</p>
+                    <p><strong>Quantity:</strong> {{ item.quantity }}</p>
+                    <p><strong>Price:</strong> ₹{{ item.price }}</p>
+                    {% else %}
+                    <!-- Order Return Details -->
                     <h3>Order Details</h3>
                     <p><strong>Order ID:</strong> {{ order.order_id }}</p>
                     <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
                     <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
-
+                    {% endif %}
+                    
                     <h3 class="mt-4">Return Request Form</h3>
                     <form method="post">
                         {% csrf_token %}

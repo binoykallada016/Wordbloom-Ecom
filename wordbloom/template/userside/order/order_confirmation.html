@@ -73,7 +73,18 @@
             <p><strong>Order Number:</strong> {{ order.order_id }}</p>
             <p><strong>Order Date:</strong> {{ order.created_at }}</p>
             <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
-            <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+            {% comment %} <p><strong>Payment Method:</strong> {{ order.payment_method }}</p> {% endcomment %}
+            <p><strong>Payment Method:</strong> 
+                {% if wallet_used and wallet_used > 0 %}
+                    {% if amount_to_pay > 0 %}
+                        Wallet (₹{{ wallet_used }}) + {{ order.payment_method }}
+                    {% else %}
+                        Wallet (₹{{ wallet_used }})
+                    {% endif %}
+                {% else %}
+                    {{ order.payment_method }}
+                {% endif %}
+            </p>
             <p><strong>Estimated Delivery:</strong> {{ order.estimated_delivery_date }}</p>
         </div>
         <div class="shipping-address">

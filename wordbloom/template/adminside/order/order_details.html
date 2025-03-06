@@ -164,5 +164,50 @@
         </form>
     </div>
     {% endif %}
+    
+    {% if return_requests.exists %}
+    <div class="return-requests">
+        <h2>Return Requests</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for return_request in return_requests %}
+                <tr>
+                    <td>
+                        {% if return_request.item %}
+                            {{ return_request.item.product_variant.product.product_name }}
+                        {% else %}
+                            Full Order
+                        {% endif %}
+                    </td>
+                    <td>{{ return_request.reason }}</td>
+                    <td>{{ return_request.created_at }}</td>
+                    <td>{{ return_request.get_status_display }}</td>
+                    <td>
+                        {% if return_request.status == 'Pending' %}
+                            <form method="post" action="{% url 'orders:approve_return' return_request.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-approve">Approve</button>
+                            </form>
+                            <form method="post" action="{% url 'orders:reject_return' return_request.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-reject">Reject</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

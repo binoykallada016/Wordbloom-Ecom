@@ -256,7 +256,8 @@
                             <span class="item-meta">Quantity: {{ item.quantity }}</span>
                             <span class="item-price">₹{{ item.price }}</span>
                         </div>
-                        <div class="item-actions">
+
+                        {% comment %} <div class="item-actions">
                             {% if order.order_status == 'Delivered' and not item.is_returned %}
                                 <a href="{% url 'orders:return-request' order.order_id %}?item_id={{ item.id }}" 
                                    class="btn btn-return">
@@ -272,7 +273,36 @@
                                     </button>
                                 </form>
                             {% endif %}
+                        </div> {% endcomment %}
+                        <div class="item-actions">
+                            {% if order.order_status == 'Delivered' and not item.is_returned and not item.is_cancelled %}
+                                <a href="{% url 'orders:return-request' order.order_id %}?item_id={{ item.id }}" class="btn btn-return">
+                                    <i class="ri-arrow-go-back-line"></i> Return Item
+                                </a>
+                            {% elif item.is_returned %}
+                                {% with return_request=item.returnrequest_set.first %}
+                                    {% if return_request and return_request.status == 'Pending' %}
+                                        <span class="badge bg-warning">Return Initiated</span>
+                                    {% elif return_request and return_request.status == 'Approved' %}
+                                        <span class="badge bg-success">Return Approved</span>
+                                    {% elif return_request and return_request.status == 'Rejected' %}
+                                        <span class="badge bg-danger">Return Rejected</span>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                            
+                            {% if order.order_status != 'Delivered' and order.order_status != 'Cancelled' and not item.is_cancelled %}
+                                <form method="post" action="{% url 'userpanel:cancel_item' item.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="ri-close-circle-line"></i> Cancel Item
+                                    </button>
+                                </form>
+                            {% elif item.is_cancelled %}
+                                <span class="badge bg-danger">Cancelled</span>
+                            {% endif %}
                         </div>
+
                     </div>
                 {% endfor %}
             </div>
