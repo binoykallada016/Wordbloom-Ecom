@@ -290,20 +290,6 @@ def retry_payment(request, order_id):
         messages.error(request, f"Error initiating payment: {str(e)}")
         return redirect('userpanel:order_list')
 
-
-# @login_required
-# def order_confirmation(request, order_id):
-#     try:
-#         order = OrderMain.objects.get(order_id=order_id, user=request.user)
-#     except OrderMain.DoesNotExist:
-#         messages.error(request, "Order not found.")
-#         return redirect('userpanel:order_list')
-
-#     context = {
-#         'order': order,
-#     }
-#     return render(request, 'userside/order/order_confirmation.html', context)
-
 @login_required
 def order_confirmation(request, order_id):
     try:
@@ -334,25 +320,6 @@ def order_confirmation(request, order_id):
 def order_failure(request, order_id):
     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
     return render(request, 'userside/order/order_failure.html', {'order': order})
-
-
-# @login_required
-# def return_request(request, order_id):
-#     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
-#     if request.method == 'POST':
-#         form = ReturnRequestForm(request.POST)
-#         if form.is_valid():
-#             return_request = form.save(commit=False)
-#             return_request.order = order
-#             return_request.save()
-#             order.order_status = 'Return_Initiated'
-#             order.save()
-#             messages.success(request, "Your return request has been submitted.")
-#             return redirect('userpanel:order_list')
-#     else:
-#         form = ReturnRequestForm()
-#     return render(request, 'userside/order/return_request.html', {'form': form, 'order': order})
-
 
 @login_required
 def return_request(request, order_id):
@@ -414,24 +381,6 @@ def cancel_order(request, order_id):
             return redirect('userpanel:order_list')
 
     return render(request, 'userside/order/confirm_cancel.html', {'order': order})
-
-# @login_required
-# def cancel_item(request, item_id):
-#     item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
-#     if request.method == 'POST':
-#         with transaction.atomic():
-#             item.is_cancelled = True
-#             item.save()
-
-#             # Refund to wallet
-#             wallet, created = Wallet.objects.get_or_create(user=request.user)
-#             refund_amount = item.get_cost()
-#             wallet.add_funds(refund_amount)
-
-#             messages.success(request, f"Item cancelled successfully. Refund of ₹{refund_amount} added to your wallet.")
-#             return redirect('userpanel:user_order_detail', order_id=item.order.order_id)
-
-#     return render(request, 'userside/order/confirm_cancel_item.html', {'item': item})
 
 @login_required
 def cancel_item(request, item_id):
@@ -511,25 +460,6 @@ def admin_order_list(request):
     return render(request, 'adminside/order/order_list.html', context)
 
 
-# @login_required
-# def admin_order_detail(request, order_id):
-#     order = get_object_or_404(OrderMain, id=order_id)
-#     order_items = order.items.all()
-    
-#     # Calculate subtotal, discount, and grand total
-#     subtotal = sum(item.total_cost for item in order_items)
-#     discount_amount = 0  # You can implement discount logic here
-#     grand_total = subtotal - discount_amount
-    
-#     context = {
-#         'order': order,
-#         'order_items': order_items,
-#         'subtotal': subtotal,
-#         'discount_amount': discount_amount,
-#         'grand_total': grand_total
-#     }
-#     return render(request, 'adminside/order/order_details.html', context)
-
 @admin_required
 def admin_order_detail(request, order_id):
     order = get_object_or_404(OrderMain, id=order_id)
@@ -588,23 +518,6 @@ def admin_return_orders(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'adminside/order/return_order.html', {'page_obj': page_obj})
 
-# @login_required
-# def approve_return(request, order_id):
-#     order = get_object_or_404(OrderMain, id=order_id)
-#     if request.method == 'POST':
-#         with transaction.atomic():
-#             order.order_status = 'Return_Approved'
-#             order.save()
-
-#             # Refund to wallet
-#             wallet, created = Wallet.objects.get_or_create(user=order.user)
-#             refund_amount = order.refund_amount()
-#             wallet.add_funds(refund_amount)
-
-#             messages.success(request, f"Return approved for order {order.order_id}. Refund of ₹{refund_amount} added to the user's wallet.")
-#     return redirect('orders:admin-order-detail', order_id=order.id)
-
-
 @admin_required
 def approve_return(request, return_request_id):
     return_request = get_object_or_404(ReturnRequest, id=return_request_id)
@@ -643,15 +556,6 @@ def approve_return(request, return_request_id):
             
         return redirect('orders:admin-order-detail', order_id=order.id)
 
-
-# @login_required
-# def reject_return(request, order_id):
-#     order = get_object_or_404(OrderMain, id=order_id)
-#     if request.method == 'POST':
-#         order.order_status = 'Return_Rejected'
-#         order.save()
-#         messages.success(request, f"Return rejected for order {order.order_id}.")
-#     return redirect('orders:admin-order-detail', order_id=order.id)
 
 @admin_required
 def reject_return(request, return_request_id):

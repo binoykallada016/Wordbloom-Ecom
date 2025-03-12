@@ -51,7 +51,7 @@ test-results.xml
 junit*.xml
 
 # Migrations (optional)
-migrations/
+# migrations/
 
 # Build artifacts
 dist/

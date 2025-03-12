@@ -1,151 +1,134 @@
 {% extends 'admin_base.html' %}
 
-{% block title %}Wordbloom : Admin Dashboard{% endblock %}
+{% block title %}Wordbloom : Edit Author{% endblock %}
 {% block extra_css %}
 <style>
-    
+    body {
+        font-family: 'Outfit', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f8f8f8;
+    }
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .admin-content {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        padding: 20px;
+    }
+    h2 {
+        color: #2b5f5f;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .form-grid {
+        display: grid;
+        gap: 20px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    input[type="text"], textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .button-group {
+        margin-top: 20px;
+    }
+    .btn {
+        display: inline-block;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+    }
+    .btn-primary {
+        background-color: #2b5f5f;
+        color: #fff;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        color: #fff;
+    }
+    .alert {
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+    }
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-
-{% endblock %}
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wordbloom : Edit Author</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f8f8f8;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .admin-content {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        h2 {
-            color: #2b5f5f;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .form-grid {
-            display: grid;
-            gap: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .button-group {
-            margin-top: 20px;
-        }
-        .btn {
-            display: inline-block;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
-        }
-        .btn-primary {
-            background-color: #2b5f5f;
-            color: #fff;
-        }
-        .btn-secondary {
-            background-color: #6c757d;
-            color: #fff;
-        }
-        .alert {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="admin-content">
-            <h2>Edit Author</h2>
-            
-            {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-                    {{ message }}
-                </div>
-                {% endfor %}
+<div class="container">
+    <div class="admin-content">
+        <h2>Edit Author</h2>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
             </div>
-            {% endif %}
-
-            <form method="POST">
-                {% csrf_token %}
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="name">Author Name*</label>
-                        <input type="text" id="name" name="name" class="form-control" value="{{ author.name }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="bio">Author Bio</label>
-                        <textarea id="bio" name="bio" class="form-control" rows="4">{{ author.bio }}</textarea>
-                    </div>
-                </div>
-                <div class="button-group">
-                    <button type="submit" class="btn btn-primary">Update Author</button>
-                    <a href="{% url 'authors:admin_authors' %}" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
+            {% endfor %}
         </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name">Author Name*</label>
+                    <input type="text" id="name" name="name" class="form-control" value="{{ author.name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="bio">Author Bio</label>
+                    <textarea id="bio" name="bio" class="form-control" rows="4">{{ author.bio }}</textarea>
+                </div>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Update Author</button>
+                <a href="{% url 'authors:admin_authors' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
     </div>
-    <script>
-        // Add any necessary JavaScript here
-        document.addEventListener('DOMContentLoaded', function() {
-            // Example: Add form validation
-            const editAuthorForm = document.querySelector('form');
-            editAuthorForm.addEventListener('submit', function(event) {
-                const nameInput = document.getElementById('name');
-                if (nameInput.value.length < 2) {
-                    event.preventDefault();
-                    alert('Author name must be at least 2 characters long.');
-                }
-            });
+</div>
+<script>
+    // Add any necessary JavaScript here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Example: Add form validation
+        const editAuthorForm = document.querySelector('form');
+        editAuthorForm.addEventListener('submit', function(event) {
+            const nameInput = document.getElementById('name');
+            if (nameInput.value.length < 2) {
+                event.preventDefault();
+                alert('Author name must be at least 2 characters long.');
+            }
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}
