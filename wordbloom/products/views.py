@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from utils.decorators import admin_required
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
@@ -74,7 +75,7 @@ def handle_variant_image_updates(request, variant, prefix):
             except (VariantImage.DoesNotExist, Exception) as e:
                 messages.error(request, f"Error replacing image: {str(e)}")
 
-@login_required
+@admin_required
 def admin_product_list(request):
     search_query = request.GET.get('search', '')
     if search_query:
@@ -102,7 +103,7 @@ def admin_product_list(request):
     }
     return render(request, 'adminside/product/admin_product_list.html', context)
 
-@login_required
+@admin_required
 def admin_product_add(request):
     if request.method == 'POST':
         product_form = ProductForm(request.POST)
@@ -145,7 +146,7 @@ def admin_product_add(request):
     }
     return render(request, 'adminside/product/admin_product_add.html', context)
 
-@login_required
+@admin_required
 def admin_product_edit(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     variants = product.variants.all()
@@ -221,12 +222,12 @@ def admin_product_edit(request, product_id):
     }
     return render(request, 'adminside/product/admin_product_edit.html', context)
 
-@login_required
+@admin_required
 def admin_product_view(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     return render(request, 'adminside/product/admin_product_view.html', {'product': product})
 
-@login_required
+@admin_required
 def admin_product_delete(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     try:
@@ -241,10 +242,10 @@ def admin_product_delete(request, product_id):
         messages.error(request, f'Error updating product status: {str(e)}')
     return redirect('products:admin_product_list')
 
-@login_required
+@admin_required
 def admin_orders_list(request):
     return render(request, 'adminside/orders/admin_order_list.html')
 
-@login_required
+@admin_required
 def admin_orders_view_details(request):
     return render(request, 'adminside/orders/admin_order_view_details.html')

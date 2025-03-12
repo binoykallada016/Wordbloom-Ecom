@@ -17,6 +17,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
 from django.conf import settings
+from utils.decorators import admin_required
 
 
 # Create your views here.
@@ -469,7 +470,7 @@ def cancel_item(request, item_id):
 
 
 
-@login_required
+@admin_required
 def admin_order_list(request):
     # Get search query
     search_query = request.GET.get('search', '')
@@ -529,7 +530,7 @@ def admin_order_list(request):
 #     }
 #     return render(request, 'adminside/order/order_details.html', context)
 
-@login_required
+@admin_required
 def admin_order_detail(request, order_id):
     order = get_object_or_404(OrderMain, id=order_id)
     order_items = order.items.all()
@@ -552,7 +553,7 @@ def admin_order_detail(request, order_id):
     }
     return render(request, 'adminside/order/order_details.html', context)
 
-@login_required
+@admin_required
 def change_order_status(request, order_id):
     if request.method == 'POST':
         order = get_object_or_404(OrderMain, id=order_id)
@@ -579,7 +580,7 @@ def change_order_status(request, order_id):
     messages.error(request, "Invalid request")
     return redirect('orders:admin-order-list')
 
-@login_required
+@admin_required
 def admin_return_orders(request):
     return_requests = ReturnRequest.objects.all().order_by('-created_at')
     paginator = Paginator(return_requests, 20)
@@ -604,7 +605,7 @@ def admin_return_orders(request):
 #     return redirect('orders:admin-order-detail', order_id=order.id)
 
 
-@login_required
+@admin_required
 def approve_return(request, return_request_id):
     return_request = get_object_or_404(ReturnRequest, id=return_request_id)
     order = return_request.order
@@ -652,7 +653,7 @@ def approve_return(request, return_request_id):
 #         messages.success(request, f"Return rejected for order {order.order_id}.")
 #     return redirect('orders:admin-order-detail', order_id=order.id)
 
-@login_required
+@admin_required
 def reject_return(request, return_request_id):
     return_request = get_object_or_404(ReturnRequest, id=return_request_id)
     order = return_request.order

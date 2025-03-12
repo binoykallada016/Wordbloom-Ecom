@@ -1,96 +1,127 @@
 {% extends 'base.html' %}
 {% block title %}My Wishlist | WordBloom{% endblock %}
-
 {% block page_styles %}
 <style>
-    .container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 1rem;
-    }
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+.profile-content {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+.profile-main {
+    flex: 3;
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.section-title {
+    font-size: 1.5rem;
+    color: #2b5f5f;
+    margin-bottom: 1rem;
+}
+.wishlist-item {
+    display: flex;
+    border: 1px solid #e1e7ef;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+.wishlist-item img {
+    width: 100px;
+    /* height: 100px; */
+    height: fit-content;
+    object-fit: cover;
+    margin-right: 1rem;
+}
+.wishlist-item-details {
+    flex: 1;
+}
+.wishlist-item-details h3 {
+    color: #2b5f5f;
+    margin-bottom: 0.5rem;
+}
+.wishlist-item-details .price {
+    font-weight: bold;
+    color: #dc2626;
+}
+.btn-primary, .btn-danger, .btn-secondary {
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+.btn-primary {
+    background-color: #2b5f5f;
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #234c4c;
+}
+.btn-secondary {
+    background-color: #3fb4b2;
+    color: white;
+    width: 7rem;
+    height: 2rem;
+}
+.btn-secondary:hover {
+    background-color: #35a3a1;
+}
+.btn-danger {
+    background-color: #ef4444;
+    color: white;
+    width: 7rem;
+    height: 2rem;
+}
+.btn-danger:hover {
+    background-color: #dc2626;
+}
+.action-buttons {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+@media (max-width: 768px) {
     .profile-content {
-        display: flex;
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-    .profile-main {
-        flex: 3;
-        background-color: white;
-        border-radius: 8px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .section-title {
-        font-size: 1.5rem;
-        color: #2b5f5f;
-        margin-bottom: 1rem;
+        flex-direction: column;
     }
     .wishlist-item {
-        display: flex;
-        border: 1px solid #e1e7ef;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
+        flex-direction: column;
     }
     .wishlist-item img {
-        width: 100px;
-        /* height: 100px; */
-        height: fit-content;
-        object-fit: cover;
-        margin-right: 1rem;
+        width: 100%;
+        height: 200px;
+        margin-right: 0;
+        margin-bottom: 1rem;
     }
-    .wishlist-item-details {
-        flex: 1;
+    .action-buttons {
+        flex-direction: column;
+        align-items: flex-start;
     }
-    .wishlist-item-details h3 {
-        color: #2b5f5f;
+    .action-buttons form,
+    .action-buttons a {
         margin-bottom: 0.5rem;
+        width: 100%;
     }
-     .wishlist-item-details .price {
-        font-weight: bold;
-        color: #dc2626;
+    .action-buttons .btn-primary,
+    .action-buttons .btn-danger,
+    .action-buttons .btn-secondary {
+        display: block;
+        text-align: center;
+        margin-right: 0;
     }
-    .btn-primary, .btn-danger {
-        border: none;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        text-decoration: none;
-        display: inline-block;
-        margin-right: 0.5rem;
-    }
-    .btn-primary {
-        background-color: #2b5f5f;
-        color: white;
-    }
-    .btn-primary:hover {
-        background-color: #234c4c;
-    }
-    .btn-danger {
-        background-color: #ef4444;
-        color: white;
-    }
-    .btn-danger:hover {
-        background-color: #dc2626;
-    }
-    @media (max-width: 768px) {
-        .profile-content {
-            flex-direction: column;
-        }
-        .wishlist-item {
-            flex-direction: column;
-        }
-        .wishlist-item img {
-            width: 100%;
-            height: 200px;
-            margin-right: 0;
-            margin-bottom: 1rem;
-        }
-    }
+}
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="container">
     <div class="profile-content">
@@ -98,52 +129,70 @@
         <div class="profile-main">
             <h2 class="section-title">My Wishlist</h2>
             {% for item in wishlist_items %}
-                <div class="wishlist-item">
-                  {% if item.variant %}
-                     {% if item.variant.get_primary_image %}
-                        <img src="{{ item.variant.get_primary_image.image.url }}" alt="{{ item.product.product_name }} - {{ item.variant.format }}">
-                     {% endif %}
-                   {% else %}
-                     {% if item.product.variants.first.get_primary_image %}
-                        <img src="{{ item.product.variants.first.get_primary_image.image.url }}" alt="{{ item.product.product_name }}">
-                      {% endif %}
-                   {% endif %}
-                  <div class="wishlist-item-details">
-                        <h3>{{ item.product.product_name }}</h3>
-                        {% if item.variant %}
-                            <p>Variant: {{ item.variant.format }}</p>
-                             <p class="price">
-                                Price:
-                                {% if item.variant.discounted_price %}
-                                    ₹{{ item.variant.discounted_price }}
-                                {% else %}
-                                    ₹{{ item.variant.price }}
-                                {% endif %}
-                            </p>
+            <div class="wishlist-item">
+                {% if item.variant %}
+                    {% if item.variant.get_primary_image %}
+                    <img src="{{ item.variant.get_primary_image.image.url }}" alt="{{ item.product.product_name }} - {{ item.variant.format }}">
+                    {% endif %}
+                {% else %}
+                    {% if item.product.variants.first.get_primary_image %}
+                    <img src="{{ item.product.variants.first.get_primary_image.image.url }}" alt="{{ item.product.product_name }}">
+                    {% endif %}
+                {% endif %}
+                <div class="wishlist-item-details">
+                    <h3>{{ item.product.product_name }}</h3>
+                    {% if item.variant %}
+                    <p>Variant: {{ item.variant.format }}</p>
+                    <p class="price">
+                        Price:
+                        {% if item.variant.discounted_price %}
+                        ₹{{ item.variant.discounted_price }}
                         {% else %}
-                            <p>Default Variant</p>
-                            {% if item.product.variants.first %}
-                                <p class="price">
-                                    Price:
-                                     {% if item.product.variants.first.discounted_price %}
-                                        ₹{{ item.product.variants.first.discounted_price }}
-                                    {% else %}
-                                        ₹{{ item.product.variants.first.price }}
-                                    {% endif %}
-                                </p>
-                            {% endif %}
-
+                        ₹{{ item.variant.price }}
                         {% endif %}
+                    </p>
+                    {% else %}
+                    <p>Default Variant</p>
+                    {% if item.product.variants.first %}
+                    <p class="price">
+                        Price:
+                        {% if item.product.variants.first.discounted_price %}
+                        ₹{{ item.product.variants.first.discounted_price }}
+                        {% else %}
+                        ₹{{ item.product.variants.first.price }}
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                    {% endif %}
+                    <div class="action-buttons">
+                        <!-- Add to cart form -->
+                        <form method="post" action="{% url 'cart:add-to-cart' %}" style="display: inline;">
+                            {% csrf_token %}
+                            {% if item.variant %}
+                                <input type="hidden" name="variant_id" value="{{ item.variant.id }}">
+                            {% else %}
+                                <input type="hidden" name="variant_id" value="{{ item.product.variants.first.id }}">
+                            {% endif %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn-secondary">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </form>
+                        
+                        <!-- Remove from wishlist form -->
                         <form method="post" action="{% url 'userpanel:remove_from_wishlist' %}" style="display: inline;">
                             {% csrf_token %}
                             <input type="hidden" name="wishlist_id" value="{{ item.id }}">
                             <button type="submit" class="btn-danger">Remove</button>
                         </form>
+                        
+                        <!-- View details link -->
                         <a href="{% url 'accounts:product_detail' item.product.product_id %}" class="btn-primary">View Details</a>
                     </div>
                 </div>
+            </div>
             {% empty %}
-                <p>Your wishlist is empty.</p>
+            <p>Your wishlist is empty.</p>
             {% endfor %}
         </div>
     </div>

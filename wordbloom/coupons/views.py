@@ -34,6 +34,7 @@ def generate_coupon_code(request):
         coupon_code = ''.join(random.choice(characters) for _ in range(length))
         return JsonResponse({'coupon_code': coupon_code})
 
+
 @admin_required
 def edit_coupon(request, pk):
     coupon = get_object_or_404(Coupon, pk=pk)

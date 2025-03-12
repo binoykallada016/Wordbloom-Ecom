@@ -156,7 +156,7 @@
                     <label for="password">Password</label>
                     <input type="password" name = "password" id="password" required>
                 </div>
-                <a href="{% url 'accounts:forgot_password' %}" class="forgot-password">Forgot password</a>
+                <a href="{% url 'accounts:password_reset' %}" class="forgot-password">Forgot password</a>
                 <button type="submit" class="login-button">Login</button>                
                 <a href="{% url 'social:begin' 'google-oauth2' %}" class="google-button">
                     <img src="/static/userside/assets/imgs/theme/google_logo.png" alt="Google"/>

@@ -34,7 +34,8 @@ from django.db.models import F, Q, Case, When, DecimalField
 from django.db.models.query import Prefetch
 from decimal import Decimal, InvalidOperation, DecimalException
 from userpanel.models import Wishlist
-
+from django.contrib.auth.forms import AuthenticationForm
+from .forms import UserRegisterForm, CustomPasswordResetForm, CustomSetPasswordForm
 
 
 
@@ -223,13 +224,40 @@ def resend_otp(request):
     return redirect('accounts:verify_otp')
 
 
+# @never_cache
+# @cache_control(no_cache = True, must_revalidate = True, no_store = True)
+# def user_login(request):
+#     # Redirect authenticate users to the homepage
+#     if request.user.is_authenticated:
+#         return redirect('accounts:home')
+    
+#     if request.method == 'POST':
+#         # print("hi")
+#         email = request.POST.get('email')
+#         password = request.POST.get('password')
+#         # print("email",email)
+#         # print("pass",password)
+#         user = authenticate(request, username = email, password = password)
+#         print(user)
+
+#         if user is not None:
+#             if user.is_blocked:
+#                 messages.error(request, 'Your account is blocked. Please contact support.')
+#                 return redirect('accounts:user_login')
+            
+#             auth_login(request, user)
+#             messages.success(request, f"Welcome back, {user.first_name}!")
+#             return redirect('accounts:home')
+#         else:
+#             messages.error(request, 'Invalid email or password.')
+#     return render(request, 'userside/account/user_login.html')  
+
 @never_cache
 @cache_control(no_cache = True, must_revalidate = True, no_store = True)
 def user_login(request):
     # Redirect authenticate users to the homepage
     if request.user.is_authenticated:
         return redirect('accounts:home')
-    
     if request.method == 'POST':
         # print("hi")
         email = request.POST.get('email')
@@ -238,18 +266,18 @@ def user_login(request):
         # print("pass",password)
         user = authenticate(request, username = email, password = password)
         print(user)
-
         if user is not None:
             if user.is_blocked:
                 messages.error(request, 'Your account is blocked. Please contact support.')
                 return redirect('accounts:user_login')
-            
+
             auth_login(request, user)
             messages.success(request, f"Welcome back, {user.first_name}!")
-            return redirect('accounts:home')
+            next_url = request.GET.get('next')
+            return redirect(next_url or 'accounts:home')
         else:
             messages.error(request, 'Invalid email or password.')
-    return render(request, 'userside/account/user_login.html')         
+    return render(request, 'userside/account/user_login.html')       
 
 def shop(request):
     categories = Category.objects.filter(is_active=True)
@@ -453,8 +481,8 @@ def contact(request):
 def aboutus(request):
     return render(request, 'userside/account/aboutus.html')
 
-def forgot_password(request):
-    return render(request, 'userside/account/forgot_password.html')
+# def forgot_password(request):
+#     return render(request, 'userside/account/forgot_password.html')
 
 @login_required
 @cache_control(no_cache = True, must_revalidate = True, no_store = True)
