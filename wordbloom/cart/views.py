@@ -13,6 +13,7 @@ import json
 from userpanel.models import UserAddress, Wallet, WalletTransaction
 from decimal import Decimal
 from django.conf import settings
+from django.utils import timezone
 
 # Create your views here.
 
@@ -96,7 +97,26 @@ def cart_view(request):
     
     # Refresh cart items after validation
     cart_items = cart.items.filter(is_active=True)
+
+    total_original_price = Decimal('0.00')
+    total_discount = Decimal('0.00')
     
+    # Calculate discount amount for each cart item
+    for item in cart_items:
+        item.discount_amount = round(float(item.variant.price) - float(item.variant.discounted_price), 2) if item.variant.discounted_price else 0
+        total_original_price += Decimal(item.variant.price) * item.quantity
+        total_discount += Decimal(item.discount_amount) * item.quantity
+
+    # Check if coupon is still active
+    if cart.coupon:
+        # Check if coupon is active and not expired
+        if not cart.coupon.status or cart.coupon.expiry_date < timezone.now().date():
+            # Coupon is inactive or expired
+            messages.warning(request, f"Coupon '{cart.coupon.coupon_code}' is no longer valid and has been removed from your cart.")
+            cart.coupon = None
+            cart.save()
+
+
     if request.method == 'POST':
         form = UpdateCartForm(request.POST)
         if form.is_valid():
@@ -132,14 +152,14 @@ def cart_view(request):
         'cart_items': cart_items,
         'cart_total': cart_total,
         'discount_amount': discount_amount,
+        'total_original_price': total_original_price,
+        'total_discount': total_discount,
         'total_after_discount': total_after_discount,
         'update_form': update_form,
         'coupon_form': coupon_form,
         'shipping_charge': shipping_charge,
     }
     return render(request, 'userside/cart/cart_view.html', context)
-
-
 
 @login_required
 def add_to_cart(request):
@@ -241,6 +261,7 @@ def checkout(request):
     # Validate cart before proceeding
     if not validate_and_clean_cart(request):
         return redirect('cart:cart-view')
+    
     cart_items = cart.items.filter(is_active=True)
     if not cart_items.exists():
         messages.warning(request, "Your cart is empty. Please add items before proceeding to checkout.")
@@ -251,15 +272,16 @@ def checkout(request):
         payment_method = request.POST.get('payment_method')
         use_wallet = request.POST.get('use_wallet') == 'on'  # Check if the user wants to use the wallet
         
+        # Check if address is selected
         if not address_id:
             messages.error(request, "Please select a shipping address.")
-            # return redirect('cart:checkout') #Removed to prevent form reset
+            # Continue to render the page instead of redirecting
+        # Check if payment method is selected
         elif not payment_method:
             messages.error(request, "Please select a payment method.")
-            # return redirect('cart:checkout')
+            # Continue to render the page instead of redirecting
         else:
             address = get_object_or_404(UserAddress, id=address_id, user=request.user)
-            
             # Calculate total amount after potential coupon discount
             total_amount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
             
@@ -282,7 +304,6 @@ def checkout(request):
                     # Use partial wallet balance
                     wallet_used = wallet_balance
                     amount_to_pay = total_amount - wallet_balance
-            # --- End Wallet Handling ---
             
             # Store data in session for place_order view
             request.session['selected_address_id'] = address_id
@@ -292,29 +313,31 @@ def checkout(request):
             request.session['total_amount'] = str(total_amount)  # Store original total for reference
             
             return redirect('orders:place-order')
-    else:
-        # For GET requests, or if there are errors, re-render the checkout page.
-        user_addresses = UserAddress.objects.filter(user=request.user)
-        total_amount = cart.get_total_price()
-        # Recalculate taking any coupon into account:
-        discount_amount = cart.get_discount_amount()
-        shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
-        total_after_discount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
-        
-        wallet_balance = Decimal('0.00')  # Initialize.
-        if hasattr(request.user, 'wallet'):  # Check if wallet exists.
-            wallet_balance = request.user.wallet.balance
-        
-        context = {
-            'cart_items': cart_items,
-            'total_amount': total_amount,
-            'discount_amount': discount_amount,
-            'total_after_discount': total_after_discount,
-            'user_addresses': user_addresses,
-            'wallet_balance': wallet_balance,  # Pass to template.
-            'shipping_charge': shipping_charge,
-        }
-        return render(request, 'userside/cart/checkout.html', context)
+    
+    # For GET requests, or if there are errors, re-render the checkout page.
+    user_addresses = UserAddress.objects.filter(user=request.user)
+    total_amount = cart.get_total_price()
+    
+    # Recalculate taking any coupon into account:
+    discount_amount = cart.get_discount_amount()
+    shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
+    total_after_discount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
+    
+    wallet_balance = Decimal('0.00')  # Initialize.
+    if hasattr(request.user, 'wallet'):  # Check if wallet exists.
+        wallet_balance = request.user.wallet.balance
+    
+    context = {
+        'cart_items': cart_items,
+        'total_amount': total_amount,
+        'discount_amount': discount_amount,
+        'total_after_discount': total_after_discount,
+        'user_addresses': user_addresses,
+        'wallet_balance': wallet_balance,  # Pass to template.
+        'shipping_charge': shipping_charge,
+    }
+    
+    return render(request, 'userside/cart/checkout.html', context)
 
 
 @login_required

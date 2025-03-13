@@ -169,6 +169,75 @@
     .btn-danger:hover {
         background: #f5c6cb;
     }
+    .order-summary {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: var(--light-gray);
+        border-radius: 10px;
+    }
+    
+    .address-details {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .address-details p {
+        margin: 0.5rem 0;
+        color: #666;
+    }
+    
+    .summary-table {
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+    }
+    
+    .summary-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .summary-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+        text-align: right;
+    }
+    
+    .summary-table td:first-child {
+        text-align: left;
+    }
+    
+    .summary-breakdown {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+    
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+    
+    .summary-item.total {
+        margin-top: 1rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .summary-item .label {
+        color: #666;
+    }
+    
+    .summary-item .value {
+        font-weight: 500;
+    }
 
     @media (max-width: 992px) {
         .profile-content {
@@ -242,7 +311,58 @@
                     </div>
                 </div>
             </div>
-
+            <div class="order-summary">
+                <h3>Shipping Address</h3>
+                <div class="address-details">
+                    <p>{{ order.shipping_address.name }}</p>
+                    <p>{{ order.shipping_address.house_name }}, {{ order.shipping_address.street_name }}</p>
+                    <p>{{ order.shipping_address.district }}, {{ order.shipping_address.state }}</p>
+                    <p>{{ order.shipping_address.country }} - {{ order.shipping_address.pin_number }}</p>
+                    <p>Phone: {{ order.shipping_address.phone_number }}</p>
+                </div>
+            
+                <h3>Order Summary</h3>
+                <div class="summary-table">
+                    <table>
+                        <tbody>
+                            {% for item in order_items %}
+                            <tr>
+                                <td>{{ item.product_variant.product.product_name }}</td>
+                                <td>₹{{ item.product_variant.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{% if item.product_variant.discounted_price %}₹{{ item.product_variant.discounted_price }}{% else %}₹{{ item.product_variant.price }}{% endif %}</td>
+                                <td>₹{{ item.get_cost }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            
+                <div class="summary-breakdown">
+                    <div class="summary-item">
+                        <span class="label">Order MRP</span>
+                        <span class="value">₹{{ subtotal }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Total Discount</span>
+                        <span class="value">-₹ {{ total_discount }}</span>
+                    </div>
+                    {% if discount_amount > 0 %}
+                    <div class="summary-item">
+                        <span class="label">Coupon Discount</span>
+                        <span class="value">-₹ {{ discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="summary-item">
+                        <span class="label">Shipping Charge</span>
+                        <span class="value">₹{{ shipping_charge }}</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span class="label">Grand Total</span>
+                        <span class="value">₹{{ grand_total }}</span>
+                    </div>
+                </div>
+            </div>
             <div class="order-items">
                 <h3>Order Items</h3>
                 {% for item in order_items %}

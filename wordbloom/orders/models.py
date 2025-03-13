@@ -5,6 +5,24 @@ from userpanel.models import UserAddress
 from django.utils import timezone
 from decimal import Decimal
 
+class ShippingAddress(models.Model):    
+    name = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=15)
+    house_name = models.CharField(max_length=100)
+    street_name = models.CharField(max_length=100)
+    district = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+    pin_number = models.CharField(max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.name}'s address at {self.house_name}, {self.street_name}"
+
+    def get_full_address(self):
+        return f"{self.house_name}, {self.street_name}, {self.district}, {self.state}, {self.country} - {self.pin_number}"
+
+
 class OrderMain(models.Model):
     ORDER_STATUS_CHOICES = [
         ('Pending', 'Pending'),
@@ -24,6 +42,7 @@ class OrderMain(models.Model):
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.ForeignKey(UserAddress, on_delete=models.SET_NULL, null=True)
+    shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.PROTECT, null=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     order_status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='Pending')
     payment_method = models.CharField(max_length=50)
@@ -77,4 +96,6 @@ class ReturnRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Return request for Order {self.order.order_id}"
+        return f"Return request for Order {self.order.order_id}" 
+
+

@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
 from django.conf import settings
 from utils.decorators import admin_required
+from orders.models import ShippingAddress
 
 
 # Create your views here.
@@ -53,10 +54,23 @@ def place_order(request):
         discount_amount = cart.get_discount_amount()
         
         with transaction.atomic():
-            # Create order
+            # Create a separate shipping address record
+            shipping_address = ShippingAddress.objects.create(
+                name=address.name,
+                phone_number=address.phone_number,
+                house_name=address.house_name,
+                street_name=address.street_name,
+                district=address.district,
+                state=address.state,
+                country=address.country,
+                pin_number=address.pin_number
+            )
+            
+            # Create order with the new shipping address
             order = OrderMain.objects.create(
                 user=request.user,
-                address=address,
+                address=address,  # Keep for backward compatibility
+                shipping_address=shipping_address,  # Use the new permanent shipping address
                 total_amount=total_with_shipping,  # Total *before* wallet deduction
                 payment_method=payment_method,
                 order_id=get_random_string(10).upper(),
@@ -86,7 +100,6 @@ def place_order(request):
                     Wallet.objects.create(user=request.user, balance=Decimal('0.00'))
                 
                 wallet = request.user.wallet
-                
                 # Verify wallet has sufficient balance
                 if wallet.balance < wallet_used:
                     raise Exception(f"Insufficient wallet balance. Available: ₹{wallet.balance}")
@@ -115,13 +128,11 @@ def place_order(request):
                     # Initialize Razorpay client with basic auth
                     key_id = settings.RAZORPAY_KEY_ID
                     key_secret = settings.RAZORPAY_KEY_SECRET
-                    
-                    print(f"Initializing Razorpay with key_id: {key_id[:5]}...")
                     client = razorpay.Client(
                         auth=(key_id, key_secret)
                     )
                     
-                    # Prepare payment data - use amount_to_pay (after wallet deduction) 
+                    # Prepare payment data - use amount_to_pay (after wallet deduction)
                     amount_in_paise = int(float(amount_to_pay) * 100)
                     payment_data = {
                         'amount': amount_in_paise,
@@ -134,9 +145,9 @@ def place_order(request):
                     }
                     
                     print(f"Creating Razorpay order with data: {payment_data}")
+
                     # Create Razorpay order
                     razorpay_order = client.order.create(payment_data)
-                    
                     if not razorpay_order.get('id'):
                         raise Exception("No order ID received from Razorpay")
                     
@@ -163,9 +174,9 @@ def place_order(request):
                     for key in ['selected_address_id', 'payment_method', 'amount_to_pay', 'wallet_used', 'total_amount']:
                         if key in request.session:
                             del request.session[key]
-                    
+                            
                     return render(request, 'userside/order/razorpay_payment.html', context)
-                
+                    
                 except Exception as e:
                     # Log the full error
                     import traceback
@@ -208,10 +219,11 @@ def place_order(request):
             
             messages.success(request, f"Order placed successfully. Your order ID is {order.order_id}")
             return redirect('orders:order-confirmation', order_id=order.order_id)
-    
+            
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('cart:checkout')
+
 
 @csrf_exempt
 def razorpay_callback(request):
