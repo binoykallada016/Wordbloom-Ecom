@@ -15,49 +15,41 @@
         --medium-gray: #9ca3af;
         --dark-gray: #4b5563;
     }
-
+    
     * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: 'Outfit', sans-serif;
     }
-
-    body {
-        background-color: #f8f8f8;
-        color: #333;
-        display: flex;
-        min-height: 100vh;
-    }
-
     
-
-    .main-content {
-        flex: 1;
-        padding: 1rem;
-        overflow-y: auto;
+    body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.5;
+        color: var(--text-color);
+        background-color: var(--light-gray);
     }
-
+    
     .container {
         max-width: 1600px;
         margin: 0 auto;
         padding: 0 15px;
     }
-
+    
     .admin-content {
         background-color: white;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 1rem;
+        padding: 2rem;
+        margin-top: 2rem;
     }
-
+    
     .admin-controls {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1rem;
     }
-
+    
     .search-and-add {
         display: flex;
         gap: 1rem;
@@ -70,117 +62,151 @@
     }
     
     .search-form input {
-        min-width: 250px;
+        padding: 0.5rem;
+        border: 1px solid var(--medium-gray);
+        border-radius: 4px;
+        font-size: 1rem;
     }
     
-
     .btn {
-        padding: 0.5rem 1rem;
+        display: inline-flex;
+        text-decoration: none;
+        padding: 10px 15px;
         border: none;
-        border-radius: 4px;
-        font-weight: 600;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
         cursor: pointer;
         transition: background-color 0.3s ease;
-        display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        text-decoration: none;
     }
-
+    
     .btn-primary {
         background-color: var(--primary-color);
         color: white;
     }
-
+    
     .btn-primary:hover {
         background-color: #1e4545;
     }
-
+    
+    .btn-secondary {
+        background-color: var(--light-gray);
+        color: var(--text-color);
+    }
+    
+    .btn-secondary:hover {
+        background-color: #e5e7eb;
+    }
+    
     .btn-edit {
         background-color: var(--info-color);
         color: white;
     }
-
+    
     .btn-edit:hover {
         background-color: #2563eb;
     }
-
+    
     .btn-delete {
         background-color: var(--danger-color);
         color: white;
     }
-
+    
     .btn-delete:hover {
         background-color: #b91c1c;
     }
-
+    
     .btn-restore {
         background-color: var(--success-color);
         color: white;
     }
-
+    
     .btn-restore:hover {
         background-color: #047857;
     }
-
-    tr.deleted {
-        background-color: #f8f8f8;
-    }
-
-    tr.deleted td {
-        opacity: 0.6;
-    }
-
-    /* Keep all buttons in the action cell visible */
-    tr.deleted td:last-child {
-        opacity: 1 !important;
-    }
-
-    /* Disable all buttons except restore */
-    tr.deleted .btn {
-        opacity: 0.4;
-        pointer-events: none;
-        cursor: not-allowed;
-    }
-
-    /* Keep restore button active */
-    tr.deleted .btn-restore {
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        cursor: pointer !important;
-    }
-
+    
     .btn-offer {
         background-color: var(--warning-color);
         color: white;
     }
-
+    
     .btn-offer:hover {
         background-color: #994500;
     }
-
+    
     table {
+        
         width: 100%;
         border-collapse: collapse;
         margin-top: 1rem;
     }
-
+    
     th, td {
         padding: 0.75rem;
-        text-align: left;
+        text-align: center;
         border-bottom: 1px solid var(--light-gray);
     }
-
+    
     th {
         background-color: var(--light-gray);
         font-weight: 600;
     }
-
+    
+    /* Align the name and description columns to the left */
+    tr td:nth-child(2),
+    tr td:nth-child(3) {
+        text-align: left;
+    }
+    tr td:nth-child(3) {
+        width: 20rem;
+        max-width: 28rem;
+        
+      }
+    
     .action-buttons {
         display: flex;
-        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
     }
-
+    
+    .status-active {
+        color: var(--success-color);
+    }
+    
+    .status-inactive {
+        color: var(--danger-color);
+    }
+    
+    .active-offer {
+        font-weight: bold;
+        color: var(--warning-color);
+    }
+    
+    .tr-deactivated, tr.deleted {
+        opacity: 0.5;
+        background-color: #f8d7da;
+    }
+    
+    .tr-deactivated td, tr.deleted td {
+        opacity: 0.6;
+    }
+    
+    .tr-deactivated .btn, tr.deleted .btn {
+        opacity: 0.4;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+    
+    .tr-deactivated .btn-restore, tr.deleted .btn-restore {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+    
     .modal {
         display: none;
         position: fixed;
@@ -192,7 +218,7 @@
         overflow: auto;
         background-color: rgba(0,0,0,0.4);
     }
-
+    
     .modal-content {
         background-color: #fefefe;
         margin: 15% auto;
@@ -202,7 +228,7 @@
         max-width: 500px;
         border-radius: 8px;
     }
-
+    
     .close {
         color: #aaa;
         float: right;
@@ -210,24 +236,24 @@
         font-weight: bold;
         cursor: pointer;
     }
-
+    
     .close:hover,
     .close:focus {
         color: #000;
         text-decoration: none;
         cursor: pointer;
     }
-
+    
     .form-group {
         margin-bottom: 1rem;
     }
-
+    
     .form-group label {
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 500;
     }
-
+    
     .form-control {
         width: 100%;
         padding: 0.5rem;
@@ -235,18 +261,7 @@
         border-radius: 4px;
         font-size: 1rem;
     }
-
-    .active-offer {
-        font-weight: bold;
-        color: var(--warning-color);
-    }
-
-    .deleted {
-        opacity: 0.5;
-        background-color: #f8d7da;
-    }
     
-    /* Add this to your existing styles */
     .pagination {
         display: flex;
         justify-content: center;
@@ -255,7 +270,7 @@
         margin-top: 2rem;
         padding: 1rem;
     }
-
+    
     .pagination a {
         padding: 0.5rem 1rem;
         border: 1px solid var(--primary-color);
@@ -264,19 +279,19 @@
         text-decoration: none;
         transition: all 0.3s ease;
     }
-
+    
     .pagination a:hover {
         background-color: var(--primary-color);
         color: white;
     }
-
+    
     .pagination .current {
         padding: 0.5rem 1rem;
         background-color: var(--primary-color);
         color: white;
         border-radius: 4px;
     }
-
+    
     .pagination .disabled {
         padding: 0.5rem 1rem;
         border: 1px solid var(--medium-gray);
@@ -284,62 +299,72 @@
         border-radius: 4px;
         pointer-events: none;
     }
-
+    
     @media (max-width: 768px) {
         .admin-controls {
             flex-direction: column;
-            align-items: stretch;
             gap: 1rem;
         }
+        
         .admin-controls h2 {
             text-align: center;
         }
+        
         .search-and-add {
-            flex-direction: column;
             width: 100%;
         }
         
         .search-form {
-            width: 100%;
+            flex-grow: 1;
         }
         
         .search-form input {
-            min-width: 0;
-            flex: 1;
+            flex-grow: 1;
         }
+        
+        table {
+            font-size: 0.9rem;
+        }
+        
         table, thead, tbody, th, td, tr {
             display: block;
         }
+        
         thead tr {
             position: absolute;
             top: -9999px;
             left: -9999px;
         }
+        
         tr {
             margin-bottom: 1rem;
             border: 1px solid var(--medium-gray);
             border-radius: 4px;
         }
+        
         td {
             border: none;
             position: relative;
             padding-left: 50%;
         }
+        
         td:before {
             content: attr(data-label);
             position: absolute;
             left: 10px;
             font-weight: bold;
         }
+        
         .action-buttons {
-            flex-direction: column;
+            flex-wrap: wrap;
         }
+        
         .btn {
-            width: 100%;
-            justify-content: center;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
         }
     }
-
+    
     @media (max-width: 480px) {
         .modal-content {
             width: 95%;

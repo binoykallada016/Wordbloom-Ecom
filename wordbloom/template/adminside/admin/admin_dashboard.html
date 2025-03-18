@@ -10,6 +10,13 @@
         margin: 0 auto;
         padding: 0 15px;
     }
+    .admin-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
     .chart-row {
         display: flex;
         justify-content: space-between;
@@ -25,7 +32,7 @@
         padding: 20px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         min-height: 250px;
-        max-height: 400px;
+        max-height: 435px;
     }
     .pie-chart-container {
         flex: 1;
@@ -35,7 +42,7 @@
         padding: 20px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         min-height: 250px;
-        max-height: 400px;
+        max-height: 435px;
     }
     .grid-container {
         display: grid;
@@ -248,105 +255,107 @@
 
 {% block content %}
 <div class="container">
-    <h1>Admin Dashboard</h1>    
-    <div class="quick-filters">
-        <button class="filter-btn {% if default_range == 'daily' %}active{% endif %}" data-filter="daily" onclick="applyFilter('daily')">Today</button>
-        <button class="filter-btn {% if default_range == 'weekly' %}active{% endif %}" data-filter="weekly" onclick="applyFilter('weekly')">This Week</button>
-        <button class="filter-btn {% if default_range == 'monthly' %}active{% endif %}" data-filter="monthly" onclick="applyFilter('monthly')">This Month</button>
-        <button class="filter-btn {% if default_range == 'yearly' %}active{% endif %}" data-filter="yearly" onclick="applyFilter('yearly')">This Year</button>
-        <button class="filter-btn {% if default_range == 'all' %}active{% endif %}" data-filter="all" onclick="applyFilter('all')">All Time</button>
-    </div>
-    <!-- Charts Section -->
-    <div class="chart-row">
-        <div class="chart-container_ys">
-            <h2>Yearly Sales</h2>
-            <canvas id="salesChart"></canvas>
+    <div class="admin-content">
+        <h1>Admin Dashboard</h1>    
+        <div class="quick-filters">
+            <button class="filter-btn {% if default_range == 'daily' %}active{% endif %}" data-filter="daily" onclick="applyFilter('daily')">Today</button>
+            <button class="filter-btn {% if default_range == 'weekly' %}active{% endif %}" data-filter="weekly" onclick="applyFilter('weekly')">This Week</button>
+            <button class="filter-btn {% if default_range == 'monthly' %}active{% endif %}" data-filter="monthly" onclick="applyFilter('monthly')">This Month</button>
+            <button class="filter-btn {% if default_range == 'yearly' %}active{% endif %}" data-filter="yearly" onclick="applyFilter('yearly')">This Year</button>
+            <button class="filter-btn {% if default_range == 'all' %}active{% endif %}" data-filter="all" onclick="applyFilter('all')">All Time</button>
         </div>
-        <div class="pie-chart-container">
-            <h2>Payment Methods</h2>
-            <canvas id="paymentChart"></canvas>
-        </div>
-    </div>
-    <div class="grid-container">
-        <div>
-            <h2>Top Selling Products</h2>
-            <ul class="top-items-list">
-                {% for item in top_products %}
-                <li>
-                    <span>{{ item.product_variant__product__product_name }}</span>
-                    <span class="badge">{{ item.total_quantity }} sold</span>
-                </li>
-                {% empty %}
-                <li>No data available</li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div>
-            <h2>Top Selling Categories</h2>
-            <ul class="top-items-list">
-                {% for item in top_categories %}
-                <li>
-                    <span>{{ item.product_variant__product__category__name }}</span>
-                    <span class="badge">{{ item.total_quantity }} sold</span>
-                </li>
-                {% empty %}
-                <li>No data available</li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div>
-            <h2>Top Selling Authors</h2>
-            <ul class="top-items-list">
-                {% for item in top_authors %}
-                <li>
-                    <span>{{ item.product_variant__product__author__name }}</span>
-                    <span class="badge">{{ item.total_quantity }} sold</span>
-                </li>
-                {% empty %}
-                <li>No data available</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-    <section class="recent-orders">
-        <h2>Recent Orders</h2>
-        {% if recent_orders %}
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Customer</th>
-                        <th>Date</th>
-                        <th>Total Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in recent_orders %}
-                    <tr>
-                        <td><strong>#{{ order.order_id }}</strong></td>
-                        <td>{{ order.user.full_name }}</td>
-                        <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
-                        <td>₹{{ order.total_amount|floatformat:2 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="mobile-cards">
-            {% for order in recent_orders %}
-            <div class="order-card">
-                <p><strong>Order ID:</strong> #{{ order.order_id }}</p>
-                <p><strong>Customer:</strong> {{ order.user.full_name }}</p>
-                <p><strong>Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
-                <p><strong>Total:</strong> ₹{{ order.total_amount|floatformat:2 }}</p>
+        <!-- Charts Section -->
+        <div class="chart-row">
+            <div class="chart-container_ys">
+                <h2>Yearly Sales</h2>
+                <canvas id="salesChart"></canvas>
             </div>
-            {% endfor %}
+            <div class="pie-chart-container">
+                <h2>Payment Methods</h2>
+                <canvas id="paymentChart"></canvas>
+            </div>
         </div>
-        {% else %}
-        <p>No recent orders.</p>
-        {% endif %}
-    </section>
+        <div class="grid-container">
+            <div>
+                <h2>Top Selling Products</h2>
+                <ul class="top-items-list">
+                    {% for item in top_products %}
+                    <li>
+                        <span>{{ item.product_variant__product__product_name }}</span>
+                        <span class="badge">{{ item.total_quantity }} sold</span>
+                    </li>
+                    {% empty %}
+                    <li>No data available</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div>
+                <h2>Top Selling Categories</h2>
+                <ul class="top-items-list">
+                    {% for item in top_categories %}
+                    <li>
+                        <span>{{ item.product_variant__product__category__name }}</span>
+                        <span class="badge">{{ item.total_quantity }} sold</span>
+                    </li>
+                    {% empty %}
+                    <li>No data available</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div>
+                <h2>Top Selling Authors</h2>
+                <ul class="top-items-list">
+                    {% for item in top_authors %}
+                    <li>
+                        <span>{{ item.product_variant__product__author__name }}</span>
+                        <span class="badge">{{ item.total_quantity }} sold</span>
+                    </li>
+                    {% empty %}
+                    <li>No data available</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <section class="recent-orders">
+            <h2>Recent Orders</h2>
+            {% if recent_orders %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td><strong>#{{ order.order_id }}</strong></td>
+                            <td>{{ order.user.full_name }}</td>
+                            <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                            <td>₹{{ order.total_amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mobile-cards">
+                {% for order in recent_orders %}
+                <div class="order-card">
+                    <p><strong>Order ID:</strong> #{{ order.order_id }}</p>
+                    <p><strong>Customer:</strong> {{ order.user.full_name }}</p>
+                    <p><strong>Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+                    <p><strong>Total:</strong> ₹{{ order.total_amount|floatformat:2 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No recent orders.</p>
+            {% endif %}
+        </section>
+    </div>
 </div>
 {% endblock %}
 
@@ -476,6 +485,20 @@
 
         resizeCharts();
         window.addEventListener('resize', resizeCharts);
+    });
+
+    // Add SweetAlert message handling
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    title: '{{ message.tags|title }}',
+                    text: '{{ message }}',
+                    icon: '{{ message.tags }}',
+                    confirmButtonText: 'OK'
+                });
+            {% endfor %}
+        {% endif %}
     });
 </script>
 {% endblock %}

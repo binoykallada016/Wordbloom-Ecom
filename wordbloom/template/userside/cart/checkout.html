@@ -287,7 +287,22 @@
                         </div>
                     {% endfor %}
                 </div>
-
+                <div class="summary-item">
+                    <span class="summary-label">Order MRP:</span>
+                    <span class="summary-value">₹<span id="cart-original-price">{{ total_original_price }}</span></span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Total Discount:</span>
+                    <span class="summary-value summary-discount">-₹<span id="cart-discount">{{ total_discount }}</span></span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Order Subtotal:</span>
+                    <span class="summary-value">₹<span id="cart-subtotal">{{ total_amount }}</span></span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Coupon Discount:</span>
+                    <span class="summary-value summary-discount">-₹<span id="coupon-discount">{{ discount_amount|floatformat:2 }}</span></span>
+                  </div>
                 <div class="summary-item">
                     <span>Shipping</span>
                     <span>₹{{ shipping_charge }}</span>

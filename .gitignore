@@ -50,8 +50,6 @@ nosetests.xml
 test-results.xml
 junit*.xml
 
-# Migrations (optional)
-# migrations/
 
 # Build artifacts
 dist/

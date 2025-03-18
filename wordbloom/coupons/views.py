@@ -9,6 +9,9 @@ from utils.decorators import admin_required
 from django.http import JsonResponse
 import random
 import string
+import json
+from decimal import Decimal
+from django.conf import settings
 
 # Create your views here.
 @admin_required
@@ -54,30 +57,108 @@ def coupon_status(request, pk):
     coupon.save()
     return redirect('coupons:list-coupon')
 
+# @login_required
+# def apply_coupon(request):
+#     if request.method == 'POST':
+#         code = request.POST.get('code')
+#         try:
+#             coupon = Coupon.objects.get(coupon_code=code, status=True)
+#             cart = Cart.objects.get(user=request.user)
+#             total_amount = cart.get_total_price()
+
+#             if coupon.is_valid(total_amount):
+#                 cart.coupon = coupon
+#                 cart.save()
+#                 messages.success(request, 'Coupon applied successfully!')
+#             else:
+#                 messages.error(request, 'This coupon is not valid for your order.')
+#         except Coupon.DoesNotExist:
+#             messages.error(request, 'Invalid coupon code.')
+#     return redirect('cart:cart-view')
+
+# @login_required
+# def remove_coupon(request):
+#     if request.method == 'POST':
+#         cart = Cart.objects.get(user=request.user)
+#         cart.coupon = None
+#         cart.save()
+#         messages.success(request, 'Coupon removed successfully!')
+#     return redirect('cart:cart-view')
+
 @login_required
 def apply_coupon(request):
     if request.method == 'POST':
-        code = request.POST.get('code')
         try:
-            coupon = Coupon.objects.get(coupon_code=code, status=True)
-            cart = Cart.objects.get(user=request.user)
-            total_amount = cart.get_total_price()
-
-            if coupon.is_valid(total_amount):
-                cart.coupon = coupon
-                cart.save()
-                messages.success(request, 'Coupon applied successfully!')
-            else:
-                messages.error(request, 'This coupon is not valid for your order.')
-        except Coupon.DoesNotExist:
-            messages.error(request, 'Invalid coupon code.')
-    return redirect('cart:cart-view')
+            data = json.loads(request.body)
+            code = data.get('code')
+            
+            try:
+                coupon = Coupon.objects.get(coupon_code=code, status=True)
+                cart = Cart.objects.get(user=request.user)
+                total_amount = cart.get_total_price()
+                
+                if coupon.is_valid(total_amount):
+                    cart.coupon = coupon
+                    cart.save()
+                    
+                    # Calculate updated totals
+                    cart_total = cart.get_total_price()
+                    discount_amount = cart.get_discount_amount()
+                    total_after_discount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Coupon applied successfully!',
+                        'cart_total': float(cart_total),
+                        'discount_amount': float(discount_amount),
+                        'total_after_discount': float(total_after_discount)
+                    })
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'This coupon is not valid for your order.'
+                    })
+            except Coupon.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid coupon code.'
+                })
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid request format.'
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method.'
+    })
 
 @login_required
 def remove_coupon(request):
     if request.method == 'POST':
-        cart = Cart.objects.get(user=request.user)
-        cart.coupon = None
-        cart.save()
-        messages.success(request, 'Coupon removed successfully!')
-    return redirect('cart:cart-view')
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart.coupon = None
+            cart.save()
+            
+            # Calculate updated totals
+            cart_total = cart.get_total_price()
+            total_after_discount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Coupon removed successfully!',
+                'cart_total': float(cart_total),
+                'total_after_discount': float(total_after_discount)
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error removing coupon: {str(e)}'
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method.'
+    })

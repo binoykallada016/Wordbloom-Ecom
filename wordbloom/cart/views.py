@@ -14,6 +14,9 @@ from userpanel.models import UserAddress, Wallet, WalletTransaction
 from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
@@ -123,6 +126,9 @@ def cart_view(request):
             item_id = form.cleaned_data['item_id']
             quantity = form.cleaned_data['quantity']
             action = form.cleaned_data['action']
+
+            # Add logging here
+            logger.info("Cart form action '%s' for item %s, quantity %s", action, item_id, quantity)
             
             try:
                 cart_item = cart.items.get(id=item_id)
@@ -206,54 +212,143 @@ def add_to_cart(request):
     # If not a POST request
     return redirect('accounts:shop')
 
+@login_required
+def update_cart_quantity(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            item_id = data.get('item_id')
+            quantity = int(data.get('quantity'))
+            
+            # Add logging here
+            logger.info("Cart update requested for item %s, quantity %s", item_id, quantity)
 
+            if quantity < 1:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Quantity must be at least 1'
+                }, status=400)
+            
+            cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+            
+            # Check stock availability
+            if quantity > cart_item.variant.stock:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Only {cart_item.variant.stock} units available'
+                }, status=400)
+            
+            # Update quantity
+            cart_item.quantity = quantity
+            cart_item.save()
+            
+            # Recalculate cart totals
+            cart = Cart.objects.get(user=request.user)
+            cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+            
+            # Calculate totals
+            total_original_price = Decimal('0.00')
+            total_discount = Decimal('0.00')
+            
+            for item in cart_items:
+                item_discount = Decimal(item.variant.price) - Decimal(item.variant.discounted_price) if item.variant.discounted_price else Decimal('0.00')
+                total_original_price += Decimal(item.variant.price) * item.quantity
+                total_discount += item_discount * item.quantity
+            
+            cart_total = cart.get_total_price()
+            discount_amount = cart.get_discount_amount()
+            shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
+            # Convert shipping_charge to Decimal if it's not already
+            if not isinstance(shipping_charge, Decimal):
+                shipping_charge = Decimal(str(shipping_charge))
+            total_after_discount = Decimal(cart.get_total_price_after_discount()) + shipping_charge
+            
+            return JsonResponse({
+                'status': 'success',
+                'item_subtotal': float(cart_item.sub_total()),
+                'cart_total': float(cart_total),
+                'discount_amount': float(discount_amount),
+                'total_after_discount': float(total_after_discount),
+                'total_original_price': float(total_original_price),
+                'total_discount': float(total_discount)
+            })
+            
+        except CartItem.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Item not found'
+            }, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid JSON'
+            }, status=400)
+        except Exception as e:
+            # Use the logger that's already defined at the module level
+            logger.error(f"Error updating cart quantity: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)
 
 @login_required
 def remove_item(request, item_id):
     try:
+        # Add logging here
+        logger.info("Remove item requested for item %s", item_id)
+
+        # First try to get the cart item
         cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+        
+        # Get the cart before deleting the item
+        cart = Cart.objects.get(user=request.user)
+        
+        # Delete the item
         cart_item.delete()
         
-        # Recalculate cart total
-        cart = Cart.objects.get(user=request.user)
-        cart_items = CartItem.objects.filter(cart=cart)
-        cart_total = sum(item.sub_total() for item in cart_items)
+        # Recalculate cart totals
+        cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        
+        # Calculate totals
+        total_original_price = Decimal('0.00')
+        total_discount = Decimal('0.00')
+        
+        for item in cart_items:
+            item_discount = Decimal(item.variant.price) - Decimal(item.variant.discounted_price) if item.variant.discounted_price else Decimal('0.00')
+            total_original_price += Decimal(item.variant.price) * item.quantity
+            total_discount += item_discount * item.quantity
+        
+        cart_total = cart.get_total_price()
+        discount_amount = cart.get_discount_amount()
+        shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
+        # Convert shipping_charge to Decimal if it's not already
+        if not isinstance(shipping_charge, Decimal):
+            shipping_charge = Decimal(str(shipping_charge))
+        total_after_discount = Decimal(cart.get_total_price_after_discount()) + shipping_charge
         
         return JsonResponse({
             'status': 'success',
-            'cart_total': cart_total,
+            'cart_total': float(cart_total),
+            'discount_amount': float(discount_amount),
+            'total_after_discount': float(total_after_discount),
+            'total_original_price': float(total_original_price),
+            'total_discount': float(total_discount),
             'cart_empty': not cart_items.exists()
         })
     except CartItem.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Item not found'}, status=404)
+    except Cart.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Cart not found'}, status=404)
+    except Exception as e:
+        # Use the logger that's already defined at the module level
+        logger.error(f"Error removing cart item: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-
-@login_required
-def update_cart_quantity(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        item_id = data.get('item_id')
-        quantity = data.get('quantity')
-        
-        try:
-            cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
-            cart_item.quantity = int(quantity)
-            cart_item.save()
-            
-            # Recalculate cart total
-            cart = Cart.objects.get(user=request.user)
-            cart_items = CartItem.objects.filter(cart=cart)
-            cart_total = sum(item.sub_total() for item in cart_items)
-            
-            return JsonResponse({
-                'status': 'success',
-                'item_subtotal': cart_item.sub_total(),
-                'cart_total': cart_total
-            })
-        except CartItem.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Item not found'}, status=404)
-    
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
 @login_required
 def checkout(request):
@@ -272,6 +367,10 @@ def checkout(request):
         payment_method = request.POST.get('payment_method')
         use_wallet = request.POST.get('use_wallet') == 'on'  # Check if the user wants to use the wallet
         
+        # Add logging here
+        logger.info("Checkout initiated by user %s, address %s, payment method %s, use wallet: %s", 
+               request.user.id, address_id, payment_method, use_wallet)
+
         # Check if address is selected
         if not address_id:
             messages.error(request, "Please select a shipping address.")
@@ -316,12 +415,25 @@ def checkout(request):
     
     # For GET requests, or if there are errors, re-render the checkout page.
     user_addresses = UserAddress.objects.filter(user=request.user)
+
+    # Calculate totals to match cart_view.html
+    total_original_price = Decimal('0.00')
+    total_discount = Decimal('0.00')
+    
+    # Calculate discount amount for each cart item - same as in cart_view
+    for item in cart_items:
+        item.discount_amount = round(float(item.variant.price) - float(item.variant.discounted_price), 2) if item.variant.discounted_price else 0
+        item.sub_total = Decimal(item.variant.price) * item.quantity
+        total_original_price += Decimal(item.variant.price) * item.quantity
+        total_discount += Decimal(item.discount_amount) * item.quantity
+
     total_amount = cart.get_total_price()
     
     # Recalculate taking any coupon into account:
     discount_amount = cart.get_discount_amount()
     shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
     total_after_discount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
+    
     
     wallet_balance = Decimal('0.00')  # Initialize.
     if hasattr(request.user, 'wallet'):  # Check if wallet exists.
@@ -335,6 +447,8 @@ def checkout(request):
         'user_addresses': user_addresses,
         'wallet_balance': wallet_balance,  # Pass to template.
         'shipping_charge': shipping_charge,
+        'total_original_price': total_original_price,  # Added for order summary
+        'total_discount': total_discount,  # Added for order summary
     }
     
     return render(request, 'userside/cart/checkout.html', context)

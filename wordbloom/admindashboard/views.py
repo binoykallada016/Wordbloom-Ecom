@@ -7,38 +7,28 @@ from django.contrib.auth.decorators import login_required
 from accounts.models import User
 from category.models import Category
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q, Value, CharField
-from django.db.models.functions import Concat
+from django.db.models import Q, Value, CharField, Sum
+from django.db.models.functions import Concat, ExtractYear, ExtractMonth, ExtractDay
 from django.urls import reverse
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
-from django.db.models import Sum
+from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import timezone
-from datetime import datetime
-from datetime import timedelta
-from orders.models import OrderMain
-from django.shortcuts import render
-from django.db.models import Sum
-from django.utils import timezone
-from datetime import timedelta
-from django.http import HttpResponse
+from datetime import datetime, timedelta
+from decimal import Decimal
 import csv
-from io import BytesIO
-from io import StringIO
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Spacer
-from reportlab.lib import colors
 import os
+from io import BytesIO, StringIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A3, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Spacer, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 from django.conf import settings
-from django.db.models import Count, Sum, F
-from django.db.models.functions import ExtractYear, ExtractMonth
-from django.utils import timezone
-from datetime import timedelta
-from orders.models import OrderItem
-from django.db.models.functions import ExtractYear, ExtractDay
-from userpanel.models import WalletTransaction
+from django.db.models import Count, F
+from orders.models import OrderMain, OrderItem
+from userpanel.models import WalletTransaction  # Ensure these are correct models
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+ITEMS_PER_PAGE = 10
 
 @never_cache
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -257,10 +247,10 @@ def list_users(request):
     # Get search parameters
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
-    admin_filter = request.GET.get('admin', '')
+    admin_filter = request.GET.get('admin', '') 
     
-    # Start with all users
-    users = User.objects.filter(is_active=True)
+    # Start with all users except superusers
+    users = User.objects.filter(is_active=True, is_superuser=False)
     
     # Apply search filter from backend
     if search_query:        
@@ -362,151 +352,12 @@ def unblock_user(request, user_id):
     
     return HttpResponseRedirect(redirect_url)
 
-# @admin_required
-# def sales_report(request):
-#     filter_type = request.GET.get('filter', 'daily')
-#     today = timezone.now().date()
-
-#     if filter_type == 'daily':
-#         start_date = today
-#         end_date = today
-#     elif filter_type == 'weekly':
-#         start_date = today - timedelta(days=today.weekday())
-#         end_date = today
-#     elif filter_type == 'monthly':
-#         start_date = today.replace(day=1)
-#         end_date = today
-#     elif filter_type == 'yearly':
-#         start_date = today.replace(month=1, day=1)
-#         end_date = today
-#     else:  # Custom date range
-#         start_date = request.GET.get('start_date')
-#         end_date = request.GET.get('end_date')
-#         if start_date and end_date:
-#             start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-#             end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-#         else:
-#             start_date = today
-#             end_date = today
-
-#     orders = OrderMain.objects.filter(created_at__date__range=[start_date, end_date])
-#     total_sales = orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-#     # Add discount calculation
-#     # total_discount = orders.aggregate(Sum('discount_amount'))['discount_amount__sum'] or 0
-#     # net_sales = total_sales - total_discount
-
-#     if request.GET.get('format') == 'csv':
-#         response = HttpResponse(content_type='text/csv')
-#         response['Content-Disposition'] = 'attachment; filename="sales_report.csv"'
-#         writer = csv.writer(response)
-#         # Add discount header
-#         # writer.writerow(['Order ID', 'Date', 'Total Amount', 'Discount Amount', 'Net Amount'])
-#         writer.writerow(['Order ID', 'Date', 'Total Amount'])
-#         for order in orders:
-#             # Add discount and net amount
-#             # net_amount = order.total_amount - order.discount_amount
-#             # writer.writerow([order.order_id, order.created_at, order.total_amount, order.discount_amount, net_amount])
-#             writer.writerow([order.order_id, order.created_at, order.total_amount])
-#         return response
-
-#     elif request.GET.get('format') == 'pdf':
-#         response = HttpResponse(content_type='application/pdf')
-#         response['Content-Disposition'] = 'attachment; filename="sales_report.pdf"'
-
-#         buffer = BytesIO()
-#         doc = SimpleDocTemplate(buffer, pagesize=A4)
-#         elements = []
-
-#         # Add logo at the top
-#         logo_path = os.path.join(settings.BASE_DIR, 'static', 'userside', 'assets', 'imgs', 'theme', 'icons', 'logo_wordbloom.png')
-#         logo = Image(logo_path, width=50, height=50)
-#         elements.append(logo)
-#         elements.append(Spacer(1, 10))  # Add space after the logo
-
-#         # Create table data with or without discount
-#         # data = [['Order ID', 'Date', 'Total Amount', 'Discount', 'Net Amount']]
-#         data = [['Order ID', 'Date', 'Total Amount']]
-#         for order in orders:
-#             # Version with discount
-#             # net_amount = order.total_amount - order.discount_amount
-#             # data.append([
-#             #     str(order.order_id),
-#             #     order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-#             #     f"Rs.{order.total_amount:.2f}",
-#             #     f"Rs.{order.discount_amount:.2f}",
-#             #     f"Rs.{net_amount:.2f}"
-#             # ])
-            
-#             # Version without discount
-#             data.append([
-#                 str(order.order_id),
-#                 order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-#                 f"Rs.{order.total_amount:.2f}"
-#             ])
-
-#         # Create the table with style
-#         table = Table(data)
-#         style = TableStyle([
-#             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-#             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-#             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-#             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-#             ('FONTSIZE', (0, 0), (-1, 0), 14),
-#             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-#             ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-#             ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-#             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-#             ('FONTSIZE', (0, 1), (-1, -1), 12),
-#             ('GRID', (0, 0), (-1, -1), 1, colors.black)
-#         ])
-#         table.setStyle(style)
-#         elements.append(table)
-
-#         # Add summary section at the bottom
-#         elements.append(Spacer(1, 20))
-#         summary_data = [
-#             ['Summary'],
-#             ['Total Sales:', f"Rs.{total_sales:.2f}"],
-#             # ['Total Discount:', f"Rs.{total_discount:.2f}"],
-#             # ['Net Sales:', f"Rs.{net_sales:.2f}"]
-#         ]
-#         summary_table = Table(summary_data)
-#         summary_style = TableStyle([
-#             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-#             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-#             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-#             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-#             ('FONTSIZE', (0, 0), (-1, 0), 14),
-#             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-#             ('GRID', (0, 0), (-1, -1), 1, colors.black)
-#         ])
-#         summary_table.setStyle(summary_style)
-#         elements.append(summary_table)
-
-#         # Build the PDF document
-#         doc.build(elements)
-        
-#         pdf = buffer.getvalue()
-#         buffer.close()
-#         response.write(pdf)
-#         return response
-
-#     context = {
-#         'orders': orders,
-#         'total_sales': total_sales,
-#         # 'total_discount': total_discount,
-#         # 'net_sales': net_sales,
-#         'filter_type': filter_type,
-#         'start_date': start_date,
-#         'end_date': end_date,
-#     }
-#     return render(request, 'adminside/sales_report/sales_report.html', context)
-
 @admin_required
 def sales_report(request):
     filter_type = request.GET.get('filter', 'daily')
     today = timezone.now().date()
-
+    
+    # Set date range based on filter type
     if filter_type == 'daily':
         start_date = today
         end_date = today
@@ -528,76 +379,182 @@ def sales_report(request):
         else:
             start_date = today
             end_date = today
-
+    
+    # Get orders for the date range
     orders = OrderMain.objects.filter(created_at__date__range=[start_date, end_date])
-
-    total_sales = orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0  # Corrected key access
-    total_discount = orders.aggregate(Sum('discount_amount'))['discount_amount__sum'] or 0 # Corrected key access
-
+    
+    # Calculate summary values
+    total_sales = orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    total_discount = orders.aggregate(Sum('discount_amount'))['discount_amount__sum'] or 0
+    
     # Calculate total refund amount
     total_refund = WalletTransaction.objects.filter(
         transaction_type='credit',
-        timestamp__date__range=[start_date, end_date]
+        timestamp__date__range=[start_date, end_date],
+        description__icontains='refund'  # Only count refunds
     ).aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    # Enhance order data with calculated values
+    enhanced_orders = []
+    for order in orders:
+        # Calculate MRP total for the order
+        order_mrp_total = Decimal('0.00')
+        for item in order.items.all():
+            original_price = item.product_variant.price
+            order_mrp_total += Decimal(original_price) * item.quantity
+        
+        # Calculate item discount total
+        item_discount_total = Decimal('0.00')
+        for item in order.items.all():
+            original_price = item.product_variant.price
+            discounted_price = item.price
+            item_discount = (original_price - discounted_price) * item.quantity
+            item_discount_total += item_discount
+        
+        # Get refund amount for this order
+        refund_amount = WalletTransaction.objects.filter(
+            transaction_type='credit',
+            description__icontains=order.order_id
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        # Calculate shipping charge
+        shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
+        
+        # Calculate order subtotal (after item discounts but before coupon)
+        order_subtotal = order_mrp_total - item_discount_total
+        
+        enhanced_orders.append({
+            'order': order,
+            'mrp_total': order_mrp_total,
+            'item_discount_total': item_discount_total,
+            'subtotal': order_subtotal,
+            'coupon_discount': order.discount_amount,
+            'shipping_charge': shipping_charge,
+            'refund_amount': refund_amount
+        })
+    
+    # --- Pagination Logic ---
+    page = request.GET.get('page', 1)
+    paginator = Paginator(enhanced_orders, ITEMS_PER_PAGE)
+
+    try:
+        paginated_orders = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_orders = paginator.page(1)
+    except EmptyPage:
+        paginated_orders = paginator.page(paginator.num_pages)
 
     if request.GET.get('format') == 'csv':
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="sales_report.csv"'
+        response['Content-Disposition'] = f'attachment; filename="sales_report_{start_date}_to_{end_date}.csv"'
         writer = csv.writer(response)
-
-        writer.writerow(['Order ID', 'Date', 'Total Amount', 'Discount Amount', 'Refund Amount', 'Payment Method'])
-        for order in orders:
-            # Find related refund transactions for this order. More robust.
-            refund_amount = WalletTransaction.objects.filter(
-                transaction_type='credit',
-                description__icontains=order.order_id  # Match using order ID
-            ).aggregate(Sum('amount'))['amount__sum'] or 0
-
+        
+        # Write header with filter information
+        writer.writerow(['WordBloom Sales Report'])
+        writer.writerow([f'Filter: {filter_type.capitalize()}'])
+        writer.writerow([f'Period: {start_date} to {end_date}'])
+        writer.writerow([f'Generated on: {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}'])
+        writer.writerow([])  # Empty row for spacing
+        
+        writer.writerow(['Order ID', 'Date', 'Order MRP', 'Item Discount', 'Order Subtotal', 
+                         'Coupon Discount', 'Shipping Charge', 'Total Amount', 'Refund Amount', 'Payment Method'])
+        
+        for order_data in enhanced_orders:
+            order = order_data['order']
             writer.writerow([
                 order.order_id,
-                order.created_at,
-                order.total_amount,
-                order.discount_amount,
-                refund_amount,
+                order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                f"{order_data['mrp_total']:.2f}",
+                f"{order_data['item_discount_total']:.2f}",
+                f"{order_data['subtotal']:.2f}",
+                f"{order.discount_amount:.2f}",
+                f"{order_data['shipping_charge']:.2f}",
+                f"{order.total_amount:.2f}",
+                f"{order_data['refund_amount']:.2f}",
                 order.payment_method
             ])
+        
+        # Write summary
+        writer.writerow([])  # Empty row for spacing
+        writer.writerow(['Summary'])
+        writer.writerow(['Total Sales:', f"{total_sales:.2f}"])
+        writer.writerow(['Total Discount:', f"{total_discount:.2f}"])
+        writer.writerow(['Total Refund:', f"{total_refund:.2f}"])
+        
         return response
-
+    
     elif request.GET.get('format') == 'pdf':
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="sales_report.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="sales_report_{start_date}_to_{end_date}.pdf"'
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A3))
         elements = []
-
-        logo_path = os.path.join(settings.BASE_DIR, 'static', 'userside', 'assets', 'imgs', 'theme', 'icons',
-                                 'logo_wordbloom.png')
-        logo = Image(logo_path, width=50, height=50)
-        elements.append(logo)
+        
+        # Add logo and company name
+        logo_path = os.path.join(settings.BASE_DIR, 'static', 'userside', 'assets', 'imgs', 'theme', 'icons', 'logo_wordbloom.png')
+        
+        # Create a table for header with logo and title
+        try:
+            logo = Image(logo_path, width=50, height=50)
+            header_data = [[logo, "WordBloom Sales Report"]]
+            header_table = Table(header_data, colWidths=[80, 400])
+            header_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('ALIGN', (1, 0), (1, 0), 'LEFT'),
+                ('VALIGN', (0, 0), (1, 0), 'MIDDLE'),
+                ('FONTNAME', (1, 0), (1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (1, 0), (1, 0), 16),
+            ]))
+            elements.append(header_table)
+        except Exception:
+            elements.append(Paragraph("WordBloom Sales Report", getSampleStyleSheet()['Title']))
+        
         elements.append(Spacer(1, 10))
-
-        data = [['Order ID', 'Date', 'Total Amount', 'Discount Amount', 'Refund Amount', 'Payment Method']]
-        for order in orders:
-             # Find related refund transactions for this order. More robust.
-            refund_amount = WalletTransaction.objects.filter(
-                transaction_type='credit',
-                description__icontains=order.order_id  # Match using order ID
-            ).aggregate(Sum('amount'))['amount__sum'] or 0
-
+        
+        # Add filter information
+        filter_data = [
+            ['Filter:', filter_type.capitalize()],
+            ['Period:', f"{start_date} to {end_date}"],
+            ['Generated on:', timezone.now().strftime("%Y-%m-%d %H:%M:%S")]
+        ]
+        filter_table = Table(filter_data, colWidths=[100, 380])
+        filter_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ]))
+        elements.append(filter_table)
+        
+        elements.append(Spacer(1, 20))
+        
+        # Create main data table
+        data = [['Order ID', 'Date', 'MRP', 'Item Discount', 'Subtotal', 'Coupon', 'Shipping', 'Total', 'Refund', 'Payment']]
+        
+        for order_data in enhanced_orders:
+            order = order_data['order']
             data.append([
                 str(order.order_id),
-                order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                order.created_at.strftime('%Y-%m-%d'),
+                f"Rs.{order_data['mrp_total']:.2f}",
+                f"-Rs.{order_data['item_discount_total']:.2f}",
+                f"Rs.{order_data['subtotal']:.2f}",
+                f"-Rs.{order.discount_amount:.2f}",
+                f"Rs.{order_data['shipping_charge']:.2f}",
                 f"Rs.{order.total_amount:.2f}",
-                f"Rs.{order.discount_amount:.2f}",
-                f"Rs.{refund_amount:.2f}",
-                order.payment_method,
+                f"Rs.{order_data['refund_amount']:.2f}",
+                order.payment_method[:10]  # Limit length for PDF formatting
             ])
-
-        table = Table(data)
+        
+        # Create the table with appropriate column widths
+        col_widths = [120, 100, 100, 100, 100, 100, 100, 100, 100, 150]
+        table = Table(data, colWidths=col_widths)
+        
+        # Style the table
         style = TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 14),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
@@ -605,47 +562,59 @@ def sales_report(request):
             ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
             ('FONTSIZE', (0, 1), (-1, -1), 12),
+            ('ALIGN', (2, 1), (-1, -1), 'RIGHT'),  # Right-align numeric columns
+            ('ALIGN', (-1, 1), (-1, -1), 'CENTER'),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ])
         table.setStyle(style)
         elements.append(table)
-
+        
         elements.append(Spacer(1, 20))
+        
+        # Add summary
         summary_data = [
             ['Summary'],
             ['Total Sales:', f"Rs.{total_sales:.2f}"],
-            ['Total Discount:', f"Rs.{total_discount:.2f}"],
-            ['Total Refund:', f"Rs.{total_refund:.2f}"],
+            ['Total Discount:', f"- Rs.{total_discount:.2f}"],
+            ['Total Refund:', f"Rs.{total_refund:.2f}"]
         ]
-        summary_table = Table(summary_data)
+        summary_table = Table(summary_data, colWidths=[100, 200])
         summary_style = TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 14),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('SPAN', (0, 0), (1, 0)),  # Span the header row
+            ('BACKGROUND', (0, 0), (1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+            ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (1, 0), 14),
+            ('BOTTOMPADDING', (0, 0), (1, 0), 8),
+            ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 1), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (1, -1), 1, colors.black)
         ])
         summary_table.setStyle(summary_style)
         elements.append(summary_table)
-
+        
         doc.build(elements)
         pdf = buffer.getvalue()
         buffer.close()
         response.write(pdf)
         return response
-
+    
+    # Prepare context for HTML rendering
     context = {
-        'orders': orders,
+        # 'orders': enhanced_orders,
+        'orders': paginated_orders,
         'total_sales': total_sales,
         'total_discount': total_discount,
-        'total_refund': total_refund,  # Add to context
+        'total_refund': total_refund,
         'filter_type': filter_type,
         'start_date': start_date,
         'end_date': end_date,
     }
+    
     return render(request, 'adminside/sales_report/sales_report.html', context)
+
 
 
 # @never_cache

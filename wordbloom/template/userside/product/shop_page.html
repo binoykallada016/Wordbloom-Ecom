@@ -217,21 +217,37 @@
     }
     .pagination {
         display: flex;
+        /* justify-content: flex-end;*/
         justify-content: center;
+        align-items: center;
         gap: 0.5rem;
         margin-top: 2rem;
+        padding: 1rem;
     }
+
     .page-link {
         padding: 0.5rem 1rem;
-        background-color: white;
-        border: 1px solid #ccc;
+        border: 1px solid #2b5f5f;
         border-radius: 4px;
         color: #2b5f5f;
-        transition: background-color 0.3s;
+        text-decoration: none;
+        transition: all 0.3s ease;
     }
+
     .page-link:hover, .page-link.active {
         background-color: #2b5f5f;
         color: white;
+    }
+
+    .page-link.active {
+        background-color: #2b5f5f;
+        color: white;
+    }
+
+    .page-link.disabled {
+        border: 1px solid #9ca3af;
+        color: #9ca3af;
+        pointer-events: none;
     }
     /* Responsive design */
     @media (max-width: 575.98px) {
@@ -306,6 +322,17 @@
         .book-card {
             padding: 1rem;
         }        
+    }
+    @media (max-width: 768px) {
+        .pagination {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .page-link {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
     }
 </style>
 {% endblock %}
@@ -457,14 +484,39 @@
                     </div>
                 {% endfor %}
             </div>
-        </div>
+        </div>        
         <div class="pagination">
-            <a href="?page=1" class="page-link {% if current_page == 1 %}active{% endif %}">1</a>
-            <a href="?page=2" class="page-link {% if current_page == 2 %}active{% endif %}">2</a>
-            <a href="?page=3" class="page-link {% if current_page == 3 %}active{% endif %}">3</a>
-            <a href="?page=4" class="page-link {% if current_page == 4 %}active{% endif %}">4</a>
-            <a href="?page=5" class="page-link {% if current_page == 5 %}active{% endif %}">5</a>
-            <a href="?page={{ next_page }}" class="page-link">Next</a>
+            {% if products.has_previous %}
+                <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
+                    <i class="ri-arrow-left-double-line"></i> First
+                </a>
+                <a href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
+                    <i class="ri-arrow-left-line"></i> Previous
+                </a>
+            {% else %}
+                <span class="page-link disabled"><i class="ri-arrow-left-double-line"></i> First</span>
+                <span class="page-link disabled"><i class="ri-arrow-left-line"></i> Previous</span>
+            {% endif %}
+
+            {% for num in products.paginator.page_range %}
+                {% if products.number == num %}
+                    <span class="page-link active">{{ num }}</span>
+                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                    <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
+                    Next <i class="ri-arrow-right-line"></i>
+                </a>
+                <a href="?page={{ products.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
+                    Last <i class="ri-arrow-right-double-line"></i>
+                </a>
+            {% else %}
+                <span class="page-link disabled">Next <i class="ri-arrow-right-line"></i></span>
+                <span class="page-link disabled">Last <i class="ri-arrow-right-double-line"></i></span>
+            {% endif %}
         </div>
     </div>
 </main>

@@ -3,11 +3,47 @@ from django.contrib import messages
 from .models import Author
 from .forms import AuthorForm
 from utils.decorators import admin_required
+from django.db.models import Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Create your views here.
+
+# def admin_authors(request):
+#     authors = Author.objects.all().order_by('-created_at')
+#     return render(request, 'adminside/authors/admin_authors.html', {'authors': authors})
+
+# Define the number of items per page
+ITEMS_PER_PAGE = 6  # You can adjust this value as needed
+
+@admin_required
 def admin_authors(request):
-    authors = Author.objects.all().order_by('-created_at')
-    return render(request, 'adminside/authors/admin_authors.html', {'authors': authors})
+    search_query = request.GET.get('search', '')
+    
+    if search_query:
+        authors = Author.objects.filter(
+            Q(name__icontains=search_query) |
+            Q(bio__icontains=search_query)
+        ).order_by('-created_at')
+    else:
+        authors = Author.objects.all().order_by('-created_at')
+    
+    page = request.GET.get('page', 1)
+    paginator = Paginator(authors, ITEMS_PER_PAGE)
+    
+    try:
+        authors = paginator.page(page)
+    except PageNotAnInteger:
+        authors = paginator.page(1)
+    except EmptyPage:
+        authors = paginator.page(paginator.num_pages)
+    
+    context = {
+        'authors': authors,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'adminside/authors/admin_authors.html', context)
+
 
 @admin_required
 def admin_add_author(request):

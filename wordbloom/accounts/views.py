@@ -37,13 +37,8 @@ from userpanel.models import Wishlist
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import UserRegisterForm, CustomPasswordResetForm, CustomSetPasswordForm
 
-
-
 User = get_user_model()
-ITEMS_PER_PAGE = 7
-
-
-
+ITEMS_PER_PAGE = 8
 
 # Create your views here.
 @never_cache
@@ -224,34 +219,6 @@ def resend_otp(request):
     return redirect('accounts:verify_otp')
 
 
-# @never_cache
-# @cache_control(no_cache = True, must_revalidate = True, no_store = True)
-# def user_login(request):
-#     # Redirect authenticate users to the homepage
-#     if request.user.is_authenticated:
-#         return redirect('accounts:home')
-    
-#     if request.method == 'POST':
-#         # print("hi")
-#         email = request.POST.get('email')
-#         password = request.POST.get('password')
-#         # print("email",email)
-#         # print("pass",password)
-#         user = authenticate(request, username = email, password = password)
-#         print(user)
-
-#         if user is not None:
-#             if user.is_blocked:
-#                 messages.error(request, 'Your account is blocked. Please contact support.')
-#                 return redirect('accounts:user_login')
-            
-#             auth_login(request, user)
-#             messages.success(request, f"Welcome back, {user.first_name}!")
-#             return redirect('accounts:home')
-#         else:
-#             messages.error(request, 'Invalid email or password.')
-#     return render(request, 'userside/account/user_login.html')  
-
 @never_cache
 @cache_control(no_cache = True, must_revalidate = True, no_store = True)
 def user_login(request):
@@ -379,7 +346,7 @@ def shop(request):
         if valid_author_ids:
             products = products.filter(author_id__in=valid_author_ids)    
 
-    # Apply sorting
+    # Sorting
     sort_by = request.GET.get('sort', 'popularity')
     if sort_by == 'price-low-high':
         products = products.order_by('min_effective_price', '-product_id')
@@ -414,8 +381,6 @@ def shop(request):
     return render(request, 'userside/product/shop_page.html', context)
 
 
-
-
 def product_detail(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     
@@ -430,6 +395,7 @@ def product_detail(request, product_id):
     
     # Get images only for the default variant
     default_variant_images = []
+    
     if default_variant:
         default_variant_images = default_variant.images.all().order_by('display_order')
         default_primary_image = default_variant_images.filter(is_primary=True).first()

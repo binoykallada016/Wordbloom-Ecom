@@ -63,7 +63,7 @@
     }
 
     .btn {
-        display: inline-block;
+        display: inline-flex;
         text-decoration: none;
         padding: 10px 15px;
         border: none;
@@ -208,6 +208,26 @@
     .btn-restore:hover {
         background-color: #047857;
     }
+    .tr-deactivated {
+        opacity: 0.5;
+        background-color: #f8d7da;
+    }
+    
+    .tr-deactivated td {
+        opacity: 0.6;
+    }
+    
+    .tr-deactivated .btn {
+        opacity: 0.4;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+    
+    .tr-deactivated .btn-restore {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
 
     @media (max-width: 768px) {
         .admin-controls {
@@ -267,7 +287,7 @@
             </thead>
             <tbody>
                 {% for product in products %}
-                <tr>
+                <tr data-id="{{ product.product_id }}">
                     <td>{{ product.product_id }}</td>
                     <td style="text-align:left">{{ product.product_name }}</td>
                     <td>{{ product.category.name }}</td>
@@ -299,9 +319,12 @@
                             </a>
                             <a href="{% url 'products:admin_product_edit' product.product_id %}" class="btn btn-edit">
                                 <i class="ri-edit-line"></i>Edit
-                            </a>
-                            <a href="{% url 'products:admin_product_delete' product.product_id %}" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this product?')">
-                                <i class="ri-delete-bin-line"></i>Delete
+                            </a>                            
+                            <a href="{% url 'products:admin_product_delete' product.product_id %}"
+                                class="btn {% if product.variants.all.0.is_active %}btn-delete{% else %}btn-restore{% endif %}"
+                                onclick="return confirmProductAction('{{ product.product_id }}', '{% if product.variants.all.0.is_active %}deactivate{% else %}restore{% endif %}')">
+                                <i class="{% if product.variants.all.0.is_active %}ri-delete-bin-line{% else %}ri-refresh-line{% endif %}"></i>
+                                {% if product.variants.all.0.is_active %}Delete{% else %}Restore{% endif %}
                             </a>
                         </div>
                     </td>
@@ -354,20 +377,49 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Display Django messages using SweetAlert2
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    title: '{{ message.tags|title }}!',
+                    text: '{{ message }}',
+                    icon: '{{ message.tags }}',
+                    confirmButtonText: 'OK'
+                });
+            {% endfor %}
+        {% endif %}
+
         const table = document.querySelector('table');
         
+        // Case II: Click event listener
         table.addEventListener('click', function(e) {
-            if (e.target.classList.contains('btn-delete')) {
+            if (e.target.classList.contains('btn-delete') || e.target.classList.contains('btn-restore')) {
                 e.preventDefault();
                 const row = e.target.closest('tr');
-                deactivateRow(row);
-            } else if (e.target.classList.contains('btn-restore')) {
-                e.preventDefault();
-                const row = e.target.closest('tr');
-                activateRow(row);
+                const action = e.target.classList.contains('btn-delete') ? 'deactivate' : 'restore';
+                confirmProductAction(row.dataset.id, action);
             }
         });
-    
+
+        // Case I: Confirm product action function
+        function confirmProductAction(productId, action) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `Do you want to ${action} this product?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: `Yes, ${action} it!`
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "{% url 'products:admin_product_delete' 999 %}".replace('999', productId);
+                }
+            });
+            
+            return false; // Prevent default link behavior
+        }
+
         function deactivateRow(row) {
             row.classList.add('deactivated');
             const statusCells = row.querySelectorAll('.variant-status span');
@@ -381,7 +433,7 @@
             deleteButton.classList.add('btn-restore');
             deleteButton.innerHTML = '<i class="ri-refresh-line"></i> Restore';
         }
-    
+
         function activateRow(row) {
             row.classList.remove('deactivated');
             const statusCells = row.querySelectorAll('.variant-status span');
@@ -394,5 +446,6 @@
             restoreButton.classList.add('btn-delete');
             restoreButton.innerHTML = '<i class="ri-delete-bin-line"></i> Delete';
         }
+    });
 </script>
 {% endblock %}
