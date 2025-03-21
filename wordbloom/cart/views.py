@@ -349,7 +349,6 @@ def remove_item(request, item_id):
         logger.error(f"Error removing cart item: {str(e)}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-
 @login_required
 def checkout(request):
     cart = Cart.objects.get(user=request.user)
@@ -368,9 +367,9 @@ def checkout(request):
         use_wallet = request.POST.get('use_wallet') == 'on'  # Check if the user wants to use the wallet
         
         # Add logging here
-        logger.info("Checkout initiated by user %s, address %s, payment method %s, use wallet: %s", 
-               request.user.id, address_id, payment_method, use_wallet)
-
+        logger.info("Checkout initiated by user %s, address %s, payment method %s, use wallet: %s",
+                   request.user.id, address_id, payment_method, use_wallet)
+        
         # Check if address is selected
         if not address_id:
             messages.error(request, "Please select a shipping address.")
@@ -381,6 +380,7 @@ def checkout(request):
             # Continue to render the page instead of redirecting
         else:
             address = get_object_or_404(UserAddress, id=address_id, user=request.user)
+            
             # Calculate total amount after potential coupon discount
             total_amount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
             
@@ -392,30 +392,34 @@ def checkout(request):
             amount_to_pay = total_amount  # Initialize with total amount
             wallet_used = Decimal('0.00')
             
-            if use_wallet:
+            # If payment method is Wallet
+            if payment_method == 'Wallet':
                 if wallet_balance >= total_amount:
-                    # Use entire wallet balance
                     wallet_used = total_amount
-                    amount_to_pay = Decimal('0.00')  # No further payment needed
-                    if payment_method != 'Razorpay':  # Only change payment method if it's not Razorpay
-                        payment_method = 'Wallet'  # Set payment method explicitly
+                    amount_to_pay = Decimal('0.00')
                 else:
-                    # Use partial wallet balance
-                    wallet_used = wallet_balance
-                    amount_to_pay = total_amount - wallet_balance
+                    messages.error(request, "Insufficient wallet balance.")
+                    # Fall through to render the page with error
             
-            # Store data in session for place_order view
-            request.session['selected_address_id'] = address_id
-            request.session['payment_method'] = payment_method
-            request.session['amount_to_pay'] = str(amount_to_pay)  # Convert to string for session
-            request.session['wallet_used'] = str(wallet_used)
-            request.session['total_amount'] = str(total_amount)  # Store original total for reference
+            # If using wallet as partial payment with another payment method
+            elif use_wallet and payment_method in ['Cash on Delivery', 'Razorpay']:
+                if wallet_balance > Decimal('0.00'):
+                    wallet_used = min(wallet_balance, total_amount)
+                    amount_to_pay = total_amount - wallet_used
             
-            return redirect('orders:place-order')
+            # If we have no errors and a valid payment setup
+            if not messages.get_messages(request):
+                # Store data in session for place_order view
+                request.session['selected_address_id'] = address_id
+                request.session['payment_method'] = payment_method
+                request.session['amount_to_pay'] = str(amount_to_pay)
+                request.session['wallet_used'] = str(wallet_used)
+                request.session['total_amount'] = str(total_amount)
+                return redirect('orders:place-order')
     
     # For GET requests, or if there are errors, re-render the checkout page.
     user_addresses = UserAddress.objects.filter(user=request.user)
-
+    
     # Calculate totals to match cart_view.html
     total_original_price = Decimal('0.00')
     total_discount = Decimal('0.00')
@@ -426,14 +430,13 @@ def checkout(request):
         item.sub_total = Decimal(item.variant.price) * item.quantity
         total_original_price += Decimal(item.variant.price) * item.quantity
         total_discount += Decimal(item.discount_amount) * item.quantity
-
+    
     total_amount = cart.get_total_price()
     
     # Recalculate taking any coupon into account:
     discount_amount = cart.get_discount_amount()
     shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
     total_after_discount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
-    
     
     wallet_balance = Decimal('0.00')  # Initialize.
     if hasattr(request.user, 'wallet'):  # Check if wallet exists.

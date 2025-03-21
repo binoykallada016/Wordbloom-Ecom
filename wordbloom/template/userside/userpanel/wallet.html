@@ -19,11 +19,19 @@
         border-radius: 8px;
         padding: 1.5rem;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+        display: flex;
+        flex-direction: column;
     }
     .section-title {
         font-size: 1.5rem;
         color: #2b5f5f;
         margin-bottom: 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e1e7ef;
     }
     .wallet-balance {
         font-size: 1.2rem;
@@ -35,6 +43,9 @@
         border-radius: 8px;
         background-color: #f9f9f9;
         text-align: center;
+        position: sticky;
+        top: 3rem;
+        z-index: 9;
     }
     .btn-primary {
         background-color: #2b5f5f;

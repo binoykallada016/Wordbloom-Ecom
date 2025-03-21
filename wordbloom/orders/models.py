@@ -3,7 +3,13 @@ from accounts.models import User
 from products.models import ProductVariant
 from userpanel.models import UserAddress
 from django.utils import timezone
-from decimal import Decimal
+
+PAYMENT_METHOD_CHOICES = [
+    ('COD', 'Cash on Delivery'),
+    ('Razorpay', 'Razorpay'),
+    ('Wallet', 'Wallet'),
+    # Add other payment methods if needed
+]
 
 class ShippingAddress(models.Model):    
     name = models.CharField(max_length=100)
@@ -45,7 +51,7 @@ class OrderMain(models.Model):
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.PROTECT, null=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     order_status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='Pending')
-    payment_method = models.CharField(max_length=50)
+    payment_method = models.CharField(max_length=50, choices=PAYMENT_METHOD_CHOICES)
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='Pending')
     payment_id = models.CharField(max_length=100, null=True, blank=True)
     razorpay_order_id = models.CharField(max_length=100, null=True, blank=True)
@@ -65,6 +71,7 @@ class OrderMain(models.Model):
 
     def refund_amount(self):
         return sum(item.get_cost() for item in self.items.filter(is_cancelled=False))
+    
 
 class OrderItem(models.Model):
     order = models.ForeignKey(OrderMain, on_delete=models.CASCADE, related_name='items')
@@ -97,5 +104,4 @@ class ReturnRequest(models.Model):
 
     def __str__(self):
         return f"Return request for Order {self.order.order_id}" 
-
 

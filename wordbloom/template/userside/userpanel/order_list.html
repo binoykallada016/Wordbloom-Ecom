@@ -255,80 +255,76 @@
         {% include 'includes/_profile_menu.html' with active_tab='order-history' %}
         <div class="profile-main">
             <h2 class="section-title">My Orders</h2>
-            
-
             <div class="orders-container">
                 {% for order in orders %}
-                    <div class="order-item">
-                        <div class="order-header">
-                            <span class="order-id">Order #{{ order.order_id }}</span>
-                            <span class="order-date">{{ order.created_at|date:"F d, Y" }}</span>
+                <div class="order-item">
+                    <div class="order-header">
+                        <span class="order-id">Order #{{ order.order_id }}</span>
+                        <span class="order-date">{{ order.created_at|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="order-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Status</span>
+                            <span class="badge {% if order.order_status == 'Pending' %}bg-warning
+                                {% elif order.order_status == 'Confirmed' %}bg-info
+                                {% elif order.order_status == 'Shipped' %}bg-primary
+                                {% elif order.order_status == 'Delivered' %}bg-success
+                                {% elif order.order_status == 'Cancelled' %}bg-danger
+                                {% elif order.order_status == 'Return_Initiated' %}bg-warning
+                                {% elif order.order_status == 'Return_Approved' %}bg-success
+                                {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
+                                {% if order.order_status == 'Return_Initiated' %}
+                                    Return Initiated
+                                {% elif order.order_status == 'Return_Approved' %}
+                                    Return Approved
+                                {% elif order.order_status == 'Return_Rejected' %}
+                                    Return Rejected
+                                {% else %}
+                                    {{ order.order_status }}
+                                {% endif %}
+                            </span>
                         </div>
-                        <div class="order-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Status</span>
-                                <span class="badge {% if order.order_status == 'Pending' %}bg-warning
-                                                {% elif order.order_status == 'Confirmed' %}bg-info
-                                                {% elif order.order_status == 'Shipped' %}bg-primary
-                                                {% elif order.order_status == 'Delivered' %}bg-success
-                                                {% elif order.order_status == 'Cancelled' %}bg-danger
-                                                {% elif order.order_status == 'Return_Initiated' %}bg-warning
-                                                {% elif order.order_status == 'Return_Approved' %}bg-success
-                                                {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
-                                    {% if order.order_status == 'Return_Initiated' %}
-                                        Return Initiated
-                                    {% elif order.order_status == 'Return_Approved' %}
-                                        Return Approved
-                                    {% elif order.order_status == 'Return_Rejected' %}
-                                        Return Rejected
-                                    {% else %}
-                                        {{ order.order_status }}
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Total Amount</span>
-                                <span class="detail-value">₹{{ order.total_amount }}</span>
-                            </div>
-                        </div>
-                        <div class="action-buttons">
-                            <a href="{% url 'userpanel:user_order_detail' order.order_id %}" class="btn btn-secondary">
-                                <i class="ri-eye-line"></i> View Details
-                            </a>
-                            
-                            {% if order.order_status == 'Delivered' %}
-                                <a href="{% url 'orders:return-request' order.order_id %}" class="btn btn-return">
-                                    <i class="ri-arrow-go-back-line"></i> Return Order
-                                </a>
-                            {% endif %}
-
-                            {% if order.order_status != 'Delivered' and order.order_status != 'Cancelled' and order.order_status != 'Return_Initiated' and order.order_status != 'Return_Approved' and order.order_status != 'Return_Rejected' %}
-                                <form method="post" action="{% url 'userpanel:cancel_order' order.order_id %}" style="display: inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="ri-close-circle-line"></i> Cancel Order
-                                    </button>
-                                </form>
-                            {% endif %}
-
-                            {% if order.payment_status == 'Failed' or order.order_status == 'Payment_Pending' %}
-                                <a href="{% url 'orders:retry-payment' order.order_id %}" class="btn btn-retry">
-                                    <i class="ri-refresh-line"></i> Retry Payment
-                                </a>
-                            {% endif %}
-
-                            <a href="{% url 'userpanel:generate_invoice' order.order_id %}" class="btn btn-invoice">
-                                <i class="ri-file-text-line"></i> Download Invoice
-                            </a>
+                        <div class="detail-item">
+                            <span class="detail-label">Total Amount</span>
+                            <span class="detail-value">₹{{ order.total_amount }}</span>
                         </div>
                     </div>
+                    <div class="action-buttons">
+                        <a href="{% url 'userpanel:user_order_detail' order.order_id %}" class="btn btn-secondary">
+                            <i class="ri-eye-line"></i> View Details
+                        </a>
+                        {% if order.order_status == 'Delivered' %}
+                            <a href="{% url 'orders:return-request' order.order_id %}" class="btn btn-return">
+                                <i class="ri-arrow-go-back-line"></i> Return Order
+                            </a>
+                        {% endif %}
+                        
+                        {# Only show Cancel Order button for Confirmed or Shipped orders #}
+                        {% if order.order_status == 'Confirmed' or order.order_status == 'Shipped' %}
+                            <form method="post" action="{% url 'userpanel:cancel_order' order.order_id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="ri-close-circle-line"></i> Cancel Order
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        {% if order.payment_status == 'Failed' or order.order_status == 'Payment_Pending' %}
+                            <a href="{% url 'orders:retry-payment' order.order_id %}" class="btn btn-retry">
+                                <i class="ri-refresh-line"></i> Retry Payment
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'userpanel:generate_invoice' order.order_id %}" class="btn btn-invoice">
+                            <i class="ri-file-text-line"></i> Download Invoice
+                        </a>
+                    </div>
+                </div>
                 {% empty %}
-                    <div class="empty-state">
-                        <p>You haven't placed any orders yet.</p>
-                        <a href="{% url 'accounts:shop' %}" class="btn btn-secondary">Start Shopping</a>
-                    </div>
+                <div class="empty-state">
+                    <p>You haven't placed any orders yet.</p>
+                    <a href="{% url 'accounts:shop' %}" class="btn btn-secondary">Start Shopping</a>
+                </div>
                 {% endfor %}
-                
             </div>
         </div>
     </div>

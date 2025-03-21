@@ -239,6 +239,24 @@
         font-weight: 500;
     }
 
+    .cancelled-item {
+        background-color: #ffeeee;
+    }
+    .cancelled-badge {
+        background-color: #dc3545;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    .refund-info {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #e8f4ff;
+        border-radius: 5px;
+        border-left: 4px solid #4285f4;
+    }
+
     @media (max-width: 992px) {
         .profile-content {
             grid-template-columns: 1fr;
@@ -291,13 +309,13 @@
                     <div class="info-item">
                         <span class="info-label">Status</span>
                         <span class="badge {% if order.order_status == 'Pending' %}bg-warning
-                                         {% elif order.order_status == 'Confirmed' %}bg-info
-                                         {% elif order.order_status == 'Shipped' %}bg-primary
-                                         {% elif order.order_status == 'Delivered' %}bg-success
-                                         {% elif order.order_status == 'Cancelled' %}bg-danger
-                                         {% elif order.order_status == 'Return_Initiated' %}bg-warning
-                                         {% elif order.order_status == 'Return_Approved' %}bg-success
-                                         {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
+                            {% elif order.order_status == 'Confirmed' %}bg-info
+                            {% elif order.order_status == 'Shipped' %}bg-primary
+                            {% elif order.order_status == 'Delivered' %}bg-success
+                            {% elif order.order_status == 'Cancelled' %}bg-danger
+                            {% elif order.order_status == 'Return_Initiated' %}bg-warning
+                            {% elif order.order_status == 'Return_Approved' %}bg-success
+                            {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
                             {% if order.order_status == 'Return_Initiated' %}
                                 Return Initiated
                             {% elif order.order_status == 'Return_Approved' %}
@@ -320,24 +338,33 @@
                     <p>{{ order.shipping_address.country }} - {{ order.shipping_address.pin_number }}</p>
                     <p>Phone: {{ order.shipping_address.phone_number }}</p>
                 </div>
-            
                 <h3>Order Summary</h3>
                 <div class="summary-table">
                     <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Original Price</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             {% for item in order_items %}
-                            <tr>
+                            <tr class="{% if item.is_cancelled %}cancelled-item{% endif %}">
                                 <td>{{ item.product_variant.product.product_name }}</td>
                                 <td>₹{{ item.product_variant.price }}</td>
                                 <td>{{ item.quantity }}</td>
                                 <td>{% if item.product_variant.discounted_price %}₹{{ item.product_variant.discounted_price }}{% else %}₹{{ item.product_variant.price }}{% endif %}</td>
                                 <td>₹{{ item.get_cost }}</td>
+                                <td>{% if item.is_cancelled %}<span class="cancelled-badge">Cancelled</span>{% else %}Active{% endif %}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-            
                 <div class="summary-breakdown">
                     <div class="summary-item">
                         <span class="label">Order MRP</span>
@@ -347,84 +374,100 @@
                         <span class="label">Total Discount</span>
                         <span class="value">-₹ {{ total_discount }}</span>
                     </div>
-                    {% if discount_amount > 0 %}
+                    {% if coupon_discount > 0 %}
                     <div class="summary-item">
                         <span class="label">Coupon Discount</span>
-                        <span class="value">-₹ {{ discount_amount }}</span>
+                        <span class="value">-₹ {{ coupon_discount }}</span>
                     </div>
                     {% endif %}
                     <div class="summary-item">
                         <span class="label">Shipping Charge</span>
                         <span class="value">₹{{ shipping_charge }}</span>
                     </div>
+                    
+                    {% if cancelled_item_total > 0 %}
+                    <div class="summary-item" style="color: #dc3545;">
+                        <span class="label">Cancelled Items Total</span>
+                        <span class="value">₹{{ cancelled_item_total }}</span>
+                    </div>
+                    {% endif %}
+                    
                     <div class="summary-item total">
                         <span class="label">Grand Total</span>
                         <span class="value">₹{{ grand_total }}</span>
                     </div>
                 </div>
+                
+                {% if cancelled_item_total > 0 %}
+                <div class="refund-info">
+                    <p><strong>Refund Information:</strong> ₹{{ cancelled_item_total }} has been refunded to your wallet for cancelled items.</p>
+                </div>
+                {% endif %}
             </div>
             <div class="order-items">
                 <h3>Order Items</h3>
                 {% for item in order_items %}
-                    <div class="order-item">
-                        <img src="{{ item.product_variant.get_primary_image.image.url }}" 
-                             alt="{{ item.product_variant.product.product_name }}"
-                             class="item-image">
-                        <div class="item-details">
-                            <h4 class="item-title">{{ item.product_variant.product.product_name }}</h4>
-                            <span class="item-meta">Format: {{ item.product_variant.format }}</span>
-                            <span class="item-meta">Quantity: {{ item.quantity }}</span>
-                            <span class="item-price">₹{{ item.price }}</span>
-                        </div>
-
-                        {% comment %} <div class="item-actions">
-                            {% if order.order_status == 'Delivered' and not item.is_returned %}
-                                <a href="{% url 'orders:return-request' order.order_id %}?item_id={{ item.id }}" 
-                                   class="btn btn-return">
-                                    <i class="ri-arrow-go-back-line"></i> Return Item
-                                </a>
-                            {% endif %}
-
-                            {% if order.order_status != 'Delivered' and order.order_status != 'Cancelled' and not item.is_cancelled %}
-                                <form method="post" action="{% url 'userpanel:cancel_item' item.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="ri-close-circle-line"></i> Cancel Item
-                                    </button>
-                                </form>
-                            {% endif %}
-                        </div> {% endcomment %}
-                        <div class="item-actions">
-                            {% if order.order_status == 'Delivered' and not item.is_returned and not item.is_cancelled %}
-                                <a href="{% url 'orders:return-request' order.order_id %}?item_id={{ item.id }}" class="btn btn-return">
-                                    <i class="ri-arrow-go-back-line"></i> Return Item
-                                </a>
-                            {% elif item.is_returned %}
-                                {% with return_request=item.returnrequest_set.first %}
-                                    {% if return_request and return_request.status == 'Pending' %}
-                                        <span class="badge bg-warning">Return Initiated</span>
-                                    {% elif return_request and return_request.status == 'Approved' %}
-                                        <span class="badge bg-success">Return Approved</span>
-                                    {% elif return_request and return_request.status == 'Rejected' %}
-                                        <span class="badge bg-danger">Return Rejected</span>
-                                    {% endif %}
-                                {% endwith %}
-                            {% endif %}
-                            
-                            {% if order.order_status != 'Delivered' and order.order_status != 'Cancelled' and not item.is_cancelled %}
-                                <form method="post" action="{% url 'userpanel:cancel_item' item.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="ri-close-circle-line"></i> Cancel Item
-                                    </button>
-                                </form>
-                            {% elif item.is_cancelled %}
-                                <span class="badge bg-danger">Cancelled</span>
-                            {% endif %}
-                        </div>
-
+                  <div class="order-item {% if item.is_cancelled %}cancelled-item{% endif %}">
+                    <img src="{{ item.product_variant.get_primary_image.image.url }}" 
+                         alt="{{ item.product_variant.product.product_name }}" 
+                         class="item-image">
+                    <div class="item-details">
+                      <h4 class="item-title">{{ item.product_variant.product.product_name }}</h4>
+                      <span class="item-meta">Format: {{ item.product_variant.format }}</span>
+                      <span class="item-meta">Quantity: {{ item.quantity }}</span>
+                      <span class="item-price">₹{{ item.price }}</span>
+                      {% if item.is_cancelled %}
+                        <span class="cancelled-badge">Cancelled</span>
+                      {% endif %}
                     </div>
+                    <div class="item-actions">
+                      {% if order.order_status == 'Delivered' and not item.is_returned and not item.is_cancelled %}
+                        <a href="{% url 'orders:return-request' order.order_id %}?item_id={{ item.id }}" class="btn btn-return">
+                          <i class="ri-arrow-go-back-line"></i> Return Item
+                        </a>
+                      {% elif item.is_returned %}
+                        {% with return_request=item.returnrequest_set.first %}
+                          {% if return_request and return_request.status == 'Pending' %}
+                            <span class="badge bg-warning">Return Initiated</span>
+                          {% elif return_request and return_request.status == 'Approved' %}
+                            <span class="badge bg-success">Return Approved</span>
+                          {% elif return_request and return_request.status == 'Rejected' %}
+                            <span class="badge bg-danger">Return Rejected</span>
+                          {% endif %}
+                        {% endwith %}
+                      {% endif %}
+                      
+                      {% if order.order_status == 'Confirmed' and not item.is_cancelled %}
+                        <form method="post" action="{% url 'userpanel:cancel_item' item.id %}">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-danger">
+                            <i class="ri-close-circle-line"></i> Cancel Item
+                          </button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </div>
                 {% endfor %}
+            </div>
+              
+            {% if order.order_status == 'Confirmed' or order.order_status == 'Shipped' %}
+                <div class="order-actions" style="margin-top: 20px;">
+                  <form method="post" action="{% url 'userpanel:cancel_order' order.order_id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                      <i class="ri-close-circle-line"></i> Cancel Entire Order
+                    </button>
+                  </form>
+                </div>
+            {% endif %}
+              
+            <div class="order-actions" style="margin-top: 20px;">
+                <a href="{% url 'userpanel:generate_invoice' order.order_id %}" class="btn btn-invoice">
+                  <i class="ri-file-text-line"></i> Download Invoice
+                </a>
+                <a href="{% url 'userpanel:order_list' %}" class="btn btn-secondary">
+                  <i class="ri-arrow-left-line"></i> Back to Orders
+                </a>
             </div>
         </div>
     </div>

@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block title %}Checkout | WordBloom{% endblock %}
-
 {% block page_styles %}
 <style>
     :root {
@@ -109,11 +108,6 @@
         border-color: #2b5f5f;
         background-color: #f0f8f8;
     }
-    .payment-methods {
-        display: grid;
-        gap: 1rem;
-    }
-
     .payment-method {
         border: 2px solid var(--border-color);
         border-radius: 8px;
@@ -121,16 +115,32 @@
         cursor: pointer;
         transition: all 0.3s;
     }
-
     .payment-method:hover {
         border-color: var(--primary-color);
-        background-color: #f0f8ff; /* Light blue background */
+        background-color: #f0f8ff;
     }
-
+    .payment-method.selected {
+        border-color: var(--primary-color);
+        background-color: #e3f2fd;
+    }
     .payment-radio {
         margin-right: 0.5rem;
     }
-
+    .wallet-option {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        background-color: #f8f9fa;
+    }
+    .wallet-option.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .wallet-amount {
+        font-weight: bold;
+        color: var(--primary-color);
+    }
     .wallet-balance {
         margin-bottom: 1rem;
         padding: 0.5rem;
@@ -200,11 +210,11 @@
 {% block content %}
 <div class="container">
     <h1 class="page-title">Checkout</h1>
-    {% comment %} <form method="post" action="{% url 'orders:place-order' %}"> {% endcomment %}
     <form method="post" action="{% url 'cart:checkout' %}">
         {% csrf_token %}
         <div class="checkout-grid">
             <div class="checkout-main">
+                <!-- Shipping Address Section -->
                 <div class="checkout-section">
                     <div class="section-title">
                         <h2>Shipping Address</h2>
@@ -212,13 +222,12 @@
                     <div class="address-list">
                         {% if user_addresses %}
                             {% for address in user_addresses %}
-                                <div class="address-item {% if forloop.first %}selected{% endif %}" 
-                                     data-address-id="{{ address.id }}">
+                                <div class="address-item {% if forloop.first %}selected{% endif %}" data-address-id="{{ address.id }}">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" 
                                                name="address" 
                                                id="address{{ address.id }}" 
-                                               value="{{ address.id }}" 
+                                               value="{{ address.id }}"
                                                {% if forloop.first %}checked{% endif %}>
                                         <label class="form-check-label" for="address{{ address.id }}">
                                             <strong>{{ address.name }}</strong><br>
@@ -235,125 +244,262 @@
                         {% endif %}
                         <a href="{% url 'cart:add-address' %}" class="btn btn-add-address"><i class="ri-add-line"></i>Add New Address</a>
                     </div>
-                </div>   
-                
-                <!-- Payment Method -->
+                </div>
+
+                <!-- Payment Method Section -->
                 <div class="checkout-section">
                     <h2 class="section-title">Payment Method</h2>
-                    {% if wallet_balance > 0 %}
-                        <div class="wallet-balance">
-                            <div class="form-check">
-                                <input type="checkbox" name="use_wallet" id="use_wallet" class="form-check-input"
-                                       {% if wallet_balance >= total_after_discount %}checked{% endif %}>
-                                <label for="use_wallet" class="form-check-label">
-                                    Use Wallet Balance (₹{{ wallet_balance|floatformat:2 }})
-                                </label>
-                            </div>
-                        </div>
+                    
+                    <!-- Wallet as a payment method when sufficient balance -->
+                    {% if wallet_balance >= total_after_discount %}
+                    <div class="payment-method" onclick="selectPaymentMethod('wallet')">
+                        <input type="radio" name="payment_method" id="wallet" value="Wallet" class="payment-radio">
+                        <label for="wallet">
+                            <i class="ri-wallet-3-line"></i>
+                            Pay with Wallet (₹{{ wallet_balance|floatformat:2 }})
+                        </label>
+                    </div>
                     {% endif %}
-
-                    <div class="payment-methods">
-                        <div class="payment-method">
-                            <input type="radio" name="payment_method" id="cod" value="Cash on Delivery"
-                                   class="payment-radio" {% if total_after_discount > 1000 %}disabled{% endif %}>
-                            <label for="cod">
-                                <i class="ri-money-dollar-box-line"></i>
-                                Cash on Delivery
-                                {% if total_after_discount > 1000 %}
-                                    <small>(Not available for orders above ₹1000)</small>
-                                {% endif %}
+                    
+                    <!-- Cash on Delivery -->
+                    <div class="payment-method" onclick="selectPaymentMethod('cod')" 
+                         {% if total_after_discount > 1000 %}style="opacity: 0.6; cursor: not-allowed;"{% endif %}>
+                        <input type="radio" name="payment_method" id="cod" value="Cash on Delivery" class="payment-radio"
+                               {% if total_after_discount > 1000 %}disabled{% endif %}>
+                        <label for="cod" {% if total_after_discount > 1000 %}style="color: #999;"{% endif %}>
+                            <i class="ri-money-dollar-box-line"></i>
+                            Cash on Delivery
+                            {% if total_after_discount > 1000 %}
+                                <small>(Not available for orders above ₹1000)</small>
+                            {% endif %}
+                        </label>
+                    </div>
+                    
+                    <!-- Razorpay -->
+                    <div class="payment-method" onclick="selectPaymentMethod('razorpay')">
+                        <input type="radio" name="payment_method" id="razorpay" value="Razorpay" class="payment-radio">
+                        <label for="razorpay">
+                            <i class="ri-bank-card-line"></i>
+                            Pay Online (Razorpay)
+                        </label>
+                    </div>
+                    
+                    <!-- Use Wallet Option for Partial Payment -->
+                    {% if wallet_balance > 0 and wallet_balance < total_after_discount %}
+                    <div id="wallet-option" class="wallet-option">
+                        <div class="form-check">
+                            <input type="checkbox" name="use_wallet" id="use_wallet" class="form-check-input">
+                            <label for="use_wallet" class="form-check-label">
+                                Use Wallet Balance <span class="wallet-amount">(₹{{ wallet_balance|floatformat:2 }})</span> for partial payment
                             </label>
                         </div>
-
-                        <div class="payment-method">
-                            <input type="radio" name="payment_method" id="razorpay" value="Razorpay"
-                                   class="payment-radio">
-                            <label for="razorpay">
-                                <i class="ri-bank-card-line"></i>
-                                Pay Online (Razorpay)
-                            </label>
+                        <div id="wallet-info" style="margin-top: 0.5rem; font-size: 0.9rem; color: #666; display: none;">
+                            <p>₹{{ wallet_balance|floatformat:2 }} will be deducted from your wallet.</p>
+                            <p>Remaining amount: ₹<span id="remaining-amount">{{ total_after_discount|floatformat:2 }}</span></p>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
             
+            <!-- Order Summary -->
             <div class="order-summary">
                 <h2 class="section-title">Order Summary</h2>
                 <div class="summary-items">
                     {% for item in cart_items %}
-                        <div class="summary-item">
-                            <span>{{ item.variant.product.product_name }} (x{{ item.quantity }})</span>
-                            <span>₹{{ item.sub_total }}</span>
-                        </div>
+                    <div class="summary-item">
+                        <span>{{ item.variant.product.product_name }} (x{{ item.quantity }})</span>
+                        <span>₹{{ item.sub_total }}</span>
+                    </div>
                     {% endfor %}
                 </div>
                 <div class="summary-item">
                     <span class="summary-label">Order MRP:</span>
                     <span class="summary-value">₹<span id="cart-original-price">{{ total_original_price }}</span></span>
-                  </div>
-                  <div class="summary-item">
+                </div>
+                <div class="summary-item">
                     <span class="summary-label">Total Discount:</span>
                     <span class="summary-value summary-discount">-₹<span id="cart-discount">{{ total_discount }}</span></span>
-                  </div>
-                  <div class="summary-item">
+                </div>
+                <div class="summary-item">
                     <span class="summary-label">Order Subtotal:</span>
                     <span class="summary-value">₹<span id="cart-subtotal">{{ total_amount }}</span></span>
-                  </div>
-                  <div class="summary-item">
+                </div>
+                <div class="summary-item">
                     <span class="summary-label">Coupon Discount:</span>
                     <span class="summary-value summary-discount">-₹<span id="coupon-discount">{{ discount_amount|floatformat:2 }}</span></span>
-                  </div>
+                </div>
                 <div class="summary-item">
                     <span>Shipping</span>
                     <span>₹{{ shipping_charge }}</span>
                 </div>
-
                 <div class="summary-total">
                     <span>Amount to Pay</span>
                     <span>₹<span id="amount-to-pay">{{ total_after_discount|floatformat:2 }}</span></span>
                 </div>
-
-                <button type="submit" class="btn btn-primary">Place Order</button>
+                <button type="submit" class="btn btn-primary" id="place-order-btn">Place Order</button>
             </div>
         </div>
     </form>
 </div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let useWalletCheckbox = document.getElementById("use_wallet");
-        let amountToPayElement = document.getElementById("amount-to-pay");
-
-        let walletBalance = parseFloat("{{ wallet_balance|floatformat:2 }}");
-        let totalAmount = parseFloat("{{ total_after_discount|floatformat:2 }}");
-
-        function updateAmountToPay() {
-            let amountToPay = totalAmount;
-
-            if (useWalletCheckbox.checked) {
-                if (walletBalance >= totalAmount) {
-                    amountToPay = 0;
-                } else {
-                    amountToPay = totalAmount - walletBalance;
-                }
-            }
-            
-            amountToPayElement.textContent = amountToPay.toFixed(2);
+document.addEventListener('DOMContentLoaded', function () {
+    // Variables
+    let useWalletCheckbox = document.getElementById("use_wallet");
+    let walletRadio = document.getElementById("wallet");
+    let codRadio = document.getElementById("cod");
+    let razorpayRadio = document.getElementById("razorpay");
+    let amountToPayElement = document.getElementById("amount-to-pay");
+    let walletInfoElement = document.getElementById("wallet-info");
+    let remainingAmountElement = document.getElementById("remaining-amount");
+    let walletOptionElement = document.getElementById("wallet-option");
+    let placeOrderBtn = document.getElementById("place-order-btn");
+    
+    // Values
+    let walletBalance = parseFloat("{{ wallet_balance|floatformat:2 }}");
+    let totalAmount = parseFloat("{{ total_after_discount|floatformat:2 }}");
+    let paymentSelected = false;
+    
+    // Set default payment method
+    function setDefaultPaymentMethod() {
+        if (walletRadio && walletBalance >= totalAmount) {
+            walletRadio.checked = true;
+            paymentSelected = true;
+            toggleWalletOption(false);
+        } else if (codRadio && !codRadio.disabled) {
+            codRadio.checked = true;
+            paymentSelected = true;
+        } else if (razorpayRadio) {
+            razorpayRadio.checked = true;
+            paymentSelected = true;
         }
-
+        
+        // Apply selected class to the checked radio's parent
+        updateSelectedPaymentMethod();
+        
         // Initial calculation
         updateAmountToPay();
-
-        // Add event listener
-        useWalletCheckbox.addEventListener("change", updateAmountToPay);
+    }
+    
+    // Update the amount to pay based on selection
+    function updateAmountToPay() {
+        let amountToPay = totalAmount;
+        
+        // If wallet payment is selected (and sufficient), amount to pay is 0
+        if (walletRadio && walletRadio.checked) {
+            amountToPay = 0;
+        }
+        // If wallet checkbox is checked for partial payment
+        else if (useWalletCheckbox && useWalletCheckbox.checked) {
+            amountToPay = Math.max(0, totalAmount - walletBalance);
+            if (remainingAmountElement) {
+                remainingAmountElement.textContent = amountToPay.toFixed(2);
+            }
+        }
+        
+        amountToPayElement.textContent = amountToPay.toFixed(2);
+    }
+    
+    // Toggle wallet option based on selected payment method
+    function toggleWalletOption(enabled) {
+        if (walletOptionElement) {
+            if (enabled) {
+                walletOptionElement.classList.remove('disabled');
+                if (useWalletCheckbox) useWalletCheckbox.disabled = false;
+            } else {
+                walletOptionElement.classList.add('disabled');
+                if (useWalletCheckbox) {
+                    useWalletCheckbox.checked = false;
+                    useWalletCheckbox.disabled = true;
+                }
+            }
+        }
+    }
+    
+    // Update selected payment method styling
+    function updateSelectedPaymentMethod() {
+        // Remove 'selected' class from all payment methods
+        document.querySelectorAll('.payment-method').forEach(el => {
+            el.classList.remove('selected');
+        });
+        
+        // Add 'selected' class to the checked radio's parent
+        if (walletRadio && walletRadio.checked) {
+            walletRadio.closest('.payment-method').classList.add('selected');
+        } else if (codRadio && codRadio.checked) {
+            codRadio.closest('.payment-method').classList.add('selected');
+        } else if (razorpayRadio && razorpayRadio.checked) {
+            razorpayRadio.closest('.payment-method').classList.add('selected');
+        }
+    }
+    
+    // Function to select payment method
+    window.selectPaymentMethod = function(method) {
+        // Don't allow selecting disabled methods
+        if (method === 'cod' && codRadio && codRadio.disabled) {
+            return;
+        }
+        
+        // Clear all selections
+        if (walletRadio) walletRadio.checked = false;
+        if (codRadio) codRadio.checked = false;
+        if (razorpayRadio) razorpayRadio.checked = false;
+        
+        // Set the selected method
+        if (method === 'wallet' && walletRadio) {
+            walletRadio.checked = true;
+            toggleWalletOption(false);
+        } else if (method === 'cod' && codRadio) {
+            codRadio.checked = true;
+            toggleWalletOption(true);
+        } else if (method === 'razorpay' && razorpayRadio) {
+            razorpayRadio.checked = true;
+            toggleWalletOption(true);
+        }
+        
+        paymentSelected = true;
+        updateSelectedPaymentMethod();
+        updateAmountToPay();
+    };
+    
+    // Event listeners
+    if (useWalletCheckbox) {
+        useWalletCheckbox.addEventListener("change", function() {
+            if (this.checked) {
+                if (walletInfoElement) walletInfoElement.style.display = 'block';
+            } else {
+                if (walletInfoElement) walletInfoElement.style.display = 'none';
+            }
+            updateAmountToPay();
+        });
+    }
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        let addressSelected = false;
+        document.querySelectorAll('input[name="address"]').forEach(radio => {
+            if (radio.checked) addressSelected = true;
+        });
+        
+        if (!addressSelected) {
+            e.preventDefault();
+            alert('Please select a shipping address');
+            return false;
+        }
+        
+        if (!paymentSelected) {
+            e.preventDefault();
+            alert('Please select a payment method');
+            return false;
+        }
+        
+        return true;
     });
+    
+    // Initialize
+    setDefaultPaymentMethod();
+});
 </script>
-
 {% endblock %}
-
-
-
-
-
-
-
 

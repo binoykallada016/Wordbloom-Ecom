@@ -19,6 +19,7 @@ from decimal import Decimal
 from django.conf import settings
 from utils.decorators import admin_required
 from orders.models import ShippingAddress
+from django.db.models import Exists, OuterRef
 
 
 # Create your views here.
@@ -376,58 +377,58 @@ def return_request(request, order_id):
     return render(request, 'userside/order/return_request.html', {'form': form, 'order': order, 'item': item})
 
 
-@login_required
-def cancel_order(request, order_id):
-    order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
-    if request.method == 'POST':
-        with transaction.atomic():
-            order.order_status = 'Cancelled'
-            order.save()
+# @login_required
+# def cancel_order(request, order_id):
+#     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
+#     if request.method == 'POST':
+#         with transaction.atomic():
+#             order.order_status = 'Cancelled'
+#             order.save()
 
-            # Refund to wallet
-            wallet, created = Wallet.objects.get_or_create(user=request.user)
-            refund_amount = order.refund_amount()
-            wallet.add_funds(refund_amount)
+#             # Refund to wallet
+#             wallet, created = Wallet.objects.get_or_create(user=request.user)
+#             refund_amount = order.refund_amount()
+#             wallet.add_funds(refund_amount)
 
-            messages.success(request, f"Order {order.order_id} cancelled successfully. Refund of ₹{refund_amount} added to your wallet.")
-            return redirect('userpanel:order_list')
+#             messages.success(request, f"Order {order.order_id} cancelled successfully. Refund of ₹{refund_amount} added to your wallet.")
+#             return redirect('userpanel:order_list')
 
-    return render(request, 'userside/order/confirm_cancel.html', {'order': order})
+#     return render(request, 'userside/order/confirm_cancel.html', {'order': order})
 
-@login_required
-def cancel_item(request, item_id):
-    item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
-    order = item.order
+# @login_required
+# def cancel_item(request, item_id):
+#     item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+#     order = item.order
     
-    # Check if item can be cancelled
-    if order.order_status in ['Shipped', 'Delivered', 'Cancelled']:
-        messages.error(request, "This item cannot be cancelled at this stage.")
-        return redirect('userpanel:user_order_detail', order_id=order.order_id)
+#     # Check if item can be cancelled
+#     if order.order_status in ['Shipped', 'Delivered', 'Cancelled']:
+#         messages.error(request, "This item cannot be cancelled at this stage.")
+#         return redirect('userpanel:user_order_detail', order_id=order.order_id)
     
-    if request.method == 'POST':
-        with transaction.atomic():
-            # Mark item as cancelled
-            item.is_cancelled = True
-            item.save()
+#     if request.method == 'POST':
+#         with transaction.atomic():
+#             # Mark item as cancelled
+#             item.is_cancelled = True
+#             item.save()
             
-            # Refund to wallet
-            wallet, created = Wallet.objects.get_or_create(user=request.user)
-            refund_amount = item.get_cost()
-            wallet.balance += refund_amount
-            wallet.save()
+#             # Refund to wallet
+#             wallet, created = Wallet.objects.get_or_create(user=request.user)
+#             refund_amount = item.get_cost()
+#             wallet.balance += refund_amount
+#             wallet.save()
             
-            # Create wallet transaction
-            WalletTransaction.objects.create(
-                wallet=wallet,
-                amount=refund_amount,
-                transaction_type='credit',
-                description=f'Refund for cancelled item in order #{order.order_id}'
-            )
+#             # Create wallet transaction
+#             WalletTransaction.objects.create(
+#                 wallet=wallet,
+#                 amount=refund_amount,
+#                 transaction_type='credit',
+#                 description=f'Refund for cancelled item in order #{order.order_id}'
+#             )
             
-            messages.success(request, f"Item cancelled successfully. Refund of ₹{refund_amount} added to your wallet.")
-        return redirect('userpanel:user_order_detail', order_id=order.order_id)
+#             messages.success(request, f"Item cancelled successfully. Refund of ₹{refund_amount} added to your wallet.")
+#         return redirect('userpanel:user_order_detail', order_id=order.order_id)
     
-    return render(request, 'userside/order/confirm_cancel_item.html', {'item': item})
+#     return render(request, 'userside/order/confirm_cancel_item.html', {'item': item})
 
 
 
@@ -450,6 +451,10 @@ def admin_order_list(request):
     if status_filter != 'Show all':
         orders = orders.filter(order_status=status_filter)
     
+    # Annotate with pending return requests
+    pending_returns = ReturnRequest.objects.filter(order=OuterRef('pk'), status='Pending')
+    orders = orders.annotate(has_pending_return=Exists(pending_returns))
+
     # Pagination
     items_per_page = int(request.GET.get('items_per_page', 10))
     paginator = Paginator(orders, items_per_page)
@@ -501,6 +506,13 @@ def change_order_status(request, order_id):
         order = get_object_or_404(OrderMain, id=order_id)
         new_status = request.POST.get('order_status')
         order.order_status = new_status
+
+        # Add this debug print statement here
+        print(f"Payment method: '{order.payment_method}', New status: '{new_status}'")
+
+        # If it's a COD order and status is changed to "Delivered", update payment status to "Success"
+        if order.payment_method == 'COD' and new_status == 'Delivered':
+            order.payment_status = 'Success'          
         order.save()
 
         if new_status == 'Return_Approved':
