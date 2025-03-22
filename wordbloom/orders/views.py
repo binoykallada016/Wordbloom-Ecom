@@ -20,6 +20,7 @@ from django.conf import settings
 from utils.decorators import admin_required
 from orders.models import ShippingAddress
 from django.db.models import Exists, OuterRef
+from django.utils import timezone
 
 
 # Create your views here.
@@ -542,6 +543,45 @@ def admin_return_orders(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'adminside/order/return_order.html', {'page_obj': page_obj})
 
+# @admin_required
+# def approve_return(request, return_request_id):
+#     return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+#     order = return_request.order
+    
+#     if request.method == 'POST':
+#         with transaction.atomic():
+#             # If it's a specific item return
+#             if return_request.item:
+#                 item = return_request.item
+#                 refund_amount = item.get_cost()
+                
+#                 # Update return request status
+#                 return_request.status = 'Approved'
+#                 return_request.save()
+#             else:
+#                 # Full order return
+#                 order.order_status = 'Return_Approved'
+#                 order.save()
+#                 refund_amount = order.refund_amount()
+            
+#             # Refund to wallet
+#             wallet, created = Wallet.objects.get_or_create(user=order.user)
+#             wallet.balance += refund_amount
+#             wallet.save()
+            
+#             # Create wallet transaction
+#             WalletTransaction.objects.create(
+#                 wallet=wallet,
+#                 amount=refund_amount,
+#                 transaction_type='credit',
+#                 description=f'Refund for approved return of {return_request.item and "item" or "order"} #{order.order_id}'
+#             )
+            
+#             messages.success(request, f"Return approved. Refund of ₹{refund_amount} added to the user's wallet.")
+            
+#         return redirect('orders:admin-order-detail', order_id=order.id)
+
+
 @admin_required
 def approve_return(request, return_request_id):
     return_request = get_object_or_404(ReturnRequest, id=return_request_id)
@@ -556,30 +596,61 @@ def approve_return(request, return_request_id):
                 
                 # Update return request status
                 return_request.status = 'Approved'
+                return_request.refunded_amount = refund_amount
+                return_request.refunded_at = timezone.now()
                 return_request.save()
+                
+                # Update item status
+                item.is_returned = True
+                item.is_refunded = True
+                item.refunded_amount = refund_amount
+                item.save()
+                
+                # Update order status to reflect partial return if applicable
+                all_items_returned = all(i.is_returned or i.is_cancelled for i in order.items.all())
+                if all_items_returned:
+                    order.order_status = 'Return_Approved'
+                    order.save()
             else:
                 # Full order return
                 order.order_status = 'Return_Approved'
                 order.save()
-                refund_amount = order.refund_amount()
+                
+                # Calculate refund for items that aren't already refunded
+                refund_amount = Decimal('0.00')
+                for item in order.items.all():
+                    if not item.is_refunded and not item.is_cancelled:
+                        item_refund = item.get_cost()
+                        item.is_returned = True
+                        item.is_refunded = True
+                        item.refunded_amount = item_refund
+                        item.save()
+                        refund_amount += item_refund
+                
+                # Update return request
+                return_request.refunded_amount = refund_amount
+                return_request.refunded_at = timezone.now()
+                return_request.save()
             
             # Refund to wallet
-            wallet, created = Wallet.objects.get_or_create(user=order.user)
-            wallet.balance += refund_amount
-            wallet.save()
-            
-            # Create wallet transaction
-            WalletTransaction.objects.create(
-                wallet=wallet,
-                amount=refund_amount,
-                transaction_type='credit',
-                description=f'Refund for approved return of {return_request.item and "item" or "order"} #{order.order_id}'
-            )
-            
-            messages.success(request, f"Return approved. Refund of ₹{refund_amount} added to the user's wallet.")
-            
+            if refund_amount > Decimal('0.00'):
+                wallet, created = Wallet.objects.get_or_create(user=order.user)
+                wallet.balance += refund_amount
+                wallet.save()
+                
+                # Create wallet transaction
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    amount=refund_amount,
+                    transaction_type='credit',
+                    description=f'Refund for approved return of {return_request.item and "item" or "order"} #{order.order_id}'
+                )
+                
+                messages.success(request, f"Return approved. Refund of ₹{refund_amount} added to the user's wallet.")
+            else:
+                messages.info(request, "Return approved, but no refund was processed as items were already refunded.")
+                
         return redirect('orders:admin-order-detail', order_id=order.id)
-
 
 @admin_required
 def reject_return(request, return_request_id):

@@ -12,7 +12,7 @@ from decimal import Decimal
 from orders.models import OrderMain
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
@@ -99,8 +99,10 @@ def order_list(request):
 # @login_required
 # def cancel_order(request, order_id):
 #     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
-#     if order.order_status == 'Delivered':
-#         messages.error(request, "Delivered orders cannot be cancelled")
+    
+#     # Only allow cancellation for Confirmed or Shipped status
+#     if order.order_status not in ['Confirmed', 'Shipped']:
+#         messages.error(request, "Only orders with Confirmed or Shipped status can be cancelled")
 #         return redirect('userpanel:order_list')
 
 #     if request.method == 'POST':
@@ -111,98 +113,154 @@ def order_list(request):
 #                     variant = item.product_variant
 #                     variant.stock += item.quantity
 #                     variant.save()
+                    
+#                     # Mark all items as cancelled
+#                     item.is_cancelled = True
+#                     item.save()
             
-#             # Then delete the order
-#             order.delete()
+#             # Update order status to Cancelled
+#             order.order_status = 'Cancelled'
+#             order.save()
+            
+#             # Handle refund to wallet if payment was successful
+#             if order.payment_status == 'Success':
+#                 wallet, created = Wallet.objects.get_or_create(user=request.user)
                 
-#             messages.success(request, f"Order {order_id} cancelled and deleted successfully")
-#             return redirect('userpanel:order_list')
+#                 # Calculate refund amount based on shipping status
+#                 if order.order_status == 'Shipped':
+#                     # Deduct shipping charge from refund if order was already shipped
+#                     shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
+#                     refund_amount = order.total_amount - shipping_charge
+#                 else:
+#                     # Full refund for confirmed but not shipped orders
+#                     refund_amount = order.total_amount
+                
+#                 # Add funds to wallet
+#                 if refund_amount > 0:
+#                     wallet.add_funds(refund_amount)
+#                     # Create transaction record
+#                     WalletTransaction.objects.create(
+#                         wallet=wallet,
+#                         amount=refund_amount,
+#                         transaction_type='CREDIT',
+#                         description=f"Refund for cancelled order #{order.order_id}"
+#                     )
+#                     messages.success(request, f"₹{refund_amount} has been refunded to your wallet.")
+            
+#             messages.success(request, f"Order {order_id} has been cancelled successfully")
+            
+#         return redirect('userpanel:order_list')
     
 #     return render(request, 'userside/order/confirm_cancel.html', {'order': order})
+
 
 @login_required
 def cancel_order(request, order_id):
     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
-    
     # Only allow cancellation for Confirmed or Shipped status
     if order.order_status not in ['Confirmed', 'Shipped']:
         messages.error(request, "Only orders with Confirmed or Shipped status can be cancelled")
         return redirect('userpanel:order_list')
-
+        
     if request.method == 'POST':
         with transaction.atomic():
-            # First restore stock for all items in the order
+            # Track the total refund amount for this cancellation
+            total_refund_amount = Decimal('0.00')
+            
+            # First restore stock for all items in the order that aren't already cancelled
             for item in order.items.all():
-                if not item.is_cancelled:  # Only restore stock for items that weren't already cancelled
+                if not item.is_cancelled and not item.is_returned:  # Only handle active items
                     variant = item.product_variant
                     variant.stock += item.quantity
                     variant.save()
                     
-                    # Mark all items as cancelled
+                    # Mark the item as cancelled
                     item.is_cancelled = True
+                    
+                    # Only calculate refund for items that haven't been refunded yet
+                    if not item.is_refunded and order.payment_status == 'Success':
+                        refund_amount = item.get_cost()
+                        
+                        # For shipped orders, deduct shipping charge proportionally from each item
+                        if order.order_status == 'Shipped':
+                            shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
+                            # Calculate this item's proportion of the total order
+                            active_order_total = sum(i.get_cost() for i in order.items.all() 
+                                                   if not i.is_cancelled and not i.is_returned and i != item)
+                            total_order_value = active_order_total + item.get_cost()
+                            
+                            if total_order_value > Decimal('0.00'):
+                                item_proportion = item.get_cost() / total_order_value
+                                shipping_deduction = shipping_charge * item_proportion
+                                refund_amount = refund_amount - shipping_deduction
+                        
+                        # Track the refund
+                        item.is_refunded = True
+                        item.refunded_amount = refund_amount
+                        total_refund_amount += refund_amount
+                    
                     item.save()
-            
+                    
             # Update order status to Cancelled
             order.order_status = 'Cancelled'
             order.save()
             
-            # Handle refund to wallet if payment was successful
-            if order.payment_status == 'Success':
+            # Handle refund to wallet if payment was successful and we have an amount to refund
+            if order.payment_status == 'Success' and total_refund_amount > 0:
                 wallet, created = Wallet.objects.get_or_create(user=request.user)
-                
-                # Calculate refund amount based on shipping status
-                if order.order_status == 'Shipped':
-                    # Deduct shipping charge from refund if order was already shipped
-                    shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
-                    refund_amount = order.total_amount - shipping_charge
-                else:
-                    # Full refund for confirmed but not shipped orders
-                    refund_amount = order.total_amount
-                
                 # Add funds to wallet
-                if refund_amount > 0:
-                    wallet.add_funds(refund_amount)
-                    # Create transaction record
-                    WalletTransaction.objects.create(
-                        wallet=wallet,
-                        amount=refund_amount,
-                        transaction_type='CREDIT',
-                        description=f"Refund for cancelled order #{order.order_id}"
-                    )
-                    messages.success(request, f"₹{refund_amount} has been refunded to your wallet.")
+                wallet.add_funds(total_refund_amount)
+                
+                # Create transaction record
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    amount=total_refund_amount,
+                    transaction_type='CREDIT',
+                    description=f"Refund for cancelled order #{order.order_id}"
+                )
+                
+                messages.success(request, f"₹{total_refund_amount} has been refunded to your wallet.")
             
             messages.success(request, f"Order {order_id} has been cancelled successfully")
+            return redirect('userpanel:order_list')
             
-        return redirect('userpanel:order_list')
-    
     return render(request, 'userside/order/confirm_cancel.html', {'order': order})
-
-
 
 # @login_required
 # def user_order_detail(request, order_id):
 #     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
 #     order_items = order.items.all()
     
-#     # Calculate totals
+#     # Calculate totals considering cancelled items
 #     subtotal = Decimal('0.00')
 #     total_discount = Decimal('0.00')
+#     active_item_total = Decimal('0.00')
+#     cancelled_item_total = Decimal('0.00')
+    
 #     for item in order_items:
 #         original_price = item.product_variant.price
 #         discounted_price = item.price
 #         item_discount = (original_price - discounted_price) * item.quantity
-#         total_discount += item_discount
-#         subtotal += original_price * item.quantity
+#         item_total = original_price * item.quantity
+        
+#         # Add to appropriate totals based on cancellation status
+#         if not item.is_cancelled:
+#             active_item_total += item.get_cost()
+#             subtotal += item_total
+#             total_discount += item_discount
+#         else:
+#             cancelled_item_total += item.get_cost()
     
 #     # Get shipping charge from settings
-#     shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
+#     # Get shipping charge from settings and convert to Decimal if it's not already
+#     shipping_charge = Decimal(str(getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))))
     
 #     # Calculate coupon discount (if any)
 #     coupon_discount = order.discount_amount
 #     coupon_applied = coupon_discount > Decimal('0.00')
     
-#     # Calculate grand total
-#     grand_total = order.total_amount
+#     # Calculate grand total for active items
+#     grand_total = active_item_total + shipping_charge - coupon_discount
     
 #     context = {
 #         'order': order,
@@ -212,8 +270,11 @@ def cancel_order(request, order_id):
 #         'coupon_discount': coupon_discount,
 #         'shipping_charge': shipping_charge,
 #         'grand_total': grand_total,
-#         'coupon_applied': coupon_applied
+#         'coupon_applied': coupon_applied,
+#         'cancelled_item_total': cancelled_item_total,
+#         'active_item_total': active_item_total,
 #     }
+    
 #     return render(request, 'userside/userpanel/user_order_detail.html', context)
 
 
@@ -222,11 +283,13 @@ def user_order_detail(request, order_id):
     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
     order_items = order.items.all()
     
-    # Calculate totals considering cancelled items
+    # Calculate totals considering cancelled and returned items
     subtotal = Decimal('0.00')
     total_discount = Decimal('0.00')
     active_item_total = Decimal('0.00')
     cancelled_item_total = Decimal('0.00')
+    returned_item_total = Decimal('0.00')
+    total_refunded = Decimal('0.00')
     
     for item in order_items:
         original_price = item.product_variant.price
@@ -234,23 +297,33 @@ def user_order_detail(request, order_id):
         item_discount = (original_price - discounted_price) * item.quantity
         item_total = original_price * item.quantity
         
-        # Add to appropriate totals based on cancellation status
-        if not item.is_cancelled:
+        # Add to appropriate totals based on item status
+        if not item.is_cancelled and not item.is_returned:
             active_item_total += item.get_cost()
             subtotal += item_total
             total_discount += item_discount
-        else:
+        elif item.is_cancelled:
             cancelled_item_total += item.get_cost()
+            # Track the actual refunded amount
+            if item.is_refunded:
+                total_refunded += item.refunded_amount
+        elif item.is_returned:
+            returned_item_total += item.get_cost()
+            # Track the actual refunded amount
+            if item.is_refunded:
+                total_refunded += item.refunded_amount
     
-    # Get shipping charge from settings
-   # Get shipping charge from settings and convert to Decimal if it's not already
+    # Add returned and cancelled items to subtotal for correct original total
+    subtotal += returned_item_total + cancelled_item_total
+    
+    # Get shipping charge from settings and convert to Decimal if it's not already
     shipping_charge = Decimal(str(getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))))
     
     # Calculate coupon discount (if any)
     coupon_discount = order.discount_amount
     coupon_applied = coupon_discount > Decimal('0.00')
     
-    # Calculate grand total for active items
+    # Calculate grand total for active items only
     grand_total = active_item_total + shipping_charge - coupon_discount
     
     context = {
@@ -263,21 +336,26 @@ def user_order_detail(request, order_id):
         'grand_total': grand_total,
         'coupon_applied': coupon_applied,
         'cancelled_item_total': cancelled_item_total,
+        'returned_item_total': returned_item_total,
+        'total_refunded': total_refunded,
         'active_item_total': active_item_total,
     }
-    
     return render(request, 'userside/userpanel/user_order_detail.html', context)
-
-
-
 
 # @login_required
 # def cancel_item(request, item_id):
 #     item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
-#     if item.order.order_status == 'Delivered':
-#         messages.error(request, "Delivered items cannot be cancelled")
-#         return redirect('userpanel:user_order_detail', order_id=item.order.order_id)
-
+#     order = item.order
+    
+#     # Only allow cancellation for Confirmed status (not Shipped)
+#     if order.order_status != 'Confirmed':
+#         messages.error(request, "Items can only be cancelled when the order is Confirmed")
+#         return redirect('userpanel:user_order_detail', order_id=order.order_id)
+    
+#     if item.is_cancelled:
+#         messages.error(request, "This item is already cancelled")
+#         return redirect('userpanel:user_order_detail', order_id=order.order_id)
+    
 #     if request.method == 'POST':
 #         with transaction.atomic():
 #             # Restore stock
@@ -285,24 +363,39 @@ def user_order_detail(request, order_id):
 #             variant.stock += item.quantity
 #             variant.save()
             
-#             # Get order_id before deleting the item
-#             order_id = item.order.order_id
+#             # Mark the item as cancelled instead of deleting
+#             item.is_cancelled = True
+#             item.save()
             
-#             # Delete the item
-#             item.delete()
+#             # Handle refund to wallet if payment was successful
+#             if order.payment_status == 'Success':
+#                 wallet, created = Wallet.objects.get_or_create(user=request.user)
+#                 refund_amount = item.get_cost()
+                
+#                 if refund_amount > 0:
+#                     wallet.add_funds(refund_amount)
+#                     # Create transaction record
+#                     WalletTransaction.objects.create(
+#                         wallet=wallet,
+#                         amount=refund_amount,
+#                         transaction_type='CREDIT',
+#                         description=f"Refund for cancelled item in order #{order.order_id}"
+#                     )
+#                     messages.success(request, f"₹{refund_amount} has been refunded to your wallet.")
             
-#             # Check if this was the last item in the order
-#             remaining_items = OrderItem.objects.filter(order__order_id=order_id).count()
-#             if remaining_items == 0:
-#                 # If no items left, delete the entire order
-#                 OrderMain.objects.filter(order_id=order_id).delete()
-#                 messages.success(request, "Order cancelled as all items were cancelled")
-#                 return redirect('userpanel:order_list')
+#             # Check if all items in the order are now cancelled
+#             all_cancelled = all(item.is_cancelled for item in order.items.all())
+#             if all_cancelled:
+#                 order.order_status = 'Cancelled'
+#                 order.save()
+#                 messages.success(request, "All items have been cancelled, so the order is now cancelled")
             
-#             messages.success(request, "Item cancelled and deleted successfully")
-#             return redirect('userpanel:user_order_detail', order_id=order_id)
+#             messages.success(request, "Item cancelled successfully")
+            
+#         return redirect('userpanel:user_order_detail', order_id=order.order_id)
     
 #     return render(request, 'userside/order/confirm_cancel_item.html', {'item': item})
+
 
 @login_required
 def cancel_item(request, item_id):
@@ -325,25 +418,30 @@ def cancel_item(request, item_id):
             variant.stock += item.quantity
             variant.save()
             
-            # Mark the item as cancelled instead of deleting
+            # Mark the item as cancelled
             item.is_cancelled = True
-            item.save()
             
-            # Handle refund to wallet if payment was successful
-            if order.payment_status == 'Success':
-                wallet, created = Wallet.objects.get_or_create(user=request.user)
+            # Handle refund to wallet if payment was successful and item hasn't been refunded yet
+            refund_amount = Decimal('0.00')
+            if order.payment_status == 'Success' and not item.is_refunded:
                 refund_amount = item.get_cost()
+                item.is_refunded = True
+                item.refunded_amount = refund_amount
                 
-                if refund_amount > 0:
-                    wallet.add_funds(refund_amount)
-                    # Create transaction record
-                    WalletTransaction.objects.create(
-                        wallet=wallet,
-                        amount=refund_amount,
-                        transaction_type='CREDIT',
-                        description=f"Refund for cancelled item in order #{order.order_id}"
-                    )
-                    messages.success(request, f"₹{refund_amount} has been refunded to your wallet.")
+                wallet, created = Wallet.objects.get_or_create(user=request.user)
+                wallet.add_funds(refund_amount)
+                
+                # Create transaction record
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    amount=refund_amount,
+                    transaction_type='CREDIT',
+                    description=f"Refund for cancelled item in order #{order.order_id}"
+                )
+                
+                messages.success(request, f"₹{refund_amount} has been refunded to your wallet.")
+            
+            item.save()
             
             # Check if all items in the order are now cancelled
             all_cancelled = all(item.is_cancelled for item in order.items.all())
@@ -353,11 +451,9 @@ def cancel_item(request, item_id):
                 messages.success(request, "All items have been cancelled, so the order is now cancelled")
             
             messages.success(request, "Item cancelled successfully")
-            
-        return redirect('userpanel:user_order_detail', order_id=order.order_id)
+            return redirect('userpanel:user_order_detail', order_id=order.order_id)
     
     return render(request, 'userside/order/confirm_cancel_item.html', {'item': item})
-
 
 
 @login_required
@@ -449,9 +545,8 @@ def refund_to_wallet(request, order_id):
 #     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
 #     response = HttpResponse(content_type='application/pdf')
 #     response['Content-Disposition'] = f'attachment; filename="invoice_{order.order_id}.pdf"'
-    
 #     buffer = BytesIO()
-#     doc = SimpleDocTemplate(buffer, pagesize=letter)
+#     doc = SimpleDocTemplate(buffer, pagesize=A4)
 #     elements = []
     
 #     # Logo
@@ -491,11 +586,12 @@ def refund_to_wallet(request, order_id):
     
 #     elements.append(Spacer(1, 24))
     
-#     # Order Items Table with more details
-#     data = [['Item', 'Variant', 'Quantity', 'Unit Price', 'Item Discount', 'Item Subtotal']]
+#     # Order Items Table with more details - now including cancellation status
+#     data = [['Item', 'Variant', 'Quantity', 'Unit Price', 'Item Discount', 'Item Subtotal', 'Status']]
     
 #     order_mrp_total = Decimal('0.00')
 #     order_discount_total = Decimal('0.00')
+#     total_cancelled_amount = Decimal('0.00')
     
 #     for item in order.items.all():
 #         # Calculate the original price (MRP) from the product variant
@@ -504,15 +600,19 @@ def refund_to_wallet(request, order_id):
         
 #         # Calculate item discount
 #         item_discount = (original_price - discounted_price) * item.quantity
-#         order_discount_total += item_discount
         
-#         # Calculate item MRP total
-#         item_mrp_total = original_price * item.quantity
-#         order_mrp_total += item_mrp_total
+#         # Only add active items to totals
+#         if not item.is_cancelled:
+#             order_discount_total += item_discount
+#             order_mrp_total += original_price * item.quantity
+#         else:
+#             total_cancelled_amount += item.get_cost()
+        
+#         # Set status text
+#         status = "Cancelled" if item.is_cancelled else "Active"
         
 #         # Use wrapping for long product names
 #         product_name = item.product_variant.product.product_name
-        
 #         data.append([
 #             product_name,
 #             item.product_variant.format,
@@ -520,10 +620,11 @@ def refund_to_wallet(request, order_id):
 #             f"Rs.{original_price:.2f}",
 #             f"Rs.{item_discount:.2f}",
 #             f"Rs.{item.get_cost():.2f}",
+#             status
 #         ])
     
 #     # Get shipping charge from settings
-#     shipping_charge = getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))
+#     shipping_charge = Decimal(str(getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))))
     
 #     # Calculate coupon discount (if any)
 #     coupon_discount = order.discount_amount
@@ -531,27 +632,35 @@ def refund_to_wallet(request, order_id):
 #     # Determine if coupon was applied
 #     coupon_applied = coupon_discount > Decimal('0.00')
     
-#     # Calculate grand total
-#     grand_total = order.total_amount
+#     # Calculate grand total (excluding cancelled items)
+#     active_items_total = sum(item.get_cost() for item in order.items.all() if not item.is_cancelled)
+#     grand_total = active_items_total + shipping_charge - coupon_discount
     
 #     # Add empty row
-#     data.append(['', '', '', '', '', ''])
+#     data.append(['', '', '', '', '', '', ''])
     
 #     # Add summary rows with labels directly in the first column
-#     data.append(['Order MRP ', '', '', '', '', f"Rs.{order_mrp_total:.2f}"])
-#     data.append(['Total Order Discount', '', '', '', '', f"- Rs.{order_discount_total:.2f}"])
+#     data.append(['Order MRP ', '', '', '', '', f"Rs.{order_mrp_total:.2f}", ''])
+#     data.append(['Total Order Discount', '', '', '', '', f"- Rs.{order_discount_total:.2f}", ''])
     
 #     if coupon_applied:
-#         data.append(['Coupon Discount', '', '', '', '', f"- Rs.{coupon_discount:.2f}"])
+#         data.append(['Coupon Discount', '', '', '', '', f"- Rs.{coupon_discount:.2f}", ''])
     
-#     data.append(['Shipping Charge', '', '', '', '', f"Rs.{shipping_charge:.2f}"])
-#     data.append(['Grand Total', '', '', '', '', f"Rs.{grand_total:.2f}"])
+#     data.append(['Shipping Charge', '', '', '', '', f"Rs.{shipping_charge:.2f}", ''])
     
-#     col_widths = [2*inch, 1*inch, 0.7*inch, 1*inch, 1*inch, 1.2*inch]
+#     if total_cancelled_amount > Decimal('0.00'):
+#         data.append(['Total Cancelled Amount', '', '', '', '', f"Rs.{total_cancelled_amount:.2f}", ''])
+#         data.append(['Refunded to Wallet', '', '', '', '', f"Rs.{total_cancelled_amount:.2f}", ''])
+    
+#     data.append(['Grand Total', '', '', '', '', f"Rs.{grand_total:.2f}", ''])
+    
+#     col_widths = [1.7*inch, 0.8*inch, 0.6*inch, 0.8*inch, 0.8*inch, 1*inch, 0.8*inch]
 #     table = Table(data, colWidths=col_widths)
     
 #     # Calculate the row index where summary rows start
-#     summary_row_start = len(data) - (5 if coupon_applied else 4)
+#     summary_row_start = len(data) - (7 if total_cancelled_amount > Decimal('0.00') else 5)
+#     if coupon_applied:
+#         summary_row_start -= 1
     
 #     table.setStyle(TableStyle([
 #         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -561,49 +670,58 @@ def refund_to_wallet(request, order_id):
 #         ('ALIGN', (1, 1), (1, summary_row_start-2), 'CENTER'),  # Center align variants
 #         ('ALIGN', (2, 1), (2, summary_row_start-2), 'CENTER'),  # Center align quantities
 #         ('ALIGN', (3, 1), (5, summary_row_start-2), 'RIGHT'),  # Right align prices
+#         ('ALIGN', (6, 1), (6, summary_row_start-2), 'CENTER'),  # Center align status
+        
 #         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # Vertically center all content
 #         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
 #         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
 #         ('BACKGROUND', (0, 1), (-1, summary_row_start-2), colors.beige),
 #         ('GRID', (0, 0), (-1, summary_row_start-2), 1, colors.black),  # Grid for products only
-        
 #         # Ensure proper word wrapping for product names
 #         ('WORDWRAP', (0, 1), (0, summary_row_start-2), True),
-        
 #         # Enhanced styling for summary rows
 #         # For the empty row
 #         ('SPAN', (0, summary_row_start-1), (-1, summary_row_start-1)),
 #         ('BACKGROUND', (0, summary_row_start-1), (-1, summary_row_start-1), colors.beige),
 #         ('LINEABOVE', (0, summary_row_start), (-1, summary_row_start), 1, colors.black),
-        
 #         # For the summary rows
 #         ('SPAN', (0, summary_row_start), (4, summary_row_start)),  # MRP Total
 #         ('SPAN', (0, summary_row_start+1), (4, summary_row_start+1)),  # Item Discount
-#         ('SPAN', (0, summary_row_start+3 if coupon_applied else summary_row_start+2), (4, summary_row_start+3 if coupon_applied else summary_row_start+2)),  # Shipping Charge
-#         ('SPAN', (0, -1), (4, -1)),  # Grand Total
         
 #         # Left-align the labels
 #         ('ALIGN', (0, summary_row_start), (0, -1), 'LEFT'),
 #         ('FONTNAME', (0, summary_row_start), (0, -1), 'Helvetica-Bold'),
 #         ('LEFTPADDING', (0, summary_row_start), (0, -1), 20),  # Add padding to make labels stand out
-        
 #         # Right-align the amounts
-#         ('ALIGN', (-1, 1), (-1, -1), 'RIGHT'),
-#         ('RIGHTPADDING', (-1, 1), (-1, -1), 20),
-        
+#         ('ALIGN', (-2, 1), (-2, -1), 'RIGHT'),
+#         ('RIGHTPADDING', (-2, 1), (-2, -1), 20),
 #         # Highlight the grand total
 #         ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
-#         ('FONTNAME', (-1, -1), (-1, -1), 'Helvetica-Bold'),
+#         ('FONTNAME', (-2, -1), (-2, -1), 'Helvetica-Bold'),
 #         ('LINEBELOW', (0, -1), (-1, -1), 1, colors.black),
 #     ]))
     
-#     # Add styling for coupon row if present
+#     # Add styling for additional rows
+#     row_offset = 0
+    
+#     # Add coupon row styling if present
 #     if coupon_applied:
 #         table.setStyle(TableStyle([
 #             ('SPAN', (0, summary_row_start+2), (4, summary_row_start+2)),  # Coupon Discount
-#             ('ALIGN', (0, summary_row_start+2), (0, summary_row_start+2), 'LEFT'),
-#             ('FONTNAME', (0, summary_row_start+2), (0, summary_row_start+2), 'Helvetica-Bold'),
-#             ('LEFTPADDING', (0, summary_row_start+2), (0, summary_row_start+2), 20),
+#         ]))
+#         row_offset += 1
+    
+#     # Add styling for shipping charge row
+#     table.setStyle(TableStyle([
+#         ('SPAN', (0, summary_row_start+2+row_offset), (4, summary_row_start+2+row_offset)),  # Shipping Charge
+#     ]))
+    
+#     # Add styling for cancelled/refunded rows if present
+#     if total_cancelled_amount > Decimal('0.00'):
+#         table.setStyle(TableStyle([
+#             ('SPAN', (0, summary_row_start+3+row_offset), (4, summary_row_start+3+row_offset)),  # Total Cancelled
+#             ('SPAN', (0, summary_row_start+4+row_offset), (4, summary_row_start+4+row_offset)),  # Refunded to Wallet
+#             ('BACKGROUND', (0, summary_row_start+3+row_offset), (-1, summary_row_start+4+row_offset), colors.lavender),
 #         ]))
     
 #     elements.append(table)
@@ -624,7 +742,7 @@ def generate_invoice(request, order_id):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="invoice_{order.order_id}.pdf"'
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
     elements = []
     
     # Logo
@@ -634,13 +752,13 @@ def generate_invoice(request, order_id):
         logo.hAlign = 'CENTER'
         elements.append(logo)
     except Exception as e:
-        print(f"Error loading logo: {e}")  # Add proper logging in production
+        print(f"Error loading logo: {e}") # Add proper logging in production
         elements.append(Paragraph("Logo could not be loaded", getSampleStyleSheet()['Normal']))
-    
+        
     # Invoice Title and Details
     styles = getSampleStyleSheet()
     title = Paragraph("Invoice", styles['h1'])
-    title.style.alignment = 1  # Center
+    title.style.alignment = 1 # Center
     elements.append(title)
     elements.append(Spacer(1, 12))
     
@@ -661,46 +779,65 @@ def generate_invoice(request, order_id):
     elements.append(Paragraph(f"{order.shipping_address.district}, {order.shipping_address.state}", styles['Normal']))
     elements.append(Paragraph(f"{order.shipping_address.country} - {order.shipping_address.pin_number}", styles['Normal']))
     elements.append(Paragraph(f"Phone: {order.shipping_address.phone_number}", styles['Normal']))
-    
     elements.append(Spacer(1, 24))
     
-    # Order Items Table with more details - now including cancellation status
+    # Order Items Table with more details - now including cancellation and return status
     data = [['Item', 'Variant', 'Quantity', 'Unit Price', 'Item Discount', 'Item Subtotal', 'Status']]
     
     order_mrp_total = Decimal('0.00')
     order_discount_total = Decimal('0.00')
     total_cancelled_amount = Decimal('0.00')
+    total_returned_amount = Decimal('0.00')
+    total_refunded_amount = Decimal('0.00')
     
     for item in order.items.all():
-        # Calculate the original price (MRP) from the product variant
-        original_price = item.product_variant.price
-        discounted_price = item.price
-        
-        # Calculate item discount
-        item_discount = (original_price - discounted_price) * item.quantity
-        
-        # Only add active items to totals
-        if not item.is_cancelled:
-            order_discount_total += item_discount
-            order_mrp_total += original_price * item.quantity
-        else:
-            total_cancelled_amount += item.get_cost()
-        
-        # Set status text
-        status = "Cancelled" if item.is_cancelled else "Active"
-        
-        # Use wrapping for long product names
-        product_name = item.product_variant.product.product_name
-        data.append([
-            product_name,
-            item.product_variant.format,
-            item.quantity,
-            f"Rs.{original_price:.2f}",
-            f"Rs.{item_discount:.2f}",
-            f"Rs.{item.get_cost():.2f}",
-            status
-        ])
-    
+        # Make sure product_variant exists before trying to access its properties
+        if item.product_variant:
+            # Use explicit variable assignment for each property to ensure they're captured
+            product_name = item.product_variant.product.product_name
+            variant_format = item.product_variant.format
+            original_price = item.product_variant.price
+            discounted_price = item.price
+            
+            # Calculate item discount
+            item_discount = (original_price - discounted_price) * item.quantity
+            
+            # Track refunds
+            if item.is_refunded:
+                total_refunded_amount += item.refunded_amount
+                
+            # Only add active items to totals
+            if not item.is_cancelled and not item.is_returned:
+                order_discount_total += item_discount
+                order_mrp_total += original_price * item.quantity
+            elif item.is_cancelled:
+                total_cancelled_amount += item.get_cost()
+            elif item.is_returned:
+                total_returned_amount += item.get_cost()
+                
+            # Set status text
+            if item.is_cancelled:
+                status = "Cancelled"
+                if item.is_refunded:
+                    status += f" (Refunded: ₹{item.refunded_amount})"
+            elif item.is_returned:
+                status = "Returned"
+                if item.is_refunded:
+                    status += f" (Refunded: ₹{item.refunded_amount})"
+            else:
+                status = "Active"
+                
+            # Add item to the data list with explicit properties
+            data.append([
+                product_name,
+                variant_format,
+                item.quantity,
+                f"Rs.{original_price:.2f}",
+                f"Rs.{item_discount:.2f}",
+                f"Rs.{item.get_cost():.2f}",
+                status
+            ])
+
     # Get shipping charge from settings
     shipping_charge = Decimal(str(getattr(settings, "SHIPPING_CHARGE", Decimal('50.00'))))
     
@@ -710,8 +847,9 @@ def generate_invoice(request, order_id):
     # Determine if coupon was applied
     coupon_applied = coupon_discount > Decimal('0.00')
     
-    # Calculate grand total (excluding cancelled items)
-    active_items_total = sum(item.get_cost() for item in order.items.all() if not item.is_cancelled)
+    # Calculate grand total (excluding cancelled and returned items)
+    active_items_total = sum(item.get_cost() for item in order.items.all() 
+                            if not item.is_cancelled and not item.is_returned)
     grand_total = active_items_total + shipping_charge - coupon_discount
     
     # Add empty row
@@ -723,84 +861,62 @@ def generate_invoice(request, order_id):
     
     if coupon_applied:
         data.append(['Coupon Discount', '', '', '', '', f"- Rs.{coupon_discount:.2f}", ''])
-    
+        
     data.append(['Shipping Charge', '', '', '', '', f"Rs.{shipping_charge:.2f}", ''])
     
     if total_cancelled_amount > Decimal('0.00'):
         data.append(['Total Cancelled Amount', '', '', '', '', f"Rs.{total_cancelled_amount:.2f}", ''])
-        data.append(['Refunded to Wallet', '', '', '', '', f"Rs.{total_cancelled_amount:.2f}", ''])
+        
+    if total_returned_amount > Decimal('0.00'):
+        data.append(['Total Returned Amount', '', '', '', '', f"Rs.{total_returned_amount:.2f}", ''])
+        
+    if total_refunded_amount > Decimal('0.00'):
+        data.append(['Total Refunded to Wallet', '', '', '', '', f"Rs.{total_refunded_amount:.2f}", ''])
     
     data.append(['Grand Total', '', '', '', '', f"Rs.{grand_total:.2f}", ''])
     
-    col_widths = [1.7*inch, 0.8*inch, 0.6*inch, 0.8*inch, 0.8*inch, 1*inch, 0.8*inch]
+    # Set column widths to ensure all content fits
+    col_widths = [1.7*inch, 0.8*inch, 0.6*inch, 0.8*inch, 0.8*inch, 1*inch, 1.2*inch]  # Increased width for status column
+    
     table = Table(data, colWidths=col_widths)
     
     # Calculate the row index where summary rows start
-    summary_row_start = len(data) - (7 if total_cancelled_amount > Decimal('0.00') else 5)
-    if coupon_applied:
-        summary_row_start -= 1
+    summary_row_start = len([item for item in order.items.all() if item.product_variant]) + 2  # Add 2 for header row and empty row
     
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),  # Headers are centered
-        ('ALIGN', (0, 1), (0, summary_row_start-2), 'LEFT'),  # Left align product names
-        ('ALIGN', (1, 1), (1, summary_row_start-2), 'CENTER'),  # Center align variants
-        ('ALIGN', (2, 1), (2, summary_row_start-2), 'CENTER'),  # Center align quantities
-        ('ALIGN', (3, 1), (5, summary_row_start-2), 'RIGHT'),  # Right align prices
-        ('ALIGN', (6, 1), (6, summary_row_start-2), 'CENTER'),  # Center align status
-        
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # Vertically center all content
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'), # Headers are centered
+        ('ALIGN', (0, 1), (0, summary_row_start-1), 'LEFT'), # Left align product names
+        ('ALIGN', (1, 1), (1, summary_row_start-1), 'CENTER'), # Center align variants
+        ('ALIGN', (2, 1), (2, summary_row_start-1), 'CENTER'), # Center align quantities
+        ('ALIGN', (3, 1), (5, summary_row_start-1), 'RIGHT'), # Right align prices
+        ('ALIGN', (6, 1), (6, summary_row_start-1), 'LEFT'), # Left align status
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), # Vertically center all content
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, summary_row_start-2), colors.beige),
-        ('GRID', (0, 0), (-1, summary_row_start-2), 1, colors.black),  # Grid for products only
-        # Ensure proper word wrapping for product names
-        ('WORDWRAP', (0, 1), (0, summary_row_start-2), True),
-        # Enhanced styling for summary rows
-        # For the empty row
-        ('SPAN', (0, summary_row_start-1), (-1, summary_row_start-1)),
-        ('BACKGROUND', (0, summary_row_start-1), (-1, summary_row_start-1), colors.beige),
-        ('LINEABOVE', (0, summary_row_start), (-1, summary_row_start), 1, colors.black),
-        # For the summary rows
-        ('SPAN', (0, summary_row_start), (4, summary_row_start)),  # MRP Total
-        ('SPAN', (0, summary_row_start+1), (4, summary_row_start+1)),  # Item Discount
-        
-        # Left-align the labels
-        ('ALIGN', (0, summary_row_start), (0, -1), 'LEFT'),
-        ('FONTNAME', (0, summary_row_start), (0, -1), 'Helvetica-Bold'),
-        ('LEFTPADDING', (0, summary_row_start), (0, -1), 20),  # Add padding to make labels stand out
-        # Right-align the amounts
-        ('ALIGN', (-2, 1), (-2, -1), 'RIGHT'),
-        ('RIGHTPADDING', (-2, 1), (-2, -1), 20),
-        # Highlight the grand total
-        ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
-        ('FONTNAME', (-2, -1), (-2, -1), 'Helvetica-Bold'),
-        ('LINEBELOW', (0, -1), (-1, -1), 1, colors.black),
+        ('BACKGROUND', (0, 1), (-1, summary_row_start-1), colors.beige),
+        ('GRID', (0, 0), (-1, summary_row_start-1), 1, colors.black), # Grid for products only
+        # Ensure proper word wrapping for product names and status
+        ('WORDWRAP', (0, 1), (0, summary_row_start-1), True),
+        ('WORDWRAP', (6, 1), (6, summary_row_start-1), True),
     ]))
     
-    # Add styling for additional rows
-    row_offset = 0
-    
-    # Add coupon row styling if present
-    if coupon_applied:
-        table.setStyle(TableStyle([
-            ('SPAN', (0, summary_row_start+2), (4, summary_row_start+2)),  # Coupon Discount
-        ]))
-        row_offset += 1
-    
-    # Add styling for shipping charge row
-    table.setStyle(TableStyle([
-        ('SPAN', (0, summary_row_start+2+row_offset), (4, summary_row_start+2+row_offset)),  # Shipping Charge
-    ]))
-    
-    # Add styling for cancelled/refunded rows if present
-    if total_cancelled_amount > Decimal('0.00'):
-        table.setStyle(TableStyle([
-            ('SPAN', (0, summary_row_start+3+row_offset), (4, summary_row_start+3+row_offset)),  # Total Cancelled
-            ('SPAN', (0, summary_row_start+4+row_offset), (4, summary_row_start+4+row_offset)),  # Refunded to Wallet
-            ('BACKGROUND', (0, summary_row_start+3+row_offset), (-1, summary_row_start+4+row_offset), colors.lavender),
-        ]))
+    # Add styling for the summary section
+    for i, row in enumerate(data[summary_row_start:], start=summary_row_start):
+        if 'Grand Total' in row[0]:
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, i), (-1, i), colors.lightgrey),
+                ('FONTNAME', (0, i), (0, i), 'Helvetica-Bold'),
+                ('FONTNAME', (-2, i), (-2, i), 'Helvetica-Bold'),
+                ('SPAN', (0, i), (4, i)),
+            ]))
+        else:
+            table.setStyle(TableStyle([
+                ('SPAN', (0, i), (4, i)),
+                ('ALIGN', (0, i), (0, i), 'LEFT'),
+                ('ALIGN', (-2, i), (-2, i), 'RIGHT'),
+            ]))
     
     elements.append(table)
     
@@ -812,4 +928,5 @@ def generate_invoice(request, order_id):
     pdf = buffer.getvalue()
     buffer.close()
     response.write(pdf)
+    
     return response

@@ -61,6 +61,31 @@
             background-color: #ef4444;
             color: white;
         }
+        .refund-details {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .refund-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .refund-details th, 
+        .refund-details td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .refund-details th {
+            background-color: #f2f2f2;
+        }
+        
+        .refund-details tfoot tr {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
     </style>
 {% endblock %}
 
@@ -149,11 +174,59 @@
         <h2>Order Summary</h2>
         <p><strong>Subtotal:</strong> ₹{{ order.total_amount }}</p>
         <p><strong>Discount:</strong> ₹{{ order.discount_amount }}</p>
+        <p><strong>Total Discount:</strong> -₹{{ total_discount }}</p>
         <p><strong>Grand Total:</strong> ₹{{ order.total_amount }}</p>
         <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
         <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
     </div>
     {% if order.order_status == 'Return_Initiated' %}
+
+    {% if has_refunded_items %}
+    <div class="refund-details">
+        <h2>Refund Information</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Status</th>
+                    <th>Refund Amount</th>
+                    <th>Refund Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_items %}
+                    {% if item.is_refunded %}
+                    <tr>
+                        <td>{{ item.product_variant.product.product_name }}</td>
+                        <td>
+                            {% if item.is_cancelled %}Cancelled
+                            {% elif item.is_returned %}Returned{% endif %}
+                        </td>
+                        <td>₹{{ item.refunded_amount }}</td>
+                        <td>
+                            {% with return_request=item.returnrequest_set.first %}
+                                {% if return_request and return_request.refunded_at %}
+                                    {{ return_request.refunded_at|date:"F d, Y" }}
+                                {% else %}
+                                    When item was cancelled
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="2">Total Refunded</th>
+                    <th>₹{{ total_refunded }}</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% endif %}
+
     <div class="return-request">
         <h2>Return Request</h2>
         <p><strong>Reason:</strong> {{ order.returnrequest_set.first.reason }}</p>
