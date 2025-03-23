@@ -30,21 +30,92 @@ from products.models import Product, ProductVariant, VariantImage
 from category.models import Category
 from authors.models import Author
 from django.db.models import Case, When, F, Value, Min, OuterRef, Subquery
-from django.db.models import F, Q, Case, When, DecimalField
+from django.db.models import F, Q, Case, When, Prefetch, OuterRef, Subquery, DecimalField
 from django.db.models.query import Prefetch
 from decimal import Decimal, InvalidOperation, DecimalException
 from userpanel.models import Wishlist
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import UserRegisterForm, CustomPasswordResetForm, CustomSetPasswordForm
 
+
 User = get_user_model()
 ITEMS_PER_PAGE = 8
 
 # Create your views here.
+
+# @never_cache
+# @cache_control(no_cache = True, must_revalidate = True, no_store = True)
+# def home(request):
+#     return render(request,"userside/account/index.html")
+
 @never_cache
 @cache_control(no_cache = True, must_revalidate = True, no_store = True)
 def home(request):
-    return render(request,"userside/account/index.html")
+    # Get active categories
+    categories = Category.objects.filter(is_active=True)
+    
+    # Get featured books (for example, the most recent 4 active products)
+    featured_products = Product.objects.filter(
+        variants__is_active=True,
+        author__is_active=True
+    ).select_related('author').distinct().order_by('-product_id')[:4]
+    
+    # Annotate with preferred variant
+    featured_products = featured_products.annotate(
+        preferred_variant_id=Subquery(
+            ProductVariant.objects.filter(
+                product=OuterRef('pk'),
+                is_active=True
+            ).order_by(
+                Case(
+                    When(format='Paperback', then=0),  # Prioritize Paperback
+                    When(format='Hardcover', then=1),  # Next prioritize Hardcover
+                    default=2  # Fallback to other formats
+                ),
+                'id'  # Fallback to the first variant if multiple variants have the same format
+            ).values('id')[:1]
+        )
+    )
+    
+    # Prefetch the preferred variant and its primary image
+    featured_products = featured_products.prefetch_related(
+        Prefetch(
+            'variants',
+            queryset=ProductVariant.objects.filter(
+                is_active=True
+            ).prefetch_related(
+                Prefetch(
+                    'images',
+                    queryset=VariantImage.objects.filter(is_primary=True),
+                    to_attr='primary_images'
+                )
+            ),
+            to_attr='active_variants'
+        )
+    )
+    
+    # Check if products are in wishlist for authenticated users
+    if request.user.is_authenticated:
+        wishlisted_items = {}
+        for product in featured_products:
+            if product.active_variants:
+                first_variant = product.active_variants[0]
+                is_wishlisted = Wishlist.objects.filter(
+                    user=request.user, 
+                    product=product,
+                    variant=first_variant
+                ).exists()
+                wishlisted_items[product.product_id] = is_wishlisted
+    else:
+        wishlisted_items = {}
+    
+    context = {
+        'categories': categories,
+        'featured_products': featured_products,
+        'wishlisted_items': wishlisted_items,
+    }
+    
+    return render(request, "userside/account/index.html", context)
 
 
 @never_cache
