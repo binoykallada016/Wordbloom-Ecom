@@ -452,28 +452,84 @@ def shop(request):
     return render(request, 'userside/product/shop_page.html', context)
 
 
+# def product_detail(request, product_id):
+#     product = get_object_or_404(Product, product_id=product_id)
+    
+#     # Get all active variants
+#     active_variants = product.variants.filter(is_active=True)
+    
+#     # First try to get Paperback variant, if not available get the first active variant
+#     default_variant = (
+#         active_variants.filter(format='Paperback').first() or 
+#         active_variants.first()
+#     )
+    
+#     # Get images only for the default variant
+#     default_variant_images = []
+    
+#     if default_variant:
+#         default_variant_images = default_variant.images.all().order_by('display_order')
+#         default_primary_image = default_variant_images.filter(is_primary=True).first()
+
+#     # Prepare variant data (only include active variants)
+#     variant_data = []
+#     for variant in active_variants:
+#         variant_data.append({
+#             'id': variant.id,
+#             'format': variant.format,
+#             'price': float(variant.price),
+#             'discounted_price': float(variant.discounted_price) if variant.discounted_price else None,
+#             'stock': variant.stock,
+#             'isbn': variant.isbn,
+#             'page_count': variant.page_count,
+#             'images': [{'url': image.image.url, 'is_primary': image.is_primary} 
+#                       for image in variant.images.all().order_by('display_order')]
+#         })
+#     # Get wishlisted variants for this product (for authenticated users)
+#     wishlisted_variant_ids = []
+#     if request.user.is_authenticated:
+#         wishlisted_variants = Wishlist.objects.filter(
+#             user=request.user,
+#             product=product
+#         ).values_list('variant_id', flat=True)
+#         wishlisted_variant_ids = list(wishlisted_variants)
+
+#     context = {
+#         'product': product,
+#         'variants': active_variants,
+#         'variant_data': variant_data,
+#         'default_variant': default_variant,
+#         'default_variant_images': default_variant_images,
+#         'default_primary_image': default_primary_image,
+#         'wishlisted_variant_ids': wishlisted_variant_ids,
+#     }
+#     return render(request, 'userside/account/product_details.html', context)
+
+
 def product_detail(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     
     # Get all active variants
     active_variants = product.variants.filter(is_active=True)
-    
+
     # First try to get Paperback variant, if not available get the first active variant
     default_variant = (
-        active_variants.filter(format='Paperback').first() or 
+        active_variants.filter(format='Paperback').first() or
         active_variants.first()
     )
     
     # Get images only for the default variant
     default_variant_images = []
-    
     if default_variant:
         default_variant_images = default_variant.images.all().order_by('display_order')
         default_primary_image = default_variant_images.filter(is_primary=True).first()
-
+    
     # Prepare variant data (only include active variants)
     variant_data = []
     for variant in active_variants:
+        # Get full discount information
+        discount_info = variant.get_discount_info()
+        
         variant_data.append({
             'id': variant.id,
             'format': variant.format,
@@ -482,9 +538,18 @@ def product_detail(request, product_id):
             'stock': variant.stock,
             'isbn': variant.isbn,
             'page_count': variant.page_count,
-            'images': [{'url': image.image.url, 'is_primary': image.is_primary} 
-                      for image in variant.images.all().order_by('display_order')]
+            'images': [{'url': image.image.url, 'is_primary': image.is_primary}
+                       for image in variant.images.all().order_by('display_order')],
+            'discount_info': {
+                'type': discount_info.get('type', ''),
+                'offer_name': discount_info.get('offer_name', ''),
+                'original_price': float(discount_info.get('original_price', variant.price)),
+                'effective_price': float(discount_info.get('effective_price', variant.price)),
+                'discount_amount': float(discount_info.get('discount_amount', 0)),
+                'discount_percentage': round((variant.price - discount_info.get('effective_price', variant.price)) / variant.price * 100, 2) if variant.price > discount_info.get('effective_price', variant.price) else 0
+            }
         })
+    
     # Get wishlisted variants for this product (for authenticated users)
     wishlisted_variant_ids = []
     if request.user.is_authenticated:
@@ -493,17 +558,19 @@ def product_detail(request, product_id):
             product=product
         ).values_list('variant_id', flat=True)
         wishlisted_variant_ids = list(wishlisted_variants)
-
+    
     context = {
         'product': product,
         'variants': active_variants,
         'variant_data': variant_data,
         'default_variant': default_variant,
         'default_variant_images': default_variant_images,
-        'default_primary_image': default_primary_image,
+        'default_primary_image': default_primary_image if 'default_primary_image' in locals() else None,
         'wishlisted_variant_ids': wishlisted_variant_ids,
     }
+    
     return render(request, 'userside/account/product_details.html', context)
+
 
 
 def category(request):

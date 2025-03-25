@@ -179,6 +179,66 @@
         color: #333;
         font-size: 1.1rem;
     }
+
+    .summary-discount {
+        color: green;
+    }
+    .original-price {
+        text-decoration: line-through;
+        color: #888;
+        margin-right: 5px;
+    }
+    .section-title {
+        color: #2b5f5f;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+    .order-summary-container {
+        margin-bottom: 1.5rem;
+    }
+    .order-summary-product {
+        margin-bottom: 1rem;
+        color: #666;
+    }
+    .order-summary-product-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    .order-summary-product-header-price {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .order-summary-product-discounts {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.25rem;
+    }
+    .order-summary-discount-tag {
+        color: green;
+        font-size: 0.9em;
+    }
+    .order-summary-original-price {
+        text-decoration: line-through;
+        color: #888;
+        margin-right: 5px;
+        font-size: 0.9em;
+    }
+    .order-summary-total-section {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 2px solid var(--border-color);
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1rem;
+    }
+    
     @media (max-width: 1200px) {
         .checkout-grid {
             grid-template-columns: 1fr 320px;
@@ -303,7 +363,7 @@
             </div>
             
             <!-- Order Summary -->
-            <div class="order-summary">
+            {% comment %} <div class="order-summary">
                 <h2 class="section-title">Order Summary</h2>
                 <div class="summary-items">
                     {% for item in cart_items %}
@@ -337,6 +397,69 @@
                     <span>Amount to Pay</span>
                     <span>₹<span id="amount-to-pay">{{ total_after_discount|floatformat:2 }}</span></span>
                 </div>
+                <button type="submit" class="btn btn-primary" id="place-order-btn">Place Order</button>
+            </div> {% endcomment %}
+
+            <!-- Order Summary -->
+            <div class="order-summary">
+                <h2 class="section-title">Order Summary</h2>
+                <div class="order-summary-container">
+                    {% for item in cart_items %}
+                        <div class="order-summary-product">
+                            <div>
+                                <div class="order-summary-product-header-price">
+                                    <div class="order-summary-product-header">
+                                        {{ item.variant.product.product_name }} (x{{ item.quantity }})
+                                    </div>
+                                    {% if item.original_price != item.effective_price %}
+                                        <span class="order-summary-original-price">
+                                            ₹{{ item.original_price|floatformat:2 }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="order-summary-product-discounts">
+                                    <div class="order-summary-discount-tag">
+                                        (Discount: ₹{{ item.discount_amount|floatformat:2 }})
+                                    </div>
+                                    <span class="order-summary-final-price">
+                                        ₹{{ item.sub_total|floatformat:2 }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>             
+
+                <div class="summary-item">
+                    <span class="summary-label">Order MRP:</span>
+                    <span class="summary-value">₹<span id="cart-original-price">{{ total_original_price|floatformat:2 }}</span></span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">Total Discount:</span>
+                    <span class="summary-value summary-discount">-₹<span id="cart-discount">{{ total_discount|floatformat:2 }}</span></span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">Order Subtotal:</span>
+                    <span class="summary-value">₹<span id="cart-subtotal">{{ total_amount|floatformat:2 }}</span></span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">Coupon Discount:</span>
+                    <span class="summary-value summary-discount">-₹<span id="coupon-discount">{{ discount_amount|floatformat:2 }}</span></span>
+                </div>
+                
+                <div class="summary-item">
+                    <span>Shipping</span>
+                    <span>₹{{ shipping_charge|floatformat:2 }}</span>
+                </div>
+                
+                <div class="summary-total">
+                    <span>Amount to Pay</span>
+                    <span>₹<span id="amount-to-pay">{{ total_after_discount|floatformat:2 }}</span></span>
+                </div>
+                
                 <button type="submit" class="btn btn-primary" id="place-order-btn">Place Order</button>
             </div>
         </div>

@@ -1,0 +1,38 @@
+{% extends 'admin_base.html' %}
+{% block title %}Add Category Offer - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-content">
+        <h2>Add Offer for {{ category.name }}</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="offerName">Offer Name</label>
+                <input type="text" id="offerName" name="offerName" required>
+            </div>
+            <div class="form-group">
+                <label for="discountType">Discount Type</label>
+                <select id="discountType" name="discountType" required>
+                    <option value="Percentage">Percentage</option>
+                    <option value="Flat">Flat</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="discountValue">Discount Value</label>
+                <input type="number" id="discountValue" name="discountValue" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="startDate">Start Date</label>
+                <input type="date" id="startDate" name="startDate" required value="{{ today|date:'Y-m-d' }}">
+            </div>
+            <div class="form-group">
+                <label for="endDate">End Date</label>
+                <input type="date" id="endDate" name="endDate" required value="{{ end_date|date:'Y-m-d' }}">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Offer</button>
+            <a href="{% url 'category:category_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

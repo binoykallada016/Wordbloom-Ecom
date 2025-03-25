@@ -407,32 +407,49 @@
                         <p class="item-price">Original Price: ₹{{ item.variant.price }}</p>
 
                         {% if item.variant.discounted_price %}
-                        <p class="item-discount">Discount: -₹{{ item.discount_amount }}</p>
+                            {% with discount_info=item.variant.get_discount_info %}
+                            <p class="item-discount">
+                                Discount: -₹{{ item.discount_amount }}
+                                {% if discount_info.type == 'category' %}
+                                    ({{ discount_info.offer_name }})
+                                {% endif %}
+                            </p>
+                            {% endwith %}
                         {% else %}
                         <p class="item-discount">Discount: -₹0</p>
                         {% endif %}
 
-                        <p class="item-final-price">
+                        {% comment %} <p class="item-final-price">
                             After Discount Price: ₹
                             {% if item.variant.discounted_price %}
                                 {{ item.variant.discounted_price }}
                             {% else %}
                                 {{ item.variant.price }}
                             {% endif %}
+                        </p> {% endcomment %}
+                        <p class="item-final-price">
+                            After Discount Price: ₹{{ item.variant.get_discount_info.effective_price|floatformat:2 }}
                         </p>
-                        
                         <div class="quantity-control">
                             <button type="button" class="quantity-btn minus {% if item.quantity <= 1 %}disabled{% endif %}" data-action="decrease">-</button>
                             <span class="quantity-input">{{ item.quantity }}</span>
                             <button type="button" class="quantity-btn plus" data-action="increase">+</button>
                         </div>
                         
-                        <p class="item-subtotal">
+                        {% comment %} <p class="item-subtotal">
                             Item Subtotal:  
                             {% if item.variant.discounted_price %}
                                 {{ item.variant.discounted_price }} (x{{ item.quantity }}) = ₹<span class="item-subtotal-value">{{ item.sub_total }}</span>
                             {% else %}
                                 {{ item.variant.price }} (x{{ item.quantity }}) = ₹<span class="item-subtotal-value">{{ item.sub_total }}</span>
+                            {% endif %}
+                        </p> {% endcomment %}
+                        <p class="item-subtotal">
+                            Item Subtotal:  
+                            {% if item.variant.get_discount_info.effective_price %}
+                                {{ item.variant.get_discount_info.effective_price|floatformat:2 }} (x<span class="quantity-multiplier">{{ item.quantity }}</span>) = ₹<span class="item-subtotal-value">{{ item.sub_total|floatformat:2 }}</span>
+                            {% else %}
+                                {{ item.variant.price|floatformat:2 }} (x<span class="quantity-multiplier">{{ item.quantity }}</span>) = ₹<span class="item-subtotal-value">{{ item.sub_total|floatformat:2 }}</span>
                             {% endif %}
                         </p>
                         <button type="button" class="remove-item" data-item-id="{{ item.id }}">Remove</button>
@@ -566,7 +583,7 @@ $(document).ready(function() {
         const itemId = cartItem.data('item-id');
         const quantitySpan = cartItem.find('.quantity-input');
         const currentQuantity = parseInt(quantitySpan.text());
-        
+
         // Add loading indicator
         btn.html('<span class="spinner"></span>');
         btn.prop('disabled', true);
@@ -593,13 +610,18 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.status === 'success') {
-                    // Update quantity display
+                    // Update quantity display in multiple places
                     quantitySpan.text(newQuantity);
+                    cartItem.find('.cart-item-quantity, .item-subtotal .quantity-multiplier').text(newQuantity);
                     
-                    // Update item subtotal
-                    cartItem.find('.item-subtotal-value').text(response.item_subtotal.toFixed(2));
+                    // Get discount info from the variant
+                    const effectivePrice = (response.item_subtotal / newQuantity).toFixed(2);
                     
-                    // Update cart summary
+                    // Reconstruct the subtotal text dynamically WITH "Item Subtotal: "
+                    const subtotalText = `Item Subtotal: ${effectivePrice} (x<span class="quantity-multiplier">${newQuantity}</span>) = ₹<span class="item-subtotal-value">${response.item_subtotal.toFixed(2)}</span>`;
+                    cartItem.find('.item-subtotal').html(subtotalText);
+                    
+                    // Update cart summary sections using effective price
                     $('#cart-subtotal').text(response.cart_total.toFixed(2));
                     $('#cart-total').text(response.total_after_discount.toFixed(2));
                     $('#cart-original-price').text(response.total_original_price.toFixed(2));
@@ -611,6 +633,13 @@ $(document).ready(function() {
                         cartItem.find('.quantity-btn.minus').addClass('disabled');
                     } else {
                         cartItem.find('.quantity-btn.minus').removeClass('disabled');
+                    }
+                    
+                    // Limit to max quantity
+                    if (newQuantity >= response.max_quantity) {
+                        cartItem.find('.quantity-btn.plus').addClass('disabled');
+                    } else {
+                        cartItem.find('.quantity-btn.plus').removeClass('disabled');
                     }
                     
                     showToast(`Quantity updated to ${newQuantity}`, 'success');

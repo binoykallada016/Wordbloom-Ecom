@@ -653,39 +653,46 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Variant data initialization
+        // Variant data initialization with enhanced discount info
         const variants = {
             {% for variant in variants %}
-                {{ variant.id }}: {
-                    format: '{{ variant.format }}',
-                    price: {{ variant.price }},
-                    discountedPrice: {% if variant.discounted_price %}{{ variant.discounted_price }}{% else %}null{% endif %},
-                    stock: {{ variant.stock }},
-                    isbn: '{{ variant.isbn }}',
-                    pageCount: {{ variant.page_count }}
-                },
+            {{ variant.id }}: {
+                format: '{{ variant.format }}',
+                price: {{ variant.price }},
+                stock: {{ variant.stock }},
+                isbn: '{{ variant.isbn }}',
+                pageCount: {{ variant.page_count }},
+                discountInfo: {
+                    // Get full discount information using get_discount_info method
+                    type: '{{ variant.get_discount_info.type|default:"" }}',
+                    offerName: '{{ variant.get_discount_info.offer_name|default:"" }}',
+                    originalPrice: {{ variant.get_discount_info.original_price|default:variant.price }},
+                    effectivePrice: {{ variant.get_discount_info.effective_price|default:variant.price }},
+                    discountAmount: {{ variant.get_discount_info.discount_amount|default:0 }},
+                    discountPercentage: {% if variant.get_discount_info.original_price %}
+                        Math.round(({{ variant.get_discount_info.original_price }} - {{ variant.get_discount_info.effective_price }}) / {{ variant.get_discount_info.original_price }} * 100)
+                    {% else %}0{% endif %}
+                }
+            },
             {% endfor %}
         };
-    
+
         const isAuthenticated = {% if request.user.is_authenticated %}true{% else %}false{% endif %};
         const wishlistedVariantIds = {% if request.user.is_authenticated %}{{ wishlisted_variant_ids|safe }}{% else %}[]{% endif %};
-        
+
         // Get DOM elements
         const variantIdInput = document.getElementById('variant_id');
         const cartQuantityInput = document.getElementById('cart-quantity');
         const quantityInput = document.getElementById('quantity');
         const wishlistVariantIdInput = document.getElementById('wishlist-variant-id');
-        
-        // Function to get maximum allowed quantity
+
         function getMaxAllowedQuantity(stockQuantity) {
             return Math.min(5, stockQuantity);
         }
-    
-        // Function to validate and adjust quantity
+
         function validateQuantity(value, maxStock) {
             const maxAllowed = getMaxAllowedQuantity(maxStock);
             const numValue = parseInt(value);
-            
             if (isNaN(numValue) || numValue < 1) {
                 return 1;
             } else if (numValue > maxAllowed) {
@@ -693,43 +700,57 @@
             }
             return numValue;
         }
-    
+
         function updateVariantInfo(variantId) {
             const variant = variants[variantId];
             const variantPrice = document.getElementById('variant-price');
             const variantOriginalPrice = document.getElementById('variant-original-price');
             const variantStock = document.getElementById('variant-stock');
             const discountBadge = document.getElementById('discount-badge');
-    
+
+            // Use enhanced discount info
+            const discountInfo = variant.discountInfo;
+            const effectivePrice = discountInfo.effectivePrice;
+            const originalPrice = discountInfo.originalPrice;
+            const discountPercentage = discountInfo.discountPercentage;
+
             // Update price display
-            variantPrice.textContent = `₹${variant.discountedPrice || variant.price}`;
-            if (variant.discountedPrice) {
-                variantOriginalPrice.textContent = `₹${variant.price}`;
+            variantPrice.textContent = `₹${effectivePrice.toFixed(2)}`;
+
+            // Handle discount display
+            if (discountPercentage > 0) {
+                variantOriginalPrice.textContent = `₹${originalPrice.toFixed(2)}`;
                 variantOriginalPrice.style.display = 'inline';
-                const discountPercentage = Math.round((variant.price - variant.discountedPrice) / variant.price * 100);
                 discountBadge.textContent = `${discountPercentage}% OFF`;
                 discountBadge.style.display = 'inline';
+
+                // Show discount type and offer name if available
+                if (discountInfo.type === 'category' && discountInfo.offerName) {
+                    discountBadge.title = `Category Offer: ${discountInfo.offerName}`;
+                } else if (discountInfo.type === 'product') {
+                    discountBadge.title = 'Product Discount';
+                }
             } else {
                 variantOriginalPrice.style.display = 'none';
                 discountBadge.style.display = 'none';
             }
-    
-            // Update stock status with new icon and styling
+
+            // Rest of the existing function remains the same...
             const maxAllowed = getMaxAllowedQuantity(variant.stock);
-            const stockIcon = variant.stock > 0 ? 
-                '<i class="fas fa-check-circle"></i>' : 
+            const stockIcon = variant.stock > 0 ?
+                '<i class="fas fa-check-circle"></i>' :
                 '<i class="fas fa-times-circle"></i>';
-            const stockText = variant.stock > 0 ? 
-                `In Stock (Maximum ${maxAllowed} per order)` : 
+
+            const stockText = variant.stock > 0 ?
+                `In Stock (Maximum ${maxAllowed} per order)` :
                 'Out of Stock';
-            
             variantStock.innerHTML = `${stockIcon}<span>${stockText}</span>`;
             variantStock.className = `stock-status ${variant.stock > 0 ? 'in-stock' : 'out-of-stock'}`;
 
             // Update product details
             document.querySelector('[data-detail="isbn"]').textContent = variant.isbn;
             document.querySelector('[data-detail="pages"]').textContent = variant.pageCount;
-    
+
             // Update form inputs and quantity restrictions if authenticated
             if (isAuthenticated) {
                 if (variantIdInput) variantIdInput.value = variantId;

@@ -1,0 +1,42 @@
+{% extends 'admin_base.html' %}
+{% block title %}Edit Category Offer - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-content">
+        <h2>Edit Offer for {{ category.name }}</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="offerName">Offer Name</label>
+                <input type="text" id="offerName" name="offerName" value="{{ offer.offer_name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="discountType">Discount Type</label>
+                <select id="discountType" name="discountType" required>
+                    <option value="Percentage" {% if offer.discount_type == 'Percentage' %}selected{% endif %}>Percentage</option>
+                    <option value="Flat" {% if offer.discount_type == 'Flat' %}selected{% endif %}>Flat</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="discountValue">Discount Value</label>
+                <input type="number" id="discountValue" name="discountValue" value="{{ offer.discount_value }}" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="startDate">Start Date</label>
+                <input type="date" id="startDate" name="startDate" value="{{ offer.start_date|date:'Y-m-d' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="endDate">End Date</label>
+                <input type="date" id="endDate" name="endDate" value="{{ offer.end_date|date:'Y-m-d' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="isActive">Is Active</label>
+                <input type="checkbox" id="isActive" name="isActive" {% if offer.is_active %}checked{% endif %}>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Offer</button>
+            <a href="{% url 'category:category_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

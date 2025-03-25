@@ -418,7 +418,7 @@
                         <td class="{% if category.offers.exists %}active-offer{% endif %}">
                             {% if category.offers.exists %}Active Offer{% else %}No Offer{% endif %}
                         </td>
-                        <td>
+                        {% comment %} <td>
                             <div class="action-buttons">
                                 <button onclick="showEditCategoryModal('{{ category.id }}', '{{ category.name }}', '{{ category.description }}')" 
                                         class="btn btn-edit">
@@ -435,6 +435,34 @@
                                         class="btn btn-offer">
                                     <i class="ri-price-tag-3-line"></i> Category Offer
                                 </button>
+                            </div>
+                        </td> {% endcomment %}
+                        <!-- Update the action buttons section in admin_category_list.html -->
+                        <td>
+                            <div class="action-buttons">
+                                <button onclick="showEditCategoryModal('{{ category.id }}', '{{ category.name }}', '{{ category.description }}')"
+                                        class="btn btn-edit">
+                                    <i class="ri-edit-line"></i> Edit
+                                </button>
+                                <button onclick="confirmCategoryAction('{{ category.id }}', '{% if category.is_active %}deactivate{% else %}restore{% endif %}')"
+                                        class="btn {% if category.is_active %}btn-delete{% else %}btn-restore{% endif %}">
+                                    <i class="{% if category.is_active %}ri-delete-bin-line{% else %}ri-refresh-line{% endif %}"></i>
+                                    {% if category.is_active %}Delete{% else %}Restore{% endif %}
+                                </button>
+                                {% if category.offers.exists %}
+                                    {% with offer=category.offers.first %}
+                                        <a href="{% url 'category:edit_category_offer' offer.id %}" class="btn btn-offer">
+                                            <i class="ri-price-tag-3-line"></i> Edit Offer
+                                        </a>
+                                        <a href="{% url 'category:toggle_category_offer' offer.id %}" class="btn {% if offer.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                                            <i class="ri-toggle-line"></i> {% if offer.is_active %}Deactivate Offer{% else %}Activate Offer{% endif %}
+                                        </a>
+                                    {% endwith %}
+                                {% else %}
+                                    <a href="{% url 'category:add_category_offer' category.id %}" class="btn btn-offer">
+                                        <i class="ri-price-tag-3-line"></i> Add Offer
+                                    </a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

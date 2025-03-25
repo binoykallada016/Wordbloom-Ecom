@@ -273,6 +273,21 @@
         color: #9ca3af;
         pointer-events: none;
     }
+    .offer-badge {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color:rgb(158, 214, 236); /* Red color similar to your SOLD tag */
+        color: white;
+        font-weight: bold;
+        text-transform: uppercase;
+        transform: rotate(-45deg) translateX(-51%) translateY(130%);
+        transform-origin: top left;
+        padding: 0.5rem 3rem;
+        font-size: 0.75rem;
+        text-align: center;
+        z-index: 5;
+    }
     /* Responsive design */
     @media (max-width: 575.98px) {
         .container {
@@ -493,13 +508,28 @@
                                     <span class="book-author-label">Book Author:</span>
                                     <span class="book-author">{{ product.author.name }}</span>
                                 </p>
-                                <div class="price-container">
+                                {% comment %} <div class="price-container">
                                     {% if preferred_variant.discounted_price %}
                                         <span class="current-price">₹{{ preferred_variant.discounted_price }}</span>
                                         <span class="original-price">₹{{ preferred_variant.price }}</span>
                                     {% else %}
                                         <span class="current-price">₹{{ preferred_variant.price }}</span>
                                     {% endif %}
+                                </div> {% endcomment %}
+                                <div class="price-container">
+                                    {% with preferred_variant=product.active_variants|first %}
+                                        {% if preferred_variant %}
+                                            {% with discount_info=preferred_variant.get_discount_info %}
+                                                <span class="current-price">₹{{ discount_info.effective_price }}</span>
+                                                {% if discount_info.discount_amount > 0 %}
+                                                    <span class="original-price">₹{{ discount_info.original_price }}</span>
+                                                    {% if discount_info.type == 'category' %}
+                                                        <span class="offer-badge">{{ discount_info.offer_name }}</span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    {% endwith %}
                                 </div>
                             {% else %}
                                 <img src="/placeholder.svg?height=300&width=200" alt="{{ product.product_name }}" class="book-cover">
