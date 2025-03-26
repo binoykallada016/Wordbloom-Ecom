@@ -406,18 +406,19 @@
                         <p class="item-format">{{ item.variant.format }}</p>
                         <p class="item-price">Original Price: ₹{{ item.variant.price }}</p>
 
-                        {% if item.variant.discounted_price %}
-                            {% with discount_info=item.variant.get_discount_info %}
-                            <p class="item-discount">
-                                Discount: -₹{{ item.discount_amount }}
-                                {% if discount_info.type == 'category' %}
-                                    ({{ discount_info.offer_name }})
-                                {% endif %}
-                            </p>
-                            {% endwith %}
-                        {% else %}
-                        <p class="item-discount">Discount: -₹0</p>
-                        {% endif %}
+                        {% with discount_info=item.variant.get_discount_info %}
+                            {% if discount_info.effective_price < item.variant.price %}
+                                <p class="item-discount">
+                                    Discount: -₹{{ item.discount_amount|floatformat:2 }}
+                                    {% if discount_info.type == 'category' %}
+                                        ({{ discount_info.offer_name }})
+                                    {% endif %}
+                                </p>
+                            {% else %}
+                                <p class="item-discount">Discount: -₹0</p>
+                            {% endif %}
+                        {% endwith %}
+                    
 
                         {% comment %} <p class="item-final-price">
                             After Discount Price: ₹
@@ -704,9 +705,20 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                showToast('Error removing item: ' + error, 'error');
+                // Parse the error response
+                let errorMessage = 'Error removing item';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    errorMessage = response.message || errorMessage;
+                } catch (e) {
+                    errorMessage = error;
+                }
+                
+                showToast(errorMessage, 'error');
                 btn.html('Remove');
                 btn.prop('disabled', false);
+                
+                console.error('Remove item error:', xhr.status, errorMessage);
             }
         });
     });
@@ -740,7 +752,7 @@ $(document).ready(function() {
                     // Update cart summary
                     $('#cart-subtotal').text(response.cart_total.toFixed(2));
                     $('#cart-total').text(response.total_after_discount.toFixed(2));
-                    $('#coupon-discount').text(response.discount_amount.toFixed(2));
+                    $('#coupon-discount').text(response.discount_amount ? response.discount_amount.toFixed(2) : '0.00');
                     
                     // Show applied coupon section
                     $('#coupon-form-section').hide();

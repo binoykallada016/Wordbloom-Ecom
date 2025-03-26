@@ -57,54 +57,30 @@ def coupon_status(request, pk):
     coupon.save()
     return redirect('coupons:list-coupon')
 
-# @login_required
-# def apply_coupon(request):
-#     if request.method == 'POST':
-#         code = request.POST.get('code')
-#         try:
-#             coupon = Coupon.objects.get(coupon_code=code, status=True)
-#             cart = Cart.objects.get(user=request.user)
-#             total_amount = cart.get_total_price()
-
-#             if coupon.is_valid(total_amount):
-#                 cart.coupon = coupon
-#                 cart.save()
-#                 messages.success(request, 'Coupon applied successfully!')
-#             else:
-#                 messages.error(request, 'This coupon is not valid for your order.')
-#         except Coupon.DoesNotExist:
-#             messages.error(request, 'Invalid coupon code.')
-#     return redirect('cart:cart-view')
-
-# @login_required
-# def remove_coupon(request):
-#     if request.method == 'POST':
-#         cart = Cart.objects.get(user=request.user)
-#         cart.coupon = None
-#         cart.save()
-#         messages.success(request, 'Coupon removed successfully!')
-#     return redirect('cart:cart-view')
-
 @login_required
 def apply_coupon(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             code = data.get('code')
-            
             try:
                 coupon = Coupon.objects.get(coupon_code=code, status=True)
                 cart = Cart.objects.get(user=request.user)
-                total_amount = cart.get_total_price()
                 
-                if coupon.is_valid(total_amount):
+                # Recalculate cart total using effective prices
+                cart_total = Decimal('0.00')
+                for item in cart.items.filter(is_active=True):
+                    variant = item.variant
+                    effective_price = Decimal(str(variant.get_effective_price()))
+                    cart_total += effective_price * item.quantity
+
+                if coupon.is_valid(cart_total):
                     cart.coupon = coupon
                     cart.save()
                     
-                    # Calculate updated totals
-                    cart_total = cart.get_total_price()
+                    # Recalculate discount amount
                     discount_amount = cart.get_discount_amount()
-                    total_after_discount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
+                    total_after_discount = cart_total - Decimal(str(discount_amount)) + Decimal(settings.SHIPPING_CHARGE)
                     
                     return JsonResponse({
                         'success': True,
@@ -128,7 +104,6 @@ def apply_coupon(request):
                 'success': False,
                 'message': 'Invalid request format.'
             })
-    
     return JsonResponse({
         'success': False,
         'message': 'Invalid request method.'
@@ -142,9 +117,15 @@ def remove_coupon(request):
             cart.coupon = None
             cart.save()
             
-            # Calculate updated totals
-            cart_total = cart.get_total_price()
-            total_after_discount = Decimal(cart.get_total_price_after_discount()) + Decimal(settings.SHIPPING_CHARGE)
+            # Recalculate cart total using effective prices
+            cart_total = Decimal('0.00')
+            for item in cart.items.filter(is_active=True):
+                variant = item.variant
+                effective_price = Decimal(str(variant.get_effective_price()))
+                cart_total += effective_price * item.quantity
+            
+            # Recalculate total after discount
+            total_after_discount = cart_total + Decimal(settings.SHIPPING_CHARGE)
             
             return JsonResponse({
                 'success': True,
@@ -157,7 +138,6 @@ def remove_coupon(request):
                 'success': False,
                 'message': f'Error removing coupon: {str(e)}'
             })
-    
     return JsonResponse({
         'success': False,
         'message': 'Invalid request method.'

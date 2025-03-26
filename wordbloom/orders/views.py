@@ -48,184 +48,188 @@ def place_order(request):
             return redirect('cart:cart-view')
         
         address = get_object_or_404(UserAddress, id=address_id, user=request.user)
-        shipping_charge = Decimal(settings.SHIPPING_CHARGE)  # Get shipping charge from settings
+        shipping_charge = Decimal(settings.SHIPPING_CHARGE)
         
-        # Calculate totals
-        cart_total = Decimal(cart.get_total_price_after_discount())
-        total_with_shipping = cart_total + shipping_charge  # Include shipping charge
+        # Calculate totals using effective price
+        cart_total = Decimal('0.00')
+        for cart_item in cart_items:
+            variant = cart_item.variant
+            effective_price = Decimal(str(variant.get_effective_price()))
+            cart_total += effective_price * cart_item.quantity
+        
+        # Apply coupon discount if any
         discount_amount = cart.get_discount_amount()
+        total_after_discount = cart_total - Decimal(str(discount_amount))
         
-        with transaction.atomic():
-            # Create a separate shipping address record
-            shipping_address = ShippingAddress.objects.create(
-                name=address.name,
-                phone_number=address.phone_number,
-                house_name=address.house_name,
-                street_name=address.street_name,
-                district=address.district,
-                state=address.state,
-                country=address.country,
-                pin_number=address.pin_number
+        # Add shipping charge
+        final_total = total_after_discount + shipping_charge
+        
+        # Store in session for order confirmation
+        request.session['amount_to_pay'] = str(final_total)
+        request.session['total_amount'] = str(final_total)
+        
+        # Create a separate shipping address record
+        shipping_address = ShippingAddress.objects.create(
+            name=address.name,
+            phone_number=address.phone_number,
+            house_name=address.house_name,
+            street_name=address.street_name,
+            district=address.district,
+            state=address.state,
+            country=address.country,
+            pin_number=address.pin_number
+        )
+        
+        # Create order with the new shipping address
+        order = OrderMain.objects.create(
+            user=request.user,
+            address=address,
+            shipping_address=shipping_address,
+            total_amount=final_total,
+            payment_method=payment_method,
+            order_id=get_random_string(10).upper(),
+            discount_amount=discount_amount,
+        )
+        
+        # Process order items
+        for cart_item in cart_items:
+            variant = cart_item.variant
+            if cart_item.quantity > variant.stock:
+                raise Exception(f"Not enough stock for {variant.product.product_name}")
+            
+            variant.stock -= cart_item.quantity
+            variant.save()
+            
+            OrderItem.objects.create(
+                order=order,
+                product_variant=variant,
+                quantity=cart_item.quantity,
+                price=variant.discounted_price or variant.price
             )
+        
+        # Handle wallet deduction if any
+        if wallet_used > Decimal('0.00'):
+            if not hasattr(request.user, 'wallet'):
+                Wallet.objects.create(user=request.user, balance=Decimal('0.00'))
+            wallet = request.user.wallet
             
-            # Create order with the new shipping address
-            order = OrderMain.objects.create(
-                user=request.user,
-                address=address,  # Keep for backward compatibility
-                shipping_address=shipping_address,  # Use the new permanent shipping address
-                total_amount=total_with_shipping,  # Total *before* wallet deduction
-                payment_method=payment_method,
-                order_id=get_random_string(10).upper(),
-                discount_amount=discount_amount,
+            if wallet.balance < wallet_used:
+                raise Exception(f"Insufficient wallet balance. Available: ₹{wallet.balance}")
+            
+            wallet.balance -= wallet_used
+            wallet.save()
+            
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                amount=wallet_used,
+                transaction_type='debit',
+                description=f"Used for order {order.order_id}"
             )
+        
+        # Clear cart
+        cart_items.delete()
+        if cart.coupon:
+            cart.coupon = None
+            cart.save()
+        
+        # Handle Razorpay payment if needed
+        if payment_method == 'Razorpay' and amount_to_pay > Decimal('0.00'):
+            try:
+                # Initialize Razorpay client with basic auth
+                key_id = settings.RAZORPAY_KEY_ID
+                key_secret = settings.RAZORPAY_KEY_SECRET
+                client = razorpay.Client(auth=(key_id, key_secret))
+                
+                # Prepare payment data - use amount_to_pay (after wallet deduction)
+                amount_in_paise = int(float(amount_to_pay) * 100)
+                payment_data = {
+                    'amount': amount_in_paise,
+                    'currency': 'INR',
+                    'receipt': str(order.order_id),
+                    'notes': {
+                        'order_id': str(order.order_id),
+                        'customer_email': request.user.email
+                    }
+                }
+                
+                # Create Razorpay order
+                razorpay_order = client.order.create(payment_data)
+                
+                if not razorpay_order.get('id'):
+                    raise Exception("No order ID received from Razorpay")
+                
+                # Update order with Razorpay details
+                order.razorpay_order_id = razorpay_order['id']
+                order.order_status = 'Payment_Pending'
+                order.save()
+                
+                # Prepare checkout data
+                context = {
+                    'order': order,
+                    'order_id': order.order_id,
+                    'razorpay_order_id': razorpay_order['id'],
+                    'razorpay_merchant_key': key_id,
+                    'razorpay_amount': amount_in_paise,
+                    'currency': 'INR',
+                    'callback_url': request.build_absolute_uri(reverse('orders:razorpay-callback')),
+                    'user_name': request.user.full_name,
+                    'user_email': request.user.email,
+                    'user_contact': getattr(request.user, 'phone_number', '')
+                }
+                
+                # Clear the session data
+                for key in ['selected_address_id', 'payment_method', 'amount_to_pay', 'wallet_used', 'total_amount']:
+                    if key in request.session:
+                        del request.session[key]
+                
+                return render(request, 'userside/order/razorpay_payment.html', context)
             
-            # Process order items
-            for cart_item in cart_items:
-                variant = cart_item.variant
-                if cart_item.quantity > variant.stock:
-                    raise Exception(f"Not enough stock for {variant.product.product_name}")
+            except Exception as e:
+                # Log the full error
+                import traceback
+                print(f"Razorpay Error: {str(e)}")
+                print("Full traceback:")
+                print(traceback.format_exc())
                 
-                variant.stock -= cart_item.quantity
-                variant.save()
-                
-                OrderItem.objects.create(
-                    order=order,
-                    product_variant=variant,
-                    quantity=cart_item.quantity,
-                    price=variant.discounted_price or variant.price
-                )
-            
-            # --- Wallet Deduction ---
-            if wallet_used > Decimal('0.00'):
-                if not hasattr(request.user, 'wallet'):
-                    # Create wallet if it doesn't exist
-                    Wallet.objects.create(user=request.user, balance=Decimal('0.00'))
-                
-                wallet = request.user.wallet
-                # Verify wallet has sufficient balance
-                if wallet.balance < wallet_used:
-                    raise Exception(f"Insufficient wallet balance. Available: ₹{wallet.balance}")
-                
-                # Deduct from wallet
-                wallet.balance -= wallet_used
-                wallet.save()
-                
-                # Create wallet transaction record
-                WalletTransaction.objects.create(
-                    wallet=wallet,
-                    amount=wallet_used,
-                    transaction_type='debit',
-                    description=f"Used for order {order.order_id}"
-                )
-            
-            # Clear cart
-            cart_items.delete()
-            if cart.coupon:
-                cart.coupon = None
-                cart.save()
-            
-            # Handle Razorpay payment if needed
-            if payment_method == 'Razorpay' and amount_to_pay > Decimal('0.00'):
-                try:
-                    # Initialize Razorpay client with basic auth
-                    key_id = settings.RAZORPAY_KEY_ID
-                    key_secret = settings.RAZORPAY_KEY_SECRET
-                    client = razorpay.Client(
-                        auth=(key_id, key_secret)
+                # Clean up the order and restore wallet
+                if wallet_used > Decimal('0.00'):
+                    wallet = request.user.wallet
+                    wallet.balance += wallet_used
+                    wallet.save()
+                    
+                    # Create refund transaction
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        amount=wallet_used,
+                        transaction_type='credit',
+                        description=f"Refund due to failed payment for order {order.order_id}"
                     )
-                    
-                    # Prepare payment data - use amount_to_pay (after wallet deduction)
-                    amount_in_paise = int(float(amount_to_pay) * 100)
-                    payment_data = {
-                        'amount': amount_in_paise,
-                        'currency': 'INR',
-                        'receipt': str(order.order_id),
-                        'notes': {
-                            'order_id': str(order.order_id),
-                            'customer_email': request.user.email
-                        }
-                    }
-                    
-                    print(f"Creating Razorpay order with data: {payment_data}")
-
-                    # Create Razorpay order
-                    razorpay_order = client.order.create(payment_data)
-                    if not razorpay_order.get('id'):
-                        raise Exception("No order ID received from Razorpay")
-                    
-                    # Update order with Razorpay details
-                    order.razorpay_order_id = razorpay_order['id']
-                    order.order_status = 'Payment_Pending'
-                    order.save()
-                    
-                    # Prepare checkout data
-                    context = {
-                        'order': order,
-                        'order_id': order.order_id,
-                        'razorpay_order_id': razorpay_order['id'],
-                        'razorpay_merchant_key': key_id,
-                        'razorpay_amount': amount_in_paise,
-                        'currency': 'INR',
-                        'callback_url': request.build_absolute_uri(reverse('orders:razorpay-callback')),
-                        'user_name': request.user.full_name,
-                        'user_email': request.user.email,
-                        'user_contact': getattr(request.user, 'phone_number', '')
-                    }
-                    
-                    # Clear the session data
-                    for key in ['selected_address_id', 'payment_method', 'amount_to_pay', 'wallet_used', 'total_amount']:
-                        if key in request.session:
-                            del request.session[key]
-                            
-                    return render(request, 'userside/order/razorpay_payment.html', context)
-                    
-                except Exception as e:
-                    # Log the full error
-                    import traceback
-                    print(f"Razorpay Error: {str(e)}")
-                    print("Full traceback:")
-                    print(traceback.format_exc())
-                    
-                    # Clean up the order and restore wallet
-                    if wallet_used > Decimal('0.00'):
-                        wallet = request.user.wallet
-                        wallet.balance += wallet_used
-                        wallet.save()
-                        
-                        # Create refund transaction
-                        WalletTransaction.objects.create(
-                            wallet=wallet,
-                            amount=wallet_used,
-                            transaction_type='credit',
-                            description=f"Refund due to failed payment for order {order.order_id}"
-                        )
-                    
-                    order.delete()
-                    messages.error(request, f"Payment initialization failed: {str(e)}")
-                    return redirect('cart:checkout')
-            
-            # For COD or full wallet payment
-            if payment_method == 'Wallet':
-                order.payment_status = 'Success'
-                order.order_status = 'Confirmed'
-            else:
-                order.payment_status = 'Pending'
-                order.order_status = 'Confirmed'
-            
-            order.save()
-            
-            # Clear the session data
-            for key in ['selected_address_id', 'payment_method', 'amount_to_pay', 'wallet_used', 'total_amount']:
-                if key in request.session:
-                    del request.session[key]
-            
-            messages.success(request, f"Order placed successfully. Your order ID is {order.order_id}")
-            return redirect('orders:order-confirmation', order_id=order.order_id)
-            
+                
+                order.delete()
+                messages.error(request, f"Payment initialization failed: {str(e)}")
+                return redirect('cart:checkout')
+        
+        # For COD or full wallet payment
+        if payment_method == 'Wallet':
+            order.payment_status = 'Success'
+            order.order_status = 'Confirmed'
+        else:
+            order.payment_status = 'Pending'
+            order.order_status = 'Confirmed'
+        
+        order.save()
+        
+        # Clear the session data
+        for key in ['selected_address_id', 'payment_method', 'amount_to_pay', 'wallet_used', 'total_amount']:
+            if key in request.session:
+                del request.session[key]
+        
+        messages.success(request, f"Order placed successfully. Your order ID is {order.order_id}")
+        return redirect('orders:order-confirmation', order_id=order.order_id)
+    
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('cart:checkout')
-
 
 @csrf_exempt
 def razorpay_callback(request):
@@ -377,62 +381,6 @@ def return_request(request, order_id):
     }
     return render(request, 'userside/order/return_request.html', {'form': form, 'order': order, 'item': item})
 
-
-# @login_required
-# def cancel_order(request, order_id):
-#     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
-#     if request.method == 'POST':
-#         with transaction.atomic():
-#             order.order_status = 'Cancelled'
-#             order.save()
-
-#             # Refund to wallet
-#             wallet, created = Wallet.objects.get_or_create(user=request.user)
-#             refund_amount = order.refund_amount()
-#             wallet.add_funds(refund_amount)
-
-#             messages.success(request, f"Order {order.order_id} cancelled successfully. Refund of ₹{refund_amount} added to your wallet.")
-#             return redirect('userpanel:order_list')
-
-#     return render(request, 'userside/order/confirm_cancel.html', {'order': order})
-
-# @login_required
-# def cancel_item(request, item_id):
-#     item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
-#     order = item.order
-    
-#     # Check if item can be cancelled
-#     if order.order_status in ['Shipped', 'Delivered', 'Cancelled']:
-#         messages.error(request, "This item cannot be cancelled at this stage.")
-#         return redirect('userpanel:user_order_detail', order_id=order.order_id)
-    
-#     if request.method == 'POST':
-#         with transaction.atomic():
-#             # Mark item as cancelled
-#             item.is_cancelled = True
-#             item.save()
-            
-#             # Refund to wallet
-#             wallet, created = Wallet.objects.get_or_create(user=request.user)
-#             refund_amount = item.get_cost()
-#             wallet.balance += refund_amount
-#             wallet.save()
-            
-#             # Create wallet transaction
-#             WalletTransaction.objects.create(
-#                 wallet=wallet,
-#                 amount=refund_amount,
-#                 transaction_type='credit',
-#                 description=f'Refund for cancelled item in order #{order.order_id}'
-#             )
-            
-#             messages.success(request, f"Item cancelled successfully. Refund of ₹{refund_amount} added to your wallet.")
-#         return redirect('userpanel:user_order_detail', order_id=order.order_id)
-    
-#     return render(request, 'userside/order/confirm_cancel_item.html', {'item': item})
-
-
-
 @admin_required
 def admin_order_list(request):
     # Get search query
@@ -478,7 +426,29 @@ def admin_order_list(request):
     return render(request, 'adminside/order/order_list.html', context)
 
 
-@admin_required
+# @admin_required
+# def admin_order_detail(request, order_id):
+#     order = get_object_or_404(OrderMain, id=order_id)
+#     order_items = order.items.all()
+    
+#     # Get all return requests for this order
+#     return_requests = ReturnRequest.objects.filter(order=order)
+    
+#     # Calculate subtotal, discount, and grand total
+#     subtotal = sum(item.total_cost for item in order_items)
+#     discount_amount = order.discount_amount
+#     grand_total = subtotal - discount_amount
+    
+#     context = {
+#         'order': order,
+#         'order_items': order_items,
+#         'return_requests': return_requests,
+#         'subtotal': subtotal,
+#         'discount_amount': discount_amount,
+#         'grand_total': grand_total
+#     }
+#     return render(request, 'adminside/order/order_details.html', context)
+
 def admin_order_detail(request, order_id):
     order = get_object_or_404(OrderMain, id=order_id)
     order_items = order.items.all()
@@ -486,20 +456,55 @@ def admin_order_detail(request, order_id):
     # Get all return requests for this order
     return_requests = ReturnRequest.objects.filter(order=order)
     
-    # Calculate subtotal, discount, and grand total
-    subtotal = sum(item.total_cost for item in order_items)
-    discount_amount = order.discount_amount
-    grand_total = subtotal - discount_amount
+    # Detailed order item analysis with discounts
+    order_item_details = []
+    total_original_price = Decimal('0.00')
+    total_effective_price = Decimal('0.00')
+    total_product_discount = Decimal('0.00')
     
+    for item in order_items:
+        variant = item.product_variant
+        discount_info = variant.get_discount_info()
+        
+        original_item_total = variant.price * item.quantity
+        effective_item_total = discount_info['effective_price'] * item.quantity
+        item_discount = original_item_total - effective_item_total
+        
+        order_item_details.append({
+            'item': item,
+            'original_price': variant.price,
+            'effective_price': discount_info['effective_price'],
+            'discount_type': discount_info.get('type', 'No Discount'),
+            'offer_name': discount_info.get('offer_name', 'N/A'),
+            'item_discount': item_discount,
+            'quantity': item.quantity
+        })
+        
+        total_original_price += original_item_total
+        total_effective_price += effective_item_total
+        total_product_discount += item_discount
+    
+    # Shipping charge (get from settings)
+    shipping_charge = Decimal(settings.SHIPPING_CHARGE)
+    
+    # Calculate final totals
+    coupon_discount = order.discount_amount
+    grand_total = total_effective_price + shipping_charge
+
     context = {
         'order': order,
         'order_items': order_items,
+        'order_item_details': order_item_details,
         'return_requests': return_requests,
-        'subtotal': subtotal,
-        'discount_amount': discount_amount,
+        'total_original_price': total_original_price,
+        'total_effective_price': total_effective_price,
+        'total_product_discount': total_product_discount,
+        'coupon_discount': coupon_discount,
+        'shipping_charge': shipping_charge,
         'grand_total': grand_total
     }
     return render(request, 'adminside/order/order_details.html', context)
+
 
 @admin_required
 def change_order_status(request, order_id):
@@ -542,45 +547,6 @@ def admin_return_orders(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'adminside/order/return_order.html', {'page_obj': page_obj})
-
-# @admin_required
-# def approve_return(request, return_request_id):
-#     return_request = get_object_or_404(ReturnRequest, id=return_request_id)
-#     order = return_request.order
-    
-#     if request.method == 'POST':
-#         with transaction.atomic():
-#             # If it's a specific item return
-#             if return_request.item:
-#                 item = return_request.item
-#                 refund_amount = item.get_cost()
-                
-#                 # Update return request status
-#                 return_request.status = 'Approved'
-#                 return_request.save()
-#             else:
-#                 # Full order return
-#                 order.order_status = 'Return_Approved'
-#                 order.save()
-#                 refund_amount = order.refund_amount()
-            
-#             # Refund to wallet
-#             wallet, created = Wallet.objects.get_or_create(user=order.user)
-#             wallet.balance += refund_amount
-#             wallet.save()
-            
-#             # Create wallet transaction
-#             WalletTransaction.objects.create(
-#                 wallet=wallet,
-#                 amount=refund_amount,
-#                 transaction_type='credit',
-#                 description=f'Refund for approved return of {return_request.item and "item" or "order"} #{order.order_id}'
-#             )
-            
-#             messages.success(request, f"Return approved. Refund of ₹{refund_amount} added to the user's wallet.")
-            
-#         return redirect('orders:admin-order-detail', order_id=order.id)
-
 
 @admin_required
 def approve_return(request, return_request_id):

@@ -137,7 +137,7 @@
     <div class="order-items">
         <h2>Order Items</h2>
         <table>
-            <thead>
+            {% comment %} <thead>
                 <tr>
                     <th>Product</th>
                     <th>Variant</th>
@@ -166,6 +166,51 @@
                     </td>
                 </tr>
                 {% endfor %}
+            </tbody> {% endcomment %}
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Variant</th>
+                    <th>Quantity</th>
+                    <th>Original Price</th>
+                    <th>Effective Price</th>
+                    <th>Discount</th>
+                    <th>Discount Type</th>
+                    {% comment %} <th>Item Total</th> {% endcomment %}
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in order_item_details %}
+                <tr>
+                    <td>{{ detail.item.product_variant.product.product_name }}</td>
+                    <td>{{ detail.item.product_variant.format }}</td>
+                    <td>{{ detail.quantity }}</td>
+                    <td>₹{{ detail.original_price|floatformat:2 }}</td>
+                    <td>₹{{ detail.effective_price|floatformat:2 }}</td>
+                    <td>₹{{ detail.item_discount|floatformat:2 }}</td>
+                    <td>
+                        {% if detail.discount_type != 'No Discount' %}
+                        <span class="discount-tag">
+                            {{ detail.discount_type|title }} 
+                            {% if detail.offer_name %}({{ detail.offer_name }}){% endif %}
+                        </span>
+                        {% else %}
+                        No Discount
+                        {% endif %}
+                    </td>
+                    {% comment %} <td>₹{{  }}</td> {% endcomment %}
+                    <td>
+                        {% if detail.item.is_cancelled %}
+                        Cancelled
+                        {% elif detail.item.is_returned %}
+                        Returned
+                        {% else %}
+                        Active
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -175,6 +220,8 @@
         <p><strong>Subtotal:</strong> ₹{{ order.total_amount }}</p>
         <p><strong>Discount:</strong> ₹{{ order.discount_amount }}</p>
         <p><strong>Total Discount:</strong> -₹{{ total_discount }}</p>
+        <p><strong>Coupon Discount:</strong> -₹{{ order.discount_amount|floatformat:2 }}</p>
+        <p><strong>Shipping Charge:</strong> ₹{{ shipping_charge|default:"0.00"|floatformat:2 }}</p>
         <p><strong>Grand Total:</strong> ₹{{ order.total_amount }}</p>
         <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
         <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
