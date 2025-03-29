@@ -296,72 +296,316 @@
         font-size: 1.2rem;
     }
     
-    /* Responsive design */
-    @media (max-width: 768px) {        
-        .hero-title {
-            font-size: 2rem;
+    /*Responsive Design*/
+    @media (max-width: 1024px) {
+        .container {
+            padding: 1.5rem 1rem;
         }
-        .hero-subtitle {
-            font-size: 1rem;
-        }
-        .decorative-title {
-            font-size: 1rem;
-            margin-top:0px;
-        }
-        .book-title {
-            margin-top: 0.5rem;
-            font-size: 1rem;
-            color: #2b5f5f;
-            font-weight: 500;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-        }
+        
         .books-grid {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
         }
-        .featured-container {
-            margin-top: 1px;
-            padding-top: 0px;
-        }
-        .categories {
-            margin: 0px 0 10px;
-            padding: 0.2rem 1rem;
-        }
+        
         .categories-grid {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         }
-        .book-card {
-            padding: 0.75rem;
-            height: 26rem;
-        }
-        .book-cover-container {
-            height: 13rem;
-        }
-        .book-cover {
-            width: 10rem;
-            height: 13rem;
-        }
-        .button-container {
-            flex-direction: column;
-            height: auto;
-        }
-        .buy-button {
-            margin: 0.25rem 0;
-            padding: 0.5rem;
+        
+        .hero h1 {
+            font-size: 2.5rem;
         }
     }
     
-    @media (max-width: 375px) {
+    @media (max-width: 768px) {         
+        .container {
+            padding: 0rem 0.75rem;
+        }
+        .container {
+            padding: 0rem 0.5rem;
+        }
+        .hero {
+            height: 400px;
+        }
+        
+        .hero h1 {
+            font-size: 2rem;
+        }
+        
+        .hero p {
+            font-size: 1rem;
+        }
+        
+        .decorative-title { 
+            font-size: 1rem; 
+            margin: 20px 0;
+        } 
+        
+        .book-grid {
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.75rem;
+            justify-content: center;
+        } 
+        
         .book-card {
+            max-width: 100%;
+            padding: 0.75rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
             height: 24rem;
+            max-width: 24rem;
         }
+        
         .book-cover-container {
-            height: 11rem;
+            height: 12rem;
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
+        
         .book-cover {
-            width: 8.5rem;
-            height: 11rem;
+            padding-top: 0.95rem;
+            width: 10rem;
+            height: 13rem;
+            object-fit: contain;
+        }
+        
+        .book-title {
+            font-size: 0.9rem;
+            margin-top: 0rem;
+            height: auto;
+            min-height: 1.4rem;
+            -webkit-line-clamp: 2;
+        }
+        
+        .book-author {
+            font-size: 0.8rem;
+        }
+        
+        .book-author-label {
+            font-size: 0.8rem;
+        }
+        
+        .price-container {
+            margin: 0.3rem 0;
+        }
+        
+        .current-price {
+            font-size: 1.1rem;
+        }
+        
+        .original-price {
+            font-size: 0.9rem;
+        }
+        
+        .button-container {
+            padding-top: 0.5rem;
+        }
+        
+        .buy-button {
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            width: 100%;
+            margin: 0;
+        }         
+        
+        .featured-container { 
+            margin-top: 10px; 
+            padding-top: 0; 
+        } 
+        
+        .categories { 
+            margin: 20px 0; 
+        } 
+        
+        .categories-grid { 
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+            gap: 15px;
+        }       
+
+        .book-cover-container { 
+            height: 13rem; 
+        } 
+
+        .book-cover { 
+            width: 10rem; 
+            height: 13rem; 
+        } 
+        
+        .book-title {
+            font-size: 1rem;
+            height: 2.4rem;
+        }
+        
+        .book-author-label,
+        .book-author {
+            font-size: 0.9rem;
+        }
+        
+        .current-price {
+            font-size: 1.1rem;
+        }
+        
+        .original-price {
+            font-size: 0.9rem;
+        }
+        
+        .button-container { 
+            flex-direction: column; 
+            height: auto; 
+        } 
+        
+        .buy-button { 
+            margin: 0.25rem 0; 
+            padding: 0.5rem; 
+            font-size: 0.9rem;
+        } 
+        
+        .category-card {
+            height: 120px;
+        }
+        
+        .category-overlay {
+            font-size: 1rem;
+        }
+    } 
+    
+    @media (max-width: 480px) {
+        .container {
+            padding: 0rem 0.5rem;
+        }
+        
+        .hero {
+            height: 350px;
+        }
+        
+        .hero h1 {
+            font-size: 1.75rem;
+            margin-bottom: 15px;
+        }
+        
+        .hero p {
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        .cta-button {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+        }
+        
+        .decorative-title {
+            font-size: 1.2rem;
+            margin: 15px 0;
+        }
+        
+        .decorative-title .diamond {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .decorative-title .diamond-large {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .books-grid {
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        
+        .categories-grid {
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+        }
+        
+        .category-card {
+            height: 100px;
+        }
+    }
+     
+    @media (max-width: 375px) { 
+        .hero {
+            height: 300px;
+        }
+        
+        .hero h1 {
+            font-size: 1.5rem;
+        }
+        
+        .hero p {
+            font-size: 0.85rem;
+        }
+        
+        .cta-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .books-grid { 
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
+            gap: 8px;
+        } 
+        
+        .book-card { 
+            height: 24rem; 
+            padding: 0.5rem;
+            min-height: 22rem;
+        } 
+        
+        .book-cover-container { 
+            height: 11rem; 
+        } 
+        
+        .book-cover { 
+            width: 8.5rem; 
+            height: 11rem; 
+        } 
+        
+        .book-title {
+            font-size: 0.85rem;
+            height: 2.2rem;
+            -webkit-line-clamp: 2;
+            margin-top: 0.3rem;
+        }
+        
+        .book-author-label,
+        .book-author {
+            font-size: 0.8rem;
+        }
+        
+        .current-price {
+            font-size: 1rem;
+        }
+        
+        .original-price {
+            font-size: 0.8rem;
+        }
+        
+        .buy-button {
+            font-size: 0.8rem;
+            padding: 0.4rem;
+        }
+        
+        .categories-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+        
+        .category-card {
+            height: 90px;
+        }
+        
+        .category-overlay {
+            font-size: 0.9rem;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(43, 95, 95, 0.3);
+        }
+        
+        .decorative-title {
+            font-size: 1rem;
         }
     }
 </style>
@@ -431,7 +675,7 @@
                                 </div>
                                 <h3 class="book-title">{{ product.product_name }}</h3>
                                 <p>
-                                    <span class="book-author-label">Book Author:</span>
+                                    <span class="book-author-label">Author:</span>
                                     <span class="book-author">{{ product.author.name }}</span>
                                 </p>
                                 <div class="price-container">
@@ -446,7 +690,7 @@
                                 <img src="/placeholder.svg?height=300&width=200" alt="{{ product.product_name }}" class="book-cover">
                                 <h3 class="book-title">{{ product.product_name }}</h3>
                                 <p>
-                                    <span class="book-author-label">Book Author:</span>
+                                    <span class="book-author-label">Author:</span>
                                     <span class="book-author">{{ product.author.name }}</span>
                                 </p>
                                 <div class="price-container">
@@ -467,7 +711,7 @@
                         </div>
                         <h3 class="book-title">The Silent Patient</h3>
                         <p>
-                            <span class="book-author-label">Book Author:</span>
+                            <span class="book-author-label">Author:</span>
                             <span class="book-author">Alex Michaelides</span>
                         </p>
                         <div class="price-container">
@@ -484,60 +728,60 @@
 
     <!-- Categories -->
     <section class="categories">
-        <div class="container featured-container">
-            <h2 class="decorative-title">
-                <span class="diamond-ornament">
-                    <span class="diamond"></span>
-                    <span class="diamond diamond-large"></span>
-                    <span class="diamond"></span>
-                </span>
-                Browse by Category
-                <span class="diamond-ornament">
-                    <span class="diamond"></span>
-                    <span class="diamond diamond-large"></span>
-                    <span class="diamond"></span>
-                </span>
-            </h2>
-            <div class="categories-grid">
-                {% for category in categories %}
-                    <a href="{% url 'accounts:shop' %}?category={{ category.id }}" class="category-card">
-                        {% if category.image_url %}
-                            <img src="{{ category.image_url }}" alt="{{ category.name }}">
-                        {% else %}
-                            <!-- Use placeholder images based on category name -->
-                            {% if forloop.counter == 1 %}
-                                <img src="https://images.unsplash.com/photo-1476275466078-4007374efbbe?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
-                            {% elif forloop.counter == 2 %}
-                                <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
-                            {% elif forloop.counter == 3 %}
-                                <img src="https://images.unsplash.com/photo-1533561052604-c3beb6d55b8d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
-                            {% elif forloop.counter == 4 %}
-                                <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
-                            {% elif forloop.counter == 5 %}
-                                <img src="https://images.unsplash.com/photo-1535398089889-dd807df1dfaa?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
+            <div class="container featured-container">
+                <h2 class="decorative-title">
+                    <span class="diamond-ornament">
+                        <span class="diamond"></span>
+                        <span class="diamond diamond-large"></span>
+                        <span class="diamond"></span>
+                    </span>
+                    Browse Category
+                    <span class="diamond-ornament">
+                        <span class="diamond"></span>
+                        <span class="diamond diamond-large"></span>
+                        <span class="diamond"></span>
+                    </span>
+                </h2>
+                <div class="categories-grid">
+                    {% for category in categories %}
+                        <a href="{% url 'accounts:shop' %}?category={{ category.id }}" class="category-card">
+                            {% if category.image_url %}
+                                <img src="{{ category.image_url }}" alt="{{ category.name }}">
                             {% else %}
-                                <img src="https://images.unsplash.com/photo-1513001900722-370f803f498d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
+                                <!-- Use placeholder images based on category name -->
+                                {% if forloop.counter == 1 %}
+                                    <img src="https://images.unsplash.com/photo-1476275466078-4007374efbbe?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
+                                {% elif forloop.counter == 2 %}
+                                    <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
+                                {% elif forloop.counter == 3 %}
+                                    <img src="https://images.unsplash.com/photo-1533561052604-c3beb6d55b8d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
+                                {% elif forloop.counter == 4 %}
+                                    <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
+                                {% elif forloop.counter == 5 %}
+                                    <img src="https://images.unsplash.com/photo-1535398089889-dd807df1dfaa?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
+                                {% else %}
+                                    <img src="https://images.unsplash.com/photo-1513001900722-370f803f498d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="{{ category.name }}">
+                                {% endif %}
                             {% endif %}
-                        {% endif %}
-                        <div class="category-overlay">{{ category.name }}</div>
-                    </a>
-                {% empty %}
-                    <!-- Fallback if no categories are available -->
-                    <div class="category-card">
-                        <img src="https://images.unsplash.com/photo-1476275466078-4007374efbbe?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="Fiction">
-                        <div class="category-overlay">Fiction</div>
-                    </div>
-                    <div class="category-card">
-                        <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="Non-Fiction">
-                        <div class="category-overlay">Non-Fiction</div>
-                    </div>
-                    <div class="category-card">
-                        <img src="https://images.unsplash.com/photo-1533561052604-c3beb6d55b8d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="Mystery">
-                        <div class="category-overlay">Mystery</div>
-                    </div>
-                {% endfor %}
+                            <div class="category-overlay">{{ category.name }}</div>
+                        </a>
+                    {% empty %}
+                        <!-- Fallback if no categories are available -->
+                        <div class="category-card">
+                            <img src="https://images.unsplash.com/photo-1476275466078-4007374efbbe?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="Fiction">
+                            <div class="category-overlay">Fiction</div>
+                        </div>
+                        <div class="category-card">
+                            <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="Non-Fiction">
+                            <div class="category-overlay">Non-Fiction</div>
+                        </div>
+                        <div class="category-card">
+                            <img src="https://images.unsplash.com/photo-1533561052604-c3beb6d55b8d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" alt="Mystery">
+                            <div class="category-overlay">Mystery</div>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
     </section>
 </main>
 {% endblock %}
