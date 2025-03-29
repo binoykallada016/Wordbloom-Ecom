@@ -288,53 +288,128 @@
         text-align: center;
         z-index: 5;
     }
+
+    /* Mobile filter toggle button */
+    .filter-toggle {
+        display: none;
+        background-color: #2b5f5f;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .filter-toggle i {
+        font-size: 1.25rem;
+    }
+    
+    /* Mobile filters */
+    .mobile-filters-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .mobile-filters-container {
+        position: fixed;
+        top: 0;
+        left: -320px;
+        height: 100%;
+        width: 320px;
+        background-color: white;
+        z-index: 1000;
+        overflow-y: auto;
+        transition: left 0.3s ease;
+        padding: 1.5rem;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .mobile-filters-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .mobile-filters-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2b5f5f;
+        margin-left: 40px;
+    }
+    
+    .close-filters-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #2b5f5f;
+        cursor: pointer;
+    }
+    
+    .mobile-filters-body {
+        margin-bottom: 4rem; /* Space for the apply button */
+    }
+    
+    .mobile-filters-footer {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background-color: white;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .clear-filters-btn {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #d1d5db;
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        flex: 1;
+        margin-right: 0.5rem;
+    }
+    
+    .apply-mobile-filters {
+        background-color: #2b5f5f;
+        color: white;
+        border: none;
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        flex: 2;
+    }
+    
+    .mobile-filters-visible {
+        display: block;
+        opacity: 1;
+    }
+    
+    .mobile-filters-open {
+        left: 0;
+    }
+
     /* Responsive design */
-    @media (max-width: 575.98px) {
-        .container {
-            padding: 1rem 0.5rem;
-            margin-left: 0.5rem;
-        }
-        
-        .shop-title {
-            font-size: 1.5rem;
-        }
-        
-        .book-card {
-            padding: 0.75rem;
-            height: 26rem; /* Fixed height even on small screens */
-        }
-        
-        .book-cover-container {
-            height: 13rem;
-        }
-        
-        .book-cover {
-            width: 10rem;
-            height: 13rem;
-        }
-        
-        .button-container {
-            flex-direction: column;
-            height: auto;
-        }
-        
-        .buy-button {
-            margin: 0.25rem 0;
-            padding: 0.5rem;
-        }
-    }
-    @media screen {
-        .book-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .sort-dropdown,
-        .apply-filters,
-        .buy-button,
-        .cart-button {
-            transition: all 0.3s ease;
-        }
-    }
     @media (max-width: 1024px) {
         .shop-layout {
             flex-direction: column;
@@ -343,57 +418,240 @@
             width: 100%;
             margin-bottom: 2rem;
         }
-    }
-    @media (max-width: 1200px) {
-        .book-grid {
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1.5rem;
+        
+        /* Show desktop filters on medium screens */
+        .filters {
+            display: block;
+        }
+        
+        /* Hide mobile toggle on medium screens */
+        .filter-toggle {
+            display: none;
         }
     }
-    @media (max-width: 768px) {        
-        .shop-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-        .book-grid {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-        }        
-        .book-card {
-            padding: 1rem;
-        }        
-    }
+    
     @media (max-width: 768px) {
-        .pagination {
+        .container {
+            padding: 1rem 0.5rem;
+            margin-left: 0.5rem;
+        }
+        
+        .shop-header {
+            flex-direction: row; /* Change from column back to row */
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .shop-title {
+            font-size: 1.5rem;
+            margin-right: 1rem; /* Add space between title and dropdown */
+        }
+        
+        .sort-dropdown {
+            font-size: 0.8rem;
+        }
+        .sort-dropdown option {
+            font-size: 0.8rem;
+            padding: 8px;
+            white-space: normal; /* Allow text to wrap within dropdown options */
+        }
+        .filters {
+            display: none;
+        }
+        
+        /* Show mobile filter toggle on small screens */
+        .filter-toggle {
+            display: flex            ;
+            /* display: none; */
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1020;
+            background: white;
+            color: #2b5f5f;
+            border: none;
+            border-radius: 12px;
+            width: 1rem;
+        }
+        
+        .book-grid {
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.75rem;
             justify-content: center;
-            flex-wrap: wrap;
         }
-
-        .page-link {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.9rem;
+        .offer-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color:rgba(217, 140, 140, 0.84);;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            transform: rotate(-45deg) translateX(-50%) translateY(91%);
+            transform-origin: top left;
+            padding: 0.5rem 3rem;
+            font-size: 0.6rem;
+            text-align: center;
+            z-index: 5;
+            width: rem;
         }
-    }
-    @media (max-width: 375px) {
+        
         .book-card {
-            height: 24rem;
+            max-width: 100%;
+            height: auto;
+            min-height: 21rem;
+            padding: 0.75rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
         }
         
         .book-cover-container {
-            height: 11rem;
+            height: 12rem;
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
         
         .book-cover {
-            width: 8.5rem;
-            height: 11rem;
+            height: 10.5rem;
+            width: auto;
+            max-width: 90%;
+            object-fit: contain;
+        }
+        
+        .book-title {
+            font-size: 0.9rem;
+            margin-top: 0rem;
+            height: auto;
+            min-height: 1.4rem;
+            -webkit-line-clamp: 2;
+        }
+        
+        .book-author {
+            font-size: 0.8rem;
+        }
+        
+        .book-author-label {
+            font-size: 0.8rem;
+        }
+        
+        .price-container {
+            margin: 0.3rem 0;
+        }
+        
+        .current-price {
+            font-size: 1.1rem;
+        }
+        
+        .original-price {
+            font-size: 0.9rem;
+        }
+        
+        .button-container {
+            padding-top: 0.5rem;
+        }
+        
+        .buy-button {
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            width: 100%;
+            margin: 0;
+        }
+        
+        .pagination {
+            padding: 0.5rem 0;
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+        
+        .page-link {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+        }
+        
+        .page-link.active {
+            background-color: #2b5f5f;
+            color: white;
+            font-weight: bold;
+        }
+    }
+    @media (max-width: 480px) {
+        .pagination a:nth-child(1),
+        .pagination a:nth-child(2),
+        .pagination a:nth-last-child(1),
+        .pagination a:nth-last-child(2) {
+            display: none;
+        }
+        
+        .pagination {
+            justify-content: center;
+        }
+        
+        .page-link {
+            margin: 0.1rem;
+        }
+    }
+    @media (max-width: 375px) {        
+        .book-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .book-card {
+            min-height: 22rem;
+            padding: 0.5rem;
+        }
+        
+        .book-cover-container {
+            height: 10rem;
+        }
+        
+        .book-cover {
+            height: 10rem;
+        }
+        
+        .book-title {
+            font-size: 0.8rem;
+            min-height: 2.2rem;
+        }
+        
+        .current-price {
+            font-size: 1rem;
+        }
+        
+        .mobile-filters-container {
+            width: 100%;
+            left: -100%;
+        }
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(43, 95, 95, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .shop-header {
+            align-items: flex-start; /* Better alignment on very small screens */
+        }
+        
+        .shop-title {
+            font-size: 1.2rem;
+            max-width: 60%; /* Limit title width */
+        }
+        
+        .sort-dropdown {
+            font-size: 0.75rem;
+            max-width: 110px; /* Smaller max width */
+            padding: 0.3rem 0.5rem;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-
 <main>
     <div class="container">
         <div class="shop-header">
@@ -419,9 +677,15 @@
                     <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
                 </select>
             </form>
-
         </div>
+        
+        <!-- Mobile filter toggle button -->
+        <button class="filter-toggle" id="filterToggleBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+        
         <div class="shop-layout">
+            <!-- Desktop filters -->
             <aside class="filters">
                 <form id="filterForm" method="get" action="{% url 'accounts:shop' %}">
                     <div class="filter-section">
@@ -468,6 +732,65 @@
                 </form>
             </aside>
 
+            <!-- Mobile filters overlay and container -->
+            <div class="mobile-filters-overlay" id="mobileFiltersOverlay"></div>
+            <div class="mobile-filters-container" id="mobileFiltersContainer">
+                <div class="mobile-filters-header">
+                    <h2 class="mobile-filters-title">Filters</h2>
+                    <button class="close-filters-btn" id="closeFiltersBtn">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+                <div class="mobile-filters-body">
+                    <form id="mobileFilterForm" method="get" action="{% url 'accounts:shop' %}">
+                        <div class="filter-section">
+                            <h3 class="filter-title">Categories</h3>
+                            <div class="filter-options">
+                                {% for category in categories %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" name="category" value="{{ category.id }}" 
+                                               {% if category.id|stringformat:"i" in selected_categories %}checked{% endif %}>
+                                        {{ category.name }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Add hidden input for current sort -->
+                        <input type="hidden" name="sort" value="{{ sort_by }}">
+
+                        <div class="filter-section">
+                            <h3 class="filter-title">Price Range</h3>
+                            <div class="price-range">
+                                <input type="number" name="min_price" class="price-input" placeholder="Min" value="{{ min_price }}">
+                                <span>-</span>
+                                <input type="number" name="max_price" class="price-input" placeholder="Max" value="{{ max_price }}">
+                            </div>
+                        </div>
+                        <!-- Author filter section -->
+                        <div class="filter-section">
+                            <h3 class="filter-title">Author</h3>
+                            <div class="filter-options">
+                                {% for author in authors %}
+                                <label class="filter-option">
+                                    <input type="checkbox" 
+                                        name="author" 
+                                        value="{{ author.author_id }}"
+                                        {% if author.author_id|stringformat:"i" in selected_authors %}checked{% endif %}>
+                                    {{ author.name }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="mobile-filters-footer">
+                            <button type="button" id="clearFiltersBtn" class="clear-filters-btn">Clear All</button>
+                            <button type="submit" class="apply-mobile-filters">Apply Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="book-grid">
                 {% for product in products %}
                     <div class="book-card">
@@ -505,17 +828,9 @@
                                 </div>
                                 <h3 class="book-title">{{ product.product_name }}</h3>
                                 <p>
-                                    <span class="book-author-label">Book Author:</span>
+                                    <span class="book-author-label">Author:</span>
                                     <span class="book-author">{{ product.author.name }}</span>
                                 </p>
-                                {% comment %} <div class="price-container">
-                                    {% if preferred_variant.discounted_price %}
-                                        <span class="current-price">₹{{ preferred_variant.discounted_price }}</span>
-                                        <span class="original-price">₹{{ preferred_variant.price }}</span>
-                                    {% else %}
-                                        <span class="current-price">₹{{ preferred_variant.price }}</span>
-                                    {% endif %}
-                                </div> {% endcomment %}
                                 <div class="price-container">
                                     {% with preferred_variant=product.active_variants|first %}
                                         {% if preferred_variant %}
@@ -535,7 +850,7 @@
                                 <img src="/placeholder.svg?height=300&width=200" alt="{{ product.product_name }}" class="book-cover">
                                 <h3 class="book-title">{{ product.product_name }}</h3>
                                 <p>
-                                    <span class="book-author-label">Book Author:</span>
+                                    <span class="book-author-label">Author:</span>
                                     <span class="book-author">{{ product.author.name }}</span>
                                 </p>
                                 <div class="price-container">
@@ -546,12 +861,7 @@
                         
                         <div class="button-container">
                             <a href="{% url 'accounts:product_detail' product.product_id %}" class="buy-button">VIEW DETAILS</a>                            
-                        </div>                      
-                        {% comment %} <div class="rating">
-                            {% for i in "★★★★★"|slice:":5" %}
-                                ★
-                            {% endfor %}
-                        </div> {% endcomment %}
+                        </div>
                     </div>
                 {% endfor %}
             </div>
@@ -593,19 +903,113 @@
 </main>
 
 <script>
-    document.getElementById('sortDropdown').addEventListener('change', function() {
-        // Get all current filter values
-        const filterForm = document.getElementById('filterForm');
-        const formData = new FormData(filterForm);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sort dropdown functionality
+        document.getElementById('sortDropdown').addEventListener('change', function() {
+            // Get all current filter values
+            const filterForm = document.getElementById('filterForm');
+            const formData = new FormData(filterForm);
+            
+            // Update sort value
+            formData.set('sort', this.value);
+            
+            // Build URL with parameters
+            const params = new URLSearchParams(formData);
+            window.location.href = `${window.location.pathname}?${params.toString()}`;
+        });
         
-        // Update sort value
-        formData.set('sort', this.value);
+        // Mobile filters functionality
+        const filterToggleBtn = document.getElementById('filterToggleBtn');
+        const mobileFiltersOverlay = document.getElementById('mobileFiltersOverlay');
+        const mobileFiltersContainer = document.getElementById('mobileFiltersContainer');
+        const closeFiltersBtn = document.getElementById('closeFiltersBtn');
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
         
-        // Build URL with parameters
-        const params = new URLSearchParams(formData);
-        window.location.href = `${window.location.pathname}?${params.toString()}`;
+        // Function to open filters
+        function openFilters() {
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+            mobileFiltersOverlay.classList.add('mobile-filters-visible');
+            mobileFiltersContainer.classList.add('mobile-filters-open');
+        }
+        
+        // Function to close filters
+        function closeFilters() {
+            document.body.style.overflow = ''; // Restore scrolling
+            mobileFiltersOverlay.classList.remove('mobile-filters-visible');
+            mobileFiltersContainer.classList.remove('mobile-filters-open');
+        }
+        
+        // Open filters when toggle button is clicked
+        if (filterToggleBtn) {
+            filterToggleBtn.addEventListener('click', openFilters);
+        }
+        
+        // Close filters when overlay or close button is clicked
+        if (mobileFiltersOverlay) {
+            mobileFiltersOverlay.addEventListener('click', closeFilters);
+        }
+        
+        if (closeFiltersBtn) {
+            closeFiltersBtn.addEventListener('click', closeFilters);
+        }
+        
+        // Clear all filters
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('#mobileFilterForm input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                const priceInputs = document.querySelectorAll('#mobileFilterForm input[type="number"]');
+                priceInputs.forEach(input => {
+                    input.value = '';
+                });
+            });
+        }
+        
+        // Ensure mobile filters sync with desktop filters
+        document.getElementById('filterForm').addEventListener('change', function(e) {
+            // Find the corresponding element in mobile form
+            const mobileForm = document.getElementById('mobileFilterForm');
+            const elementName = e.target.name;
+            const elementValue = e.target.value;
+            
+            if (e.target.type === 'checkbox') {
+                const mobileCheckbox = mobileForm.querySelector(`input[name="${elementName}"][value="${elementValue}"]`);
+                if (mobileCheckbox) {
+                    mobileCheckbox.checked = e.target.checked;
+                }
+            } else if (e.target.type === 'number') {
+                const mobileInput = mobileForm.querySelector(`input[name="${elementName}"]`);
+                if (mobileInput) {
+                    mobileInput.value = e.target.value;
+                }
+            }
+        });
+        
+        // Ensure desktop filters sync with mobile filters
+        document.getElementById('mobileFilterForm').addEventListener('change', function(e) {
+            // Find the corresponding element in desktop form
+            const desktopForm = document.getElementById('filterForm');
+            const elementName = e.target.name;
+            const elementValue = e.target.value;
+            
+            if (e.target.type === 'checkbox') {
+                const desktopCheckbox = desktopForm.querySelector(`input[name="${elementName}"][value="${elementValue}"]`);
+                if (desktopCheckbox) {
+                    desktopCheckbox.checked = e.target.checked;
+                }
+            } else if (e.target.type === 'number') {
+                const desktopInput = desktopForm.querySelector(`input[name="${elementName}"]`);
+                if (desktopInput) {
+                    desktopInput.value = e.target.value;
+                }
+            }
+        });
     });
 </script>
+
 {% endblock %}
 
 
