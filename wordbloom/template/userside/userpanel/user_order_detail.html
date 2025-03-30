@@ -1,626 +1,716 @@
 {% extends 'base.html' %}
 {% block title %}Order Details | WordBloom{% endblock %}
-
 {% block page_styles %}
 <style>
     :root {
-        --primary-color: #2b5f5f;
-        --secondary-color: #4a90e2;
-        --success-color: #27ae60;
-        --warning-color: #f39c12;
-        --danger-color: #e74c3c;
-        --light-gray: #f8f9fa;
-        --border-color: #e9ecef;
+    --primary-color: #2b5f5f;
+    --secondary-color: #4a90e2;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --light-gray: #f8f9fa;
+    --border-color: #e9ecef;
     }
-
     .container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
     }
-
     .profile-content {
-        display: grid;
-        grid-template-columns: 280px 1fr;
-        gap: 2rem;
-        margin-top: 2rem;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
     }
 
     .profile-main {
-        background-color: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        padding: 2rem;
+    position: sticky;
+    top: 0px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    height: 80vh; /* Similar to order_list.html */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     }
-
     .order-header {
-        margin-bottom: 2rem;
-        border-bottom: 2px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    padding-bottom: 0rem;
+    margin-bottom: 0rem;
+    border-bottom: 2px solid var(--border-color);
     }
-
     .order-header h2 {
-        color: var(--primary-color);
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
     }
-
+    .order-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px; /* Prevents scrollbar overlap */
+    }
     .order-info {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
     }
-
     .info-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     }
-
     .info-label {
-        font-size: 0.9rem;
-        color: #666;
+    font-size: 0.9rem;
+    color: #666;
     }
-
     .info-value {
-        font-weight: 500;
-        color: #333;
+    font-weight: 500;
+    color: #333;
     }
-
     .badge {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        border-radius: 999px;
-        font-size: 0.875rem;
-        font-weight: 500;
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
     }
-
     .bg-warning { background: #fff3cd; color: #856404; }
     .bg-info { background: #cce5ff; color: #004085; }
     .bg-primary { background: #cff4fc; color: #055160; }
     .bg-success { background: #d4edda; color: #155724; }
     .bg-danger { background: #f8d7da; color: #721c24; }
-
     .order-items {
-        margin-top: 2rem;
+    margin-top: 2rem;
     }
-
     .order-items h3 {
-        color: var(--primary-color);
-        font-size: 1.25rem;
-        margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
     }
-
     .order-item {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 1.5rem;
-        padding: 1.5rem;
-        background: var(--light-gray);
-        border-radius: 10px;
-        margin-bottom: 1rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: var(--light-gray);
+    border-radius: 10px;
+    margin-bottom: 1rem;
     }
-
     .item-image {
-        width: 5rem;
-        height: 8rem;
-        object-fit: cover;
-        border-radius: 8px;
+    width: 5rem;
+    height: 8rem;
+    object-fit: cover;
+    border-radius: 8px;
     }
-
     .item-details {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     }
-
     .item-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
     }
-
     .item-meta {
-        color: #666;
-        font-size: 0.9rem;
+    color: #666;
+    font-size: 0.9rem;
     }
-
     .item-price {
-        font-weight: 600;
-        color: var(--primary-color);
+    font-weight: 600;
+    color: var(--primary-color);
     }
-
     .item-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-end;
     }
-
     .btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
     }
-
     .btn-return {
-        background: #fff3cd;
-        color: #856404;
+    background: #fff3cd;
+    color: #856404;
     }
-
     .btn-return:hover {
-        background: #ffeeba;
+    background: #ffeeba;
     }
-
     .btn-danger {
-        background: #f8d7da;
-        color: #721c24;
+    background: #f8d7da;
+    color: #721c24;
     }
-
     .btn-danger:hover {
-        background: #f5c6cb;
+    background: #f5c6cb;
+    }
+    .btn-secondary {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+    }
+    .btn-secondary:hover {
+    background: #e9ecef;
+    }
+    .btn-invoice {
+    background: #e2e6ea;
+    color: #383d41;
+    border: 1px solid #dae0e5;
+    }
+    .btn-invoice:hover {
+    background: #dae0e5;
     }
     .order-summary {
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background: var(--light-gray);
-        border-radius: 10px;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--light-gray);
+    border-radius: 10px;
     }
-    
     .address-details {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1.5rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
     }
-    
     .address-details p {
-        margin: 0.5rem 0;
-        color: #666;
+    margin: 0.5rem 0;
+    color: #666;
     }
-    
     .summary-table {
-        margin-bottom: 1.5rem;
-        overflow-x: auto;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
     }
-    
     .summary-table table {
-        width: 100%;
-        border-collapse: collapse;
+    width: 100%;
+    border-collapse: collapse;
     }
-    
+    .summary-table th,
     .summary-table td {
-        padding: 0.75rem;
-        border-bottom: 1px solid var(--border-color);
-        text-align: right;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
     }
-    
+    .summary-table th {
+    text-align: left;
+    }
+    .summary-table td {
+    text-align: right;
+    }
     .summary-table td:first-child {
-        text-align: left;
+    text-align: left;
     }
-    
+    .summary-table th:nth-child(2),
+    .summary-table td:nth-child(2),
+    .summary-table th:nth-child(3),
+    .summary-table td:nth-child(3),
+    .summary-table th:nth-child(4),
+    .summary-table td:nth-child(4),
+    .summary-table th:nth-child(5),
+    .summary-table td:nth-child(5),
+    .summary-table th:nth-child(6),
+    .summary-table td:nth-child(6) {
+    text-align: right;
+    white-space: nowrap;
+    }
     .summary-breakdown {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
     }
-    
     .summary-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
     }
-    
     .summary-item:last-child {
-        border-bottom: none;
+    border-bottom: none;
     }
-    
     .summary-item.total {
-        margin-top: 1rem;
-        font-weight: 600;
-        color: var(--primary-color);
+    margin-top: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
     }
-    
     .summary-item .label {
-        color: #666;
+    color: #666;
     }
-    
     .summary-item .value {
-        font-weight: 500;
+    font-weight: 500;
     }
-
     .refund-info {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-        margin-top: 20px;
-        border-left: 4px solid #10b981;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    border-left: 4px solid #10b981;
     }
     .cancelled-item {
-        opacity: 0.7;
-        /*text-decoration: line-through;*/
+    opacity: 0.7;
+    /*text-decoration: line-through;*/
     }
     .returned-item {
-        background-color: #f8f9fa;
-        border-left: 4px solid #3b82f6;
+    background-color: #f8f9fa;
+    border-left: 4px solid #3b82f6;
     }
     .refund-badge {
-        display: inline-block;
-        padding: 3px 8px;
-        font-size: 12px;
-        border-radius: 3px;
-        background-color: #10b981;
-        color: white;
-        margin-left: 5px;
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    background-color: #10b981;
+    color: white;
+    margin-left: 5px;
     }
     .cancelled-badge {
-        display: inline-block;
-        padding: 3px 8px;
-        font-size: 12px;
-        border-radius: 3px;
-        background-color: #dc3545;
-        color: white;
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    background-color: #dc3545;
+    color: white;
     }
     .returned-badge {
-        display: inline-block;
-        padding: 3px 8px;
-        font-size: 12px;
-        border-radius: 3px;
-        background-color: #3b82f6;
-        color: white;
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    background-color: #3b82f6;
+    color: white;
     }
     .refund-details {
-        margin-top: 20px;
-        padding: 15px;
-        background-color: #f8f9fa;
-        border-radius: 5px;
-        border-left: 4px solid #10b981;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border-left: 4px solid #10b981;
     }
     .refund-details h4 {
-        margin-top: 0;
-        color: #10b981;
+    margin-top: 0;
+    color: #10b981;
     }
     .item-status {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
     }
-
     .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.375rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    
     .status-badge i {
-        margin-right: 0.25rem;
+    margin-right: 0.25rem;
     }
-    
     .status-cancelled {
-        background-color: #FFE5E5;
-        color: #D32F2F;
-        border: 1px solid #FFB6B6;
+    background-color: #FFE5E5;
+    color: #D32F2F;
+    border: 1px solid #FFB6B6;
     }
-    
     .status-refunded {
-        background-color: #E6F3ED;
-        color: #2E7D32;
-        border: 1px solid #A5D6A7;
+    background-color: #E6F3ED;
+    color: #2E7D32;
+    border: 1px solid #A5D6A7;
     }
-    
     .status-returned {
-        background-color: #E3F2FD;
-        color: #1976D2;
-        border: 1px solid #90CAF9;
+    background-color: #E3F2FD;
+    color: #1976D2;
+    border: 1px solid #90CAF9;
     }
-    
     /* Additional hover and focus states */
     .status-badge:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
-        transition: all 0.2s ease;
+    opacity: 0.9;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
     }
-    
     /* For table cell styling */
     .status-cell {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     }
-    
     .status-cell .status-badge {
-        margin: 0 auto;
+    margin: 0 auto;
     }
-    
+    .order-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 20px;
+    }
     @media (max-width: 992px) {
         .profile-content {
             grid-template-columns: 1fr;
         }
+        .profile-main {
+            height: auto;
+            max-height: 85vh;
+        }
     }
-
     @media (max-width: 768px) {
         .container {
-            padding: 1rem;
+            padding: 0.75rem;
         }
-
         .profile-main {
             padding: 1rem;
+            margin-top:-2rem;
         }
-
         .order-item {
             grid-template-columns: 1fr;
-            gap: 1rem;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--light-gray);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
         }
-
+        
         .item-image {
-            width: 100%;
-            height: 200px;
+            width: 5rem;
+            height: auto;
+            max-height: 200px;
         }
-
         .item-actions {
             flex-direction: row;
             justify-content: flex-start;
+            flex-wrap: wrap;
         }
         .status-badge {
             font-size: 0.75rem;
             padding: 0.25rem 0.5rem;
         }
+        .order-actions {
+            flex-direction: column;
+        }
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .summary-table {
+            font-size: 0.9rem;
+        }
+        .summary-table th,
+        .summary-table td {
+            padding: 0.5rem;
+        }
+        .summary-table table {
+        display: none;
+        }
+        .order-summary {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+        .order-summary h3{
+            color: #2b5f5f;
+            margin-bottom:10px;
+        }
+        .order-cards {
+        display: block;
+        }
+        
+        .order-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .order-card-header {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        }
+        
+        .order-card-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.4rem 0;
+        }
+        
+        .order-card-label {
+        color: #666;
+        font-size: 0.9rem;
+        }
+        
+        .order-card-value {
+        font-weight: 500;
+        text-align: right;
+        }
+        
+        .order-card-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+        }
+        
+        .status-active {
+        background-color: #d4edda;
+        color: #155724;
+        }
+        
+        .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+        }
+        
+        .status-returned {
+        background-color: #cce5ff;
+        color: #004085;
+        }
+        .btn-invoice {
+        background: #a7abe9;
+        color: #383d41;
+        border: 1px solid #dae0e5;
+        }
+        .btn-secondary {
+        background: #e8cca8;
+        color: #333;
+        border: 1px solid #ddd;
+        }
+    }
+    @media (max-width: 480px) {
+        .order-info {
+            grid-template-columns: 0.85fr;
+            gap: 0.5rem;
+        }
+        .item-actions {
+            align-items: flex-start;
+        }
+        .summary-item {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .summary-item.total {
+            flex-direction: row;
+        }
     }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="container">
-    <div class="profile-content">
-        {% include 'includes/_profile_menu.html' with active_tab='order-history' %}
-        <div class="profile-main">
-            <div class="order-header">
-                <h2>Order Details</h2>
-                <div class="order-info">
-                    <div class="info-item">
-                        <span class="info-label">Order ID</span>
-                        <span class="info-value">{{ order.order_id }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Order Date</span>
-                        <span class="info-value">{{ order.created_at|date:"F d, Y" }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Status</span>
-                        <span class="badge {% if order.order_status == 'Pending' %}bg-warning
-                        {% elif order.order_status == 'Confirmed' %}bg-info
-                        {% elif order.order_status == 'Shipped' %}bg-primary
-                        {% elif order.order_status == 'Delivered' %}bg-success
-                        {% elif order.order_status == 'Cancelled' %}bg-danger
-                        {% elif order.order_status == 'Return_Initiated' %}bg-warning
-                        {% elif order.order_status == 'Return_Approved' %}bg-success
-                        {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
-                            {% if order.order_status == 'Return_Initiated' %}
-                                Return Initiated
-                            {% elif order.order_status == 'Return_Approved' %}
-                                Return Approved
-                            {% elif order.order_status == 'Return_Rejected' %}
-                                Return Rejected
-                            {% else %}
-                                {{ order.order_status }}
-                            {% endif %}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="order-summary">
-                <h3>Shipping Address</h3>
-                <div class="address-details">
-                    <p>{{ order.shipping_address.name }}</p>
-                    <p>{{ order.shipping_address.house_name }}, {{ order.shipping_address.street_name }}</p>
-                    <p>{{ order.shipping_address.district }}, {{ order.shipping_address.state }}</p>
-                    <p>{{ order.shipping_address.country }} - {{ order.shipping_address.pin_number }}</p>
-                    <p>Phone: {{ order.shipping_address.phone_number }}</p>
-                </div>
-                <h3>Order Summary</h3>
-                {% comment %} <div class="summary-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Original Price</th>
-                                <th>Qty</th>
-                                <th>Price</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in order_items %}
-                            <tr class="{% if item.is_cancelled %}cancelled-item{% elif item.is_returned %}returned-item{% endif %}">
-                                <td>{{ item.product_variant.product.product_name }}</td>
-                                <td>₹{{ item.product_variant.price }}</td>
-                                <td>{{ item.quantity }}</td>
-                                <td>{% if item.product_variant.discounted_price %}₹{{ item.product_variant.discounted_price }}{% else %}₹{{ item.product_variant.price }}{% endif %}</td>
-                                <td>₹{{ item.get_cost }}</td>
-                                <td class="item-status">
-                                    {% if item.is_cancelled %}
-                                        <span class="cancelled-badge">Cancelled</span>
-                                        {% if item.is_refunded %}<span class="refund-badge">Refunded ₹{{ item.refunded_amount }}</span>{% endif %}
-                                    {% elif item.is_returned %}
-                                        <span class="returned-badge">Returned</span>
-                                        {% if item.is_refunded %}<span class="refund-badge">Refunded ₹{{ item.refunded_amount }}</span>{% endif %}
-                                    {% else %}
-                                        Active
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div> {% endcomment %}
-                <div class="summary-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Original Price</th>
-                                <th>Effective Price</th>
-                                <th>Item Discount</th>
-                                <th>Qty</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in order_items %}
-                            <tr>
-                                <td>{{ item.product_variant.product.product_name }}</td>
-                                <td>₹{{ item.original_price }}</td>
-                                <td>₹{{ item.effective_price }}</td>
-                                <td>₹{{ item.item_discount }}</td>
-                                <td>{{ item.quantity }}</td>
-                                <td>₹{{ item.total }}</td>
-                                <td>
-                                    {% if item.is_cancelled %}Cancelled{% endif %}
-                                    {% if item.is_returned %}Returned{% endif %}
-                                    {% if not item.is_cancelled and not item.is_returned %}Active{% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="summary-breakdown">
-                    <div class="summary-item">
-                        <span class="label">Order MRP</span>
-                        <span class="value">₹{{ subtotal }}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="label">Total Discount</span>
-                        <span class="value">-₹ {{ total_discount }}</span>
-                    </div>
-                    {% if coupon_discount > 0 %}
-                    <div class="summary-item">
-                        <span class="label">Coupon Discount</span>
-                        <span class="value">-₹ {{ coupon_discount }}</span>
-                    </div>
-                    {% endif %}
-                    <div class="summary-item">
-                        <span class="label">Shipping Charge</span>
-                        <span class="value">₹{{ shipping_charge }}</span>
-                    </div>
-                    {% if cancelled_item_total > 0 %}
-                    <div class="summary-item" style="color: #dc3545;">
-                        <span class="label">Cancelled Items Total</span>
-                        <span class="value">₹{{ cancelled_item_total }}</span>
-                    </div>
-                    {% endif %}
-                    {% if returned_item_total > 0 %}
-                    <div class="summary-item" style="color: #3b82f6;">
-                        <span class="label">Returned Items Total</span>
-                        <span class="value">₹{{ returned_item_total }}</span>
-                    </div>
-                    {% endif %}
-                    <div class="summary-item total">
-                        <span class="label">Grand Total</span>
-                        <span class="value">₹{{ grand_total }}</span>
-                    </div>
-                </div>
-                
-                {% if total_refunded > 0 %}
-                <div class="refund-details">
-                    <h4>Refund Information</h4>
-                    <p>Total refunded amount: ₹{{ total_refunded }}</p>
-                    {% if cancelled_item_total > 0 %}
-                    <p>- ₹{{ cancelled_item_total }} for cancelled items</p>
-                    {% endif %}
-                    {% if returned_item_total > 0 %}
-                    <p>- ₹{{ returned_item_total }} for returned items</p>
-                    {% endif %}
-                    <p>All refunds have been credited to your wallet.</p>
-                </div>
-                {% endif %}
-            </div>
-
-            <div class="order-items">
-                <h3>Order Items</h3>
+  <div class="profile-content">
+    {% include 'includes/_profile_menu.html' with active_tab='order-history' %}
+    <div class="profile-main">
+      <div class="order-header">
+        <h2>Order Details</h2>
+        <div class="order-info">
+          <div class="info-item">
+            <span class="info-label">Order ID</span>
+            <span class="info-value">{{ order.order_id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Order Date</span>
+            <span class="info-value">{{ order.created_at|date:"F d, Y" }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Status</span>
+            <span class="badge {% if order.order_status == 'Pending' %}bg-warning
+            {% elif order.order_status == 'Confirmed' %}bg-info
+            {% elif order.order_status == 'Shipped' %}bg-primary
+            {% elif order.order_status == 'Delivered' %}bg-success
+            {% elif order.order_status == 'Cancelled' %}bg-danger
+            {% elif order.order_status == 'Return_Initiated' %}bg-warning
+            {% elif order.order_status == 'Return_Approved' %}bg-success
+            {% elif order.order_status == 'Return_Rejected' %}bg-danger{% endif %}">
+              {% if order.order_status == 'Return_Initiated' %}
+                Return Initiated
+              {% elif order.order_status == 'Return_Approved' %}
+                Return Approved
+              {% elif order.order_status == 'Return_Rejected' %}
+                Return Rejected
+              {% else %}
+                {{ order.order_status }}
+              {% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="order-content">
+        <div class="order-summary">
+          <h3>Shipping Address</h3>
+          <div class="address-details">
+            <p>{{ order.shipping_address.name }}</p>
+            <p>{{ order.shipping_address.house_name }}, {{ order.shipping_address.street_name }}</p>
+            <p>{{ order.shipping_address.district }}, {{ order.shipping_address.state }}</p>
+            <p>{{ order.shipping_address.country }} - {{ order.shipping_address.pin_number }}</p>
+            <p>Phone: {{ order.shipping_address.phone_number }}</p>
+          </div>
+          <h3>Order Summary</h3>
+          <div class="summary-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Original Price</th>
+                  <th>Effective Price</th>
+                  <th>Item Discount</th>
+                  <th>Qty</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
                 {% for item in order_items %}
-                <div class="order-item {% if item.is_cancelled %}cancelled-item{% elif item.is_returned %}returned-item{% endif %}">
-                    <img src="{{ item.product_variant.get_primary_image.image.url }}" alt="{{ item.product_variant.product.product_name }}" class="item-image">
-                    <div class="item-details">
-                        <h4 class="item-title">{{ item.product_variant.product.product_name }}</h4>
-                        <span class="item-meta">Format: {{ item.product_variant.format }}</span>
-                        <span class="item-meta">Quantity: {{ item.quantity }}</span>
-                        <span class="item-price">₹{{ item.total }}</span>
-                        {% if item.is_cancelled %}
-                            <span class="status-badge status-cancelled"><i class="ri-close-circle-line"></i>Cancelled</span>
-                            {% if item.is_refunded %}<span class="status-badge status-refunded"><i class="ri-refund-line"></i> Refunded ₹{{ item.refunded_amount }}</span>{% endif %}
-                        {% elif item.is_returned %}
-                            <span class="status-badge status-returned"><i class="ri-arrow-go-back-line"></i>Returned</span>
-                            {% if item.is_refunded %}<span class="status-badge status-refunded"><i class="ri-refund-line"></i>Refunded ₹{{ item.refunded_amount }}</span>{% endif %}
-                        {% endif %}
-                    </div>
-                    <div class="item-actions">
-                        {% if order.order_status == 'Delivered' and not item.is_returned and not item.is_cancelled %}
-                        <a href="{% url 'orders:return-request' order.order_id %}?item_id={{ item.id }}" class="btn btn-return">
-                            <i class="ri-arrow-go-back-line"></i> Return Item
-                        </a>
-                        {% elif item.is_returned %}
-                            {% with return_request=item.returnrequest_set.first %}
-                                {% if return_request and return_request.status == 'Pending' %}
-                                    <span class="badge bg-warning">Return Initiated</span>
-                                {% elif return_request and return_request.status == 'Approved' %}
-                                    <span class="badge bg-success">Return Approved</span>
-                                {% elif return_request and return_request.status == 'Rejected' %}
-                                    <span class="badge bg-danger">Return Rejected</span>
-                                {% endif %}
-                            {% endwith %}
-                        {% endif %}
-
-                        {% if order.order_status == 'Confirmed' and not item.is_cancelled %}
-                        <form method="post" action="{% url 'userpanel:cancel_item' item.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger">
-                                <i class="ri-close-circle-line"></i> Cancel Item
-                            </button>
-                        </form>
-                        {% endif %}
-                    </div>
-                </div>
+                <tr>
+                  <td>{{ item.product_variant.product.product_name }}</td>
+                  <td>₹{{ item.original_price }}</td>
+                  <td>₹{{ item.effective_price }}</td>
+                  <td>₹{{ item.item_discount }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>₹{{ item.total }}</td>
+                  <td>
+                    {% if item.is_cancelled %}Cancelled{% endif %}
+                    {% if item.is_returned %}Returned{% endif %}
+                    {% if not item.is_cancelled and not item.is_returned %}Active{% endif %}
+                  </td>
+                </tr>
                 {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="summary-breakdown">
+            <div class="summary-item">
+              <span class="label">Order MRP</span>
+              <span class="value">₹{{ subtotal }}</span>
             </div>
-            {% if order.order_status == 'Confirmed' or order.order_status == 'Shipped' %}
-            <div class="order-actions" style="margin-top: 20px;">
-                <form method="post" action="{% url 'userpanel:cancel_order' order.order_id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">
-                        <i class="ri-close-circle-line"></i> Cancel Entire Order
-                    </button>
-                </form>
+            <div class="summary-item">
+              <span class="label">Total Discount</span>
+              <span class="value">-₹ {{ total_discount }}</span>
+            </div>
+            {% if coupon_discount > 0 %}
+            <div class="summary-item">
+              <span class="label">Coupon Discount</span>
+              <span class="value">-₹ {{ coupon_discount }}</span>
             </div>
             {% endif %}
-            <div class="order-actions" style="margin-top: 20px;">
-                <a href="{% url 'userpanel:generate_invoice' order.order_id %}" class="btn btn-invoice">
-                    <i class="ri-file-text-line"></i> Download Invoice
-                </a>
-                <a href="{% url 'userpanel:order_list' %}" class="btn btn-secondary">
-                    <i class="ri-arrow-left-line"></i> Back to Orders
-                </a>
+            <div class="summary-item">
+              <span class="label">Shipping Charge</span>
+              <span class="value">₹{{ shipping_charge }}</span>
             </div>
+            {% if cancelled_item_total > 0 %}
+            <div class="summary-item" style="color: #dc3545;">
+              <span class="label">Cancelled Items Total</span>
+              <span class="value">₹{{ cancelled_item_total }}</span>
+            </div>
+            {% endif %}
+            {% if returned_item_total > 0 %}
+            <div class="summary-item" style="color: #3b82f6;">
+              <span class="label">Returned Items Total</span>
+              <span class="value">₹{{ returned_item_total }}</span>
+            </div>
+            {% endif %}
+            <div class="summary-item total">
+              <span class="label">Grand Total</span>
+              <span class="value">₹{{ grand_total }}</span>
+            </div>
+          </div>
+          {% if total_refunded > 0 %}
+          <div class="refund-details">
+            <h4>Refund Information</h4>
+            <p>Total refunded amount: ₹{{ total_refunded }}</p>
+            {% if cancelled_item_total > 0 %}
+            <p>- ₹{{ cancelled_item_total }} for cancelled items</p>
+            {% endif %}
+            {% if returned_item_total > 0 %}
+            <p>- ₹{{ returned_item_total }} for returned items</p>
+            {% endif %}
+            <p>All refunds have been credited to your wallet.</p>
+          </div>
+          {% endif %}
         </div>
+        <div class="order-items">
+          <h3>Order Items</h3>
+          {% for item in order_items %}
+          <div class="order-item {% if item.is_cancelled %}cancelled-item{% elif item.is_returned %}returned-item{% endif %}">
+            <img src="{{ item.product_variant.get_primary_image.image.url }}" alt="{{ item.product_variant.product.product_name }}" class="item-image">
+            <div class="item-details">
+              <h4 class="item-title">{{ item.product_variant.product.product_name }}</h4>
+              <span class="item-meta">Format: {{ item.product_variant.format }}</span>
+              <span class="item-meta">Quantity: {{ item.quantity }}</span>
+              <span class="item-price">₹{{ item.total }}</span>
+              {% if item.is_cancelled %}
+              <span class="status-badge status-cancelled"><i class="ri-close-circle-line"></i>Cancelled</span>
+              {% if item.is_refunded %}<span class="status-badge status-refunded"><i class="ri-refund-line"></i> Refunded ₹{{ item.refunded_amount }}</span>{% endif %}
+              {% elif item.is_returned %}
+              <span class="status-badge status-returned"><i class="ri-arrow-go-back-line"></i>Returned</span>
+              {% if item.is_refunded %}<span class="status-badge status-refunded"><i class="ri-refund-line"></i>Refunded ₹{{ item.refunded_amount }}</span>{% endif %}
+              {% endif %}
+            </div>
+            <div class="item-actions">
+              {% if order.order_status == 'Delivered' and not item.is_returned and not item.is_cancelled %}
+              <a href="{% url 'orders:return-request' order.order_id %}?item_id={{ item.id }}" class="btn btn-return">
+                <i class="ri-arrow-go-back-line"></i> Return Item
+              </a>
+              {% elif item.is_returned %}
+              {% with return_request=item.returnrequest_set.first %}
+              {% if return_request and return_request.status == 'Pending' %}
+              <span class="badge bg-warning">Return Initiated</span>
+              {% elif return_request and return_request.status == 'Approved' %}
+              <span class="badge bg-success">Return Approved</span>
+              {% elif return_request and return_request.status == 'Rejected' %}
+              <span class="badge bg-danger">Return Rejected</span>
+              {% endif %}
+              {% endwith %}
+              {% endif %}
+              {% if order.order_status == 'Confirmed' and not item.is_cancelled %}
+              <form method="post" action="{% url 'userpanel:cancel_item' item.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                  <i class="ri-close-circle-line"></i> Cancel Item
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        
+        {% if order.order_status == 'Confirmed' or order.order_status == 'Shipped' %}
+        <div class="order-actions">
+          <form method="post" action="{% url 'userpanel:cancel_order' order.order_id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+              <i class="ri-close-circle-line"></i> Cancel Entire Order
+            </button>
+          </form>
+        </div>
+        {% endif %}
+        <div class="order-actions">
+          <a href="{% url 'userpanel:generate_invoice' order.order_id %}" class="btn btn-invoice">
+            <i class="ri-file-text-line"></i> Download Invoice
+          </a>
+          <a href="{% url 'userpanel:order_list' %}" class="btn btn-secondary">
+            <i class="ri-arrow-left-line"></i> Back to Orders
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

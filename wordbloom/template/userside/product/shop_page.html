@@ -291,7 +291,11 @@
 
     /* Mobile filter toggle button */
     .filter-toggle {
-        display: none;
+        display: none; /* Hidden by default for larger screens */
+        position: fixed;
+        top: 80px; /* Position it below the header */
+        left: 15px;
+        z-index: 1020;
         background-color: #2b5f5f;
         color: white;
         border: none;
@@ -499,7 +503,7 @@
             max-width: 100%;
             height: auto;
             min-height: 21rem;
-            padding: 0.75rem;
+            padding: 0.5rem;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
@@ -557,6 +561,19 @@
             width: 100%;
             margin: 0;
         }
+        .book-card:hover {
+            transform: none;
+            box-shadow: 0 2px 4px #d7f4f4;
+        }
+        
+        .book-card:hover .book-cover {
+            transform: none;
+        }
+        
+        .book-card:active {
+            opacity: 0.9;
+            transition: opacity 0.2s ease;
+        }
         
         .pagination {
             padding: 0.5rem 0;
@@ -607,7 +624,7 @@
         }
         
         .book-cover-container {
-            height: 10rem;
+            height: 13rem;
         }
         
         .book-cover {
@@ -622,14 +639,10 @@
         .current-price {
             font-size: 1rem;
         }
-        
-        .mobile-filters-container {
-            width: 100%;
-            left: -100%;
-        }
+                
         .book-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(43, 95, 95, 0.3);
+            transform: none;
+            box-shadow: 0 2px 4px rgba(43, 95, 95, 0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .shop-header {
