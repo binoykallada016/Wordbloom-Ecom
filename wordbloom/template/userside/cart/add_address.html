@@ -1,54 +1,313 @@
 {% extends 'base.html' %}
 {% block title %}Add Address | WordBloom{% endblock %}
-
 {% block page_styles %}
 <style>
+/* Main container styles */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Card styling */
+.card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #2b5f5f;
+    color: white;
+    padding: 1rem;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Form styling */
+.form-group {
+    margin-bottom: 1.25rem;
+    position: relative;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #0F9D58;
+}
+
+.field-required::after {
+    content: '*';
+    color: #ef4444;
+    margin-left: 4px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus {
+    border-color: #2b5f5f;
+    box-shadow: 0 0 0 3px rgba(43, 95, 95, 0.1);
+    outline: none;
+}
+
+.form-control.is-invalid {
+    border-color: #ef4444;
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+    font-weight: 500;
+}
+
+.form-hint {
+    color: #666;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+/* Button styles */
+.buttons-container {
+    display: flex;
+    margin-top: 1rem;
+}
+
+.btn-primary {
+    background-color: rgb(112, 190, 231);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+.btn-primary:hover {
+    background-color: #a9f393;
+    color: black;
+}
+
+.btn-secondary {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 0.75rem 1.5rem;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-right: 1rem;
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-block {
+    width: 100%;
+    display: block;
+}
+
+/* Success/error message styling */
+.messages {
+    margin-bottom: 1.5rem;
+}
+
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.error-message-alert {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+/* Form validation styles */
+.form-control:invalid:not(:placeholder-shown) {
+    border-color: #ef4444;
+}
+
+.form-control:valid:not(:placeholder-shown) {
+    border-color: #10b981;
+}
+
+/* Responsive design for various screen sizes */
+/* Large screens (1200px and up) */
+@media (min-width: 1200px) {
     .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
+        max-width: 1400px;
+        padding: 1.5rem;
     }
-    .card {
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .card-header {
-        background-color: #2b5f5f;
-        color: #fff;
-        padding: 1rem;
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
-    }
+    
     .card-body {
         padding: 2rem;
     }
+    
+    .col-md-8 {
+        width: 66.67%;
+        margin: 0 auto;
+    }
+}
+
+/* Medium-large screens (992px to 1199px) */
+@media (max-width: 1199px) and (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+    
+    .col-md-8 {
+        width: 75%;
+        margin: 0 auto;
+    }
+}
+
+/* Medium screens (768px to 991px) */
+@media (max-width: 991px) and (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+    
+    .col-md-8 {
+        width: 85%;
+        margin: 0 auto;
+    }
+    
+    .btn-primary {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* Small screens (576px to 767px) */
+@media (max-width: 767px) {
+    .col-md-8 {
+        width: 100%;
+    }
+    
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    .buttons-container {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .btn-secondary, .btn-primary {
+        width: 100%;
+        margin-right: 0;
+    }
+    
+    .btn-primary {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.95rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+/* Extra small screens (below 576px) */
+@media (max-width: 575px) {
+    .container {
+        padding: 0.75rem;
+    }
+    
+    .card {
+        border-radius: 6px;
+    }
+    
+    .card-header {
+        padding: 0.75rem;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+    }
+    
+    .card-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
     .form-group {
         margin-bottom: 1rem;
     }
+    
+    .form-label {
+        font-size: 0.9rem;
+    }
+    
     .form-control {
-        width: 100%;
+        padding: 0.6rem;
+        font-size: 0.95rem;
+    }
+    
+    .btn-primary, .btn-secondary {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* Very small screens (below 375px) */
+@media (max-width: 375px) {
+    .container {
         padding: 0.5rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
     }
-    .btn-primary {
-        background-color: #2b5f5f;
-        color: #fff;
-        border: none;
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .card-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .form-control {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-primary, .btn-secondary {
         padding: 0.5rem 1rem;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
+        font-size: 0.9rem;
     }
-    .btn-primary:hover {
-        background-color: #234c4c;
-    }
-    @media (max-width: 768px) {
-        .col-md-8 {
-            width: 100%;
-        }
-    }
+}
 </style>
 {% endblock %}
 
@@ -61,45 +320,207 @@
                     <h2 class="text-center">Add New Address</h2>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="{% url 'cart:add-address' %}">
+                    {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                            <div class="{% if message.tags == 'success' %}success-message{% else %}error-message-alert{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" action="{% url 'cart:add-address' %}" id="addressForm" novalidate>
                         {% csrf_token %}
+                        
                         <div class="form-group">
-                            <label for="name">Full Name</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
+                            <label for="name" class="form-label field-required">Full Name</label>
+                            <input type="text" name="name" id="name" 
+                                class="form-control {% if form.name.errors %}is-invalid{% endif %}" 
+                                value="{{ form.name.value|default:'' }}"
+                                required pattern="^[a-zA-Z\s]{2,100}$">
+                            {% if form.name.errors %}
+                                <span class="error-message">{{ form.name.errors.0 }}</span>
+                            {% else %}
+                                <span class="form-hint">Enter your full name as it should appear on deliveries</span>
+                            {% endif %}
                         </div>
+                        
                         <div class="form-group">
-                            <label for="phone_number">Phone Number</label>
-                            <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                            <label for="phone_number" class="form-label field-required">Phone Number</label>
+                            <input type="tel" name="phone_number" id="phone_number" 
+                                class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" 
+                                value="{{ form.phone_number.value|default:'' }}"
+                                required pattern="^\d{10}$">
+                            {% if form.phone_number.errors %}
+                                <span class="error-message">{{ form.phone_number.errors.0 }}</span>
+                            {% else %}
+                                <span class="form-hint">Enter a valid 10-digit phone number</span>
+                            {% endif %}
                         </div>
+                        
                         <div class="form-group">
-                            <label for="house_name">House Name/Number</label>
-                            <input type="text" class="form-control" id="house_name" name="house_name" required>
+                            <label for="house_name" class="form-label field-required">House Name/Number</label>
+                            <input type="text" name="house_name" id="house_name" 
+                                class="form-control {% if form.house_name.errors %}is-invalid{% endif %}" 
+                                value="{{ form.house_name.value|default:'' }}" 
+                                required>
+                            {% if form.house_name.errors %}
+                                <span class="error-message">{{ form.house_name.errors.0 }}</span>
+                            {% endif %}
                         </div>
+                        
                         <div class="form-group">
-                            <label for="street_name">Street Name</label>
-                            <input type="text" class="form-control" id="street_name" name="street_name" required>
+                            <label for="street_name" class="form-label field-required">Street Name</label>
+                            <input type="text" name="street_name" id="street_name" 
+                                class="form-control {% if form.street_name.errors %}is-invalid{% endif %}" 
+                                value="{{ form.street_name.value|default:'' }}" 
+                                required>
+                            {% if form.street_name.errors %}
+                                <span class="error-message">{{ form.street_name.errors.0 }}</span>
+                            {% endif %}
                         </div>
+                        
                         <div class="form-group">
-                            <label for="district">District</label>
-                            <input type="text" class="form-control" id="district" name="district" required>
+                            <label for="district" class="form-label field-required">District</label>
+                            <input type="text" name="district" id="district" 
+                                class="form-control {% if form.district.errors %}is-invalid{% endif %}" 
+                                value="{{ form.district.value|default:'' }}" 
+                                required>
+                            {% if form.district.errors %}
+                                <span class="error-message">{{ form.district.errors.0 }}</span>
+                            {% endif %}
                         </div>
+                        
                         <div class="form-group">
-                            <label for="state">State</label>
-                            <input type="text" class="form-control" id="state" name="state" required>
+                            <label for="state" class="form-label field-required">State</label>
+                            <input type="text" name="state" id="state" 
+                                class="form-control {% if form.state.errors %}is-invalid{% endif %}" 
+                                value="{{ form.state.value|default:'' }}" 
+                                required>
+                            {% if form.state.errors %}
+                                <span class="error-message">{{ form.state.errors.0 }}</span>
+                            {% endif %}
                         </div>
+                        
                         <div class="form-group">
-                            <label for="country">Country</label>
-                            <input type="text" class="form-control" id="country" name="country" value="India" required>
+                            <label for="country" class="form-label field-required">Country</label>
+                            <input type="text" name="country" id="country" 
+                                class="form-control {% if form.country.errors %}is-invalid{% endif %}" 
+                                value="{{ form.country.value|default:'India' }}" 
+                                required>
+                            {% if form.country.errors %}
+                                <span class="error-message">{{ form.country.errors.0 }}</span>
+                            {% endif %}
                         </div>
+                        
                         <div class="form-group">
-                            <label for="pin_number">PIN Code</label>
-                            <input type="text" class="form-control" id="pin_number" name="pin_number" required>
+                            <label for="pin_number" class="form-label field-required">PIN Code</label>
+                            <input type="text" name="pin_number" id="pin_number" 
+                                class="form-control {% if form.pin_number.errors %}is-invalid{% endif %}" 
+                                value="{{ form.pin_number.value|default:'' }}"
+                                required pattern="^\d{6}$">
+                            {% if form.pin_number.errors %}
+                                <span class="error-message">{{ form.pin_number.errors.0 }}</span>
+                            {% else %}
+                                <span class="form-hint">Enter a valid 6-digit PIN code</span>
+                            {% endif %}
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block">Add Address</button>
+                        
+                        <div class="buttons-container">
+                            <a href="{% url 'cart:checkout' %}" class="btn-secondary">Cancel</a>
+                            <button type="submit" class="btn-primary">Add Address</button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addressForm');
+    
+    form.addEventListener('submit', function(event) {
+        let isValid = true;
+        const inputs = form.querySelectorAll('input[required]');
+        
+        inputs.forEach(function(input) {
+            if (!input.value.trim()) {
+                isValid = false;
+                input.classList.add('is-invalid');
+                
+                // Create error message if it doesn't exist
+                let errorSpan = input.nextElementSibling;
+                if (!errorSpan || !errorSpan.classList.contains('error-message')) {
+                    errorSpan = document.createElement('span');
+                    errorSpan.classList.add('error-message');
+                    input.parentNode.insertBefore(errorSpan, input.nextSibling);
+                }
+                errorSpan.textContent = 'This field is required';
+            } else if (input.pattern && !new RegExp(input.pattern).test(input.value)) {
+                isValid = false;
+                input.classList.add('is-invalid');
+                
+                // Create or update error message
+                let errorSpan = input.nextElementSibling;
+                if (!errorSpan || !errorSpan.classList.contains('error-message')) {
+                    errorSpan = document.createElement('span');
+                    errorSpan.classList.add('error-message');
+                    input.parentNode.insertBefore(errorSpan, input.nextSibling);
+                }
+                
+                // Custom validation messages
+                if (input.id === 'name') {
+                    errorSpan.textContent = 'Please enter a valid name (letters and spaces only)';
+                } else if (input.id === 'pin_number') {
+                    errorSpan.textContent = 'Please enter a valid 6-digit PIN code';
+                } else if (input.id === 'phone_number') {
+                    errorSpan.textContent = 'Please enter a valid 10-digit phone number';
+                } else {
+                    errorSpan.textContent = 'Please enter a valid value';
+                }
+            } else {
+                input.classList.remove('is-invalid');
+                
+                // Remove error message if it exists
+                const errorSpan = input.nextElementSibling;
+                if (errorSpan && errorSpan.classList.contains('error-message')) {
+                    errorSpan.textContent = '';
+                }
+            }
+        });
+        
+        if (!isValid) {
+            event.preventDefault();
+            // Scroll to the first invalid input
+            const firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) {
+                firstInvalid.focus();
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+    
+    // Reset validation state when input changes
+    form.querySelectorAll('input').forEach(function(input) {
+        input.addEventListener('input', function() {
+            if (this.value.trim()) {
+                if (this.pattern && !new RegExp(this.pattern).test(this.value)) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    
+                    // Hide error message
+                    const errorSpan = this.nextElementSibling;
+                    if (errorSpan && errorSpan.classList.contains('error-message')) {
+                        errorSpan.textContent = '';
+                    }
+                }
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

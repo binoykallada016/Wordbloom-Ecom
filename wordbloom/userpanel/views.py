@@ -13,7 +13,9 @@ from orders.models import OrderMain
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
+from reportlab.platypus.flowables import HRFlowable
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.lib import colors
@@ -121,7 +123,7 @@ def cancel_order(request, order_id):
                     
                     # Only calculate refund for items that haven't been refunded yet
                     if not item.is_refunded and order.payment_status == 'Success':
-                        refund_amount = item.total()
+                        refund_amount = item.total
                         
                         # For shipped orders, deduct shipping charge proportionally from each item
                         if order.order_status == 'Shipped':
@@ -395,47 +397,122 @@ def generate_invoice(request, order_id):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="invoice_{order.order_id}.pdf"'
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    elements = []
     
-    # Logo
+    # Use portrait A4 with standardized page margins
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=A4,
+        rightMargin=52,
+        leftMargin=52,
+        topMargin=52,
+        bottomMargin=52
+    )
+    
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Define custom teal color to replace darkblue
+    teal_color = colors.HexColor('#2b5f5f')
+    
+    # Add custom styles
+    styles.add(ParagraphStyle(
+        name='Header',
+        fontName='Helvetica-Bold',
+        fontSize=12,
+        textColor=teal_color,  # Changed from darkblue to teal
+        spaceAfter=6
+    ))
+    
+    styles.add(ParagraphStyle(
+        name='TableHeader',
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        alignment=1  # Center align
+    ))
+    
+    styles.add(ParagraphStyle(
+        name='Footer',
+        fontName='Helvetica',
+        fontSize=10,
+        alignment=1,  # Center align
+        textColor=teal_color  # Changed from darkblue to teal
+    ))
+    
+    # Create header table for logo and company name
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'userside', 'assets', 'imgs', 'theme', 'icons', 'logo_wordbloom.png')
     try:
-        logo = Image(logo_path, width=1*inch, height=1*inch)
-        logo.hAlign = 'CENTER'
-        elements.append(logo)
-    except Exception as e:
-        print(f"Error loading logo: {e}") # Add proper logging in production
-        elements.append(Paragraph("Logo could not be loaded", getSampleStyleSheet()['Normal']))
+        logo = Image(logo_path, width=0.8*inch, height=0.8*inch)
+        company_name = Paragraph("<b>WordBloom</b>", styles['Header'])
+        company_tagline = Paragraph("Your Destination for Books", styles['Normal'])
         
-    # Invoice Title and Details
-    styles = getSampleStyleSheet()
-    title = Paragraph("Invoice", styles['h1'])
-    title.style.alignment = 1 # Center
+        header_data = [[logo, [company_name, company_tagline]]]
+        header_table = Table(header_data, colWidths=[1*inch, 4*inch])
+        header_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+            ('ALIGN', (1, 0), (1, 0), 'LEFT'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        elements.append(header_table)
+    except Exception as e:
+        print(f"Error loading logo: {e}")  # Add proper logging in production
+        elements.append(Paragraph("WordBloom", styles['Header']))
+    
+    # Add a horizontal line - changed color to teal
+    elements.append(HRFlowable(width="100%", thickness=1, color=teal_color, spaceBefore=10, spaceAfter=10))
+    
+    # Invoice Title and Reference Section
+    title = Paragraph("<b>INVOICE</b>", styles['h1'])
+    title.style.alignment = 1  # Center
     elements.append(title)
     elements.append(Spacer(1, 12))
     
-    order_details = [
-        f"Order ID: {order.order_id}",
-        f"Order Date: {order.created_at.strftime('%Y-%m-%d %H:%M:%S')}",
-        f"Payment Method: {order.payment_method}",
-        f"Payment Status: {order.get_payment_status_display()}"
+    # Create order details table with improved alignment
+    order_details_data = [
+        ['Order ID', ':', order.order_id],
+        ['Order Date', ':', order.created_at.strftime('%Y-%m-%d %H:%M:%S')],
+        ['Payment Method', ':', order.payment_method],
+        ['Payment Status', ':', order.get_payment_status_display()]
+    ]
+
+    # Improved alignment for order details table
+    order_details_table = Table(order_details_data, colWidths=[3*inch, 0.3*inch, 3.5*inch])
+    order_details_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),     # Left align labels
+        ('ALIGN', (1, 0), (1, -1), 'CENTER'),   # Center align colons
+        ('ALIGN', (2, 0), (2, -1), 'LEFT'),     # Left align values
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+    ]))
+    elements.append(order_details_table)
+    elements.append(Spacer(1, 12))
+    
+    # Shipping Address Section
+    elements.append(Paragraph("<b>Shipping Address:</b>", styles['Header']))
+    
+    address_parts = [
+        order.shipping_address.name,
+        f"{order.shipping_address.house_name}, {order.shipping_address.street_name}",
+        f"{order.shipping_address.district}, {order.shipping_address.state}",
+        f"{order.shipping_address.country} - {order.shipping_address.pin_number}",
+        f"Phone: {order.shipping_address.phone_number}"
     ]
     
-    for detail in order_details:
-        elements.append(Paragraph(detail, styles['Normal']))
-    
-    elements.append(Spacer(1, 12))
-    elements.append(Paragraph("Shipping Address:", styles['h2']))
-    elements.append(Paragraph(f"{order.shipping_address.name}", styles['Normal']))
-    elements.append(Paragraph(f"{order.shipping_address.house_name}, {order.shipping_address.street_name}", styles['Normal']))
-    elements.append(Paragraph(f"{order.shipping_address.district}, {order.shipping_address.state}", styles['Normal']))
-    elements.append(Paragraph(f"{order.shipping_address.country} - {order.shipping_address.pin_number}", styles['Normal']))
-    elements.append(Paragraph(f"Phone: {order.shipping_address.phone_number}", styles['Normal']))
+    # Create a table for address to improve alignment
+    address_data = [[part] for part in address_parts]
+    address_table = Table(address_data, colWidths=[6.8*inch])
+    address_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (0, -1), 'TOP'),
+        ('BOTTOMPADDING', (0, 0), (0, -1), 3),
+    ]))
+    elements.append(address_table)
     elements.append(Spacer(1, 24))
     
-    # Order Items Table with more details - now including cancellation and return status
-    data = [['Item', 'Variant', 'Quantity', 'Unit Price', 'Item Discount', 'Item Subtotal', 'Status']]
+    # Order Items Table with improved styling
+    table_headers = ['Item', 'Variant', 'Qty', 'Unit Price', 'Item Discount', 'Item Subtotal', 'Status']
+    data = [table_headers]
     
     order_mrp_total = Decimal('0.00')
     order_discount_total = Decimal('0.00')
@@ -468,15 +545,17 @@ def generate_invoice(request, order_id):
             elif item.is_returned:
                 total_returned_amount += item.get_cost()
                 
-            # Set status text
+            # Set status text - limit width by using appropriate wording
             if item.is_cancelled:
-                status = "Cancelled"
                 if item.is_refunded:
-                    status += f" (Refunded: Rs.{item.refunded_amount})"
+                    status = f"Cancelled\nRefunded: Rs.{item.refunded_amount}"
+                else:
+                    status = "Cancelled"
             elif item.is_returned:
-                status = "Returned"
                 if item.is_refunded:
-                    status += f" (Refunded: Rs.{item.refunded_amount})"
+                    status = f"Returned\nRefunded: Rs.{item.refunded_amount}"
+                else:
+                    status = "Returned"
             else:
                 status = "Active"
                 
@@ -484,7 +563,7 @@ def generate_invoice(request, order_id):
             data.append([
                 product_name,
                 variant_format,
-                item.quantity,
+                str(item.quantity),
                 f"Rs.{original_price:.2f}",
                 f"Rs.{item_discount:.2f}",
                 f"Rs.{item.get_cost():.2f}",
@@ -502,81 +581,118 @@ def generate_invoice(request, order_id):
     
     # Calculate grand total (excluding cancelled and returned items)
     active_items_total = sum(item.get_cost() for item in order.items.all() 
-                            if not item.is_cancelled and not item.is_returned)
+                          if not item.is_cancelled and not item.is_returned)
     grand_total = active_items_total + shipping_charge - coupon_discount
     
-    # Add empty row
-    data.append(['', '', '', '', '', '', ''])
+    # Create a lighter teal color for alternating rows
+    light_teal = colors.Color(0.92, 0.96, 0.96)  # Light teal instead of beige
     
-    # Add summary rows with labels directly in the first column
-    data.append(['Order MRP ', '', '', '', '', f"Rs.{order_mrp_total:.2f}", ''])
-    data.append(['Total Order Discount', '', '', '', '', f"- Rs.{order_discount_total:.2f}", ''])
+    # Set column widths to ensure all content fits - adjusted to prevent overflow
+    # Note: Total width must be less than the available width on page (A4 width - margins)
+    col_widths = [1.5*inch, 0.8*inch, 0.4*inch, 0.75*inch, 0.95*inch, 1*inch, 1.6*inch]
     
-    if coupon_applied:
-        data.append(['Coupon Discount', '', '', '', '', f"- Rs.{coupon_discount:.2f}", ''])
-        
-    data.append(['Shipping Charge', '', '', '', '', f"Rs.{shipping_charge:.2f}", ''])
-    
-    if total_cancelled_amount > Decimal('0.00'):
-        data.append(['Total Cancelled Amount', '', '', '', '', f"Rs.{total_cancelled_amount:.2f}", ''])
-        
-    if total_returned_amount > Decimal('0.00'):
-        data.append(['Total Returned Amount', '', '', '', '', f"Rs.{total_returned_amount:.2f}", ''])
-        
-    if total_refunded_amount > Decimal('0.00'):
-        data.append(['Total Refunded to Wallet', '', '', '', '', f"Rs.{total_refunded_amount:.2f}", ''])
-    
-    data.append(['Grand Total', '', '', '', '', f"Rs.{grand_total:.2f}", ''])
-    
-    # Set column widths to ensure all content fits
-    col_widths = [1.7*inch, 0.8*inch, 0.6*inch, 0.8*inch, 0.8*inch, 1*inch, 1.2*inch]  # Increased width for status column
-    
-    table = Table(data, colWidths=col_widths)
+    # Set up the items table
+    table = Table(data, colWidths=col_widths, repeatRows=1)
     
     # Calculate the row index where summary rows start
-    summary_row_start = len([item for item in order.items.all() if item.product_variant]) + 2  # Add 2 for header row and empty row
+    summary_row_start = len([item for item in order.items.all() if item.product_variant]) + 1  # Add 1 for header row
     
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'), # Headers are centered
-        ('ALIGN', (0, 1), (0, summary_row_start-1), 'LEFT'), # Left align product names
-        ('ALIGN', (1, 1), (1, summary_row_start-1), 'CENTER'), # Center align variants
-        ('ALIGN', (2, 1), (2, summary_row_start-1), 'CENTER'), # Center align quantities
-        ('ALIGN', (3, 1), (5, summary_row_start-1), 'RIGHT'), # Right align prices
-        ('ALIGN', (6, 1), (6, summary_row_start-1), 'LEFT'), # Left align status
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), # Vertically center all content
+    # Style the table - improved colors and layout
+    table_style = [
+        # Header styling - changed to teal
+        ('BACKGROUND', (0, 0), (-1, 0), teal_color),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, summary_row_start-1), colors.beige),
-        ('GRID', (0, 0), (-1, summary_row_start-1), 1, colors.black), # Grid for products only
-        # Ensure proper word wrapping for product names and status
-        ('WORDWRAP', (0, 1), (0, summary_row_start-1), True),
-        ('WORDWRAP', (6, 1), (6, summary_row_start-1), True),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        
+        # Item rows styling
+        ('ALIGN', (0, 1), (0, summary_row_start), 'LEFT'),  # Left align product names
+        ('ALIGN', (1, 1), (1, summary_row_start), 'CENTER'),  # Center align variants
+        ('ALIGN', (2, 1), (2, summary_row_start), 'CENTER'),  # Center align quantities
+        ('ALIGN', (3, 1), (5, summary_row_start), 'RIGHT'),  # Right align prices
+        ('ALIGN', (6, 1), (6, summary_row_start), 'LEFT'),  # Left align status
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        
+        # Grid and alternate row styling
+        ('GRID', (0, 0), (-1, summary_row_start), 0.5, colors.grey),
+        ('LINEBELOW', (0, 0), (-1, 0), 1, colors.black),
+        
+        # Word wrapping for text fields
+        ('WORDWRAP', (0, 1), (0, summary_row_start), True),
+        ('WORDWRAP', (6, 1), (6, summary_row_start), True),
+    ]
+    
+    # Add alternating row colors with light teal
+    for i in range(1, summary_row_start + 1):
+        if i % 2 == 0:
+            table_style.append(('BACKGROUND', (0, i), (-1, i), light_teal))
+    
+    table.setStyle(TableStyle(table_style))
+    elements.append(table)
+    elements.append(Spacer(1, 12))
+    
+    # Summary table with proper styling
+    summary_data = []
+    
+    # Add summary rows
+    summary_data.append(['Order MRP', f"Rs.{order_mrp_total:.2f}"])
+    summary_data.append(['Total Order Discount', f"- Rs.{order_discount_total:.2f}"])
+    
+    if coupon_applied:
+        summary_data.append(['Coupon Discount', f"- Rs.{coupon_discount:.2f}"])
+        
+    summary_data.append(['Shipping Charge', f"Rs.{shipping_charge:.2f}"])
+    
+    if total_cancelled_amount > Decimal('0.00'):
+        summary_data.append(['Total Cancelled Amount', f"Rs.{total_cancelled_amount:.2f}"])
+        
+    if total_returned_amount > Decimal('0.00'):
+        summary_data.append(['Total Returned Amount', f"Rs.{total_returned_amount:.2f}"])
+        
+    if total_refunded_amount > Decimal('0.00'):
+        summary_data.append(['Total Refunded to Wallet', f"Rs.{total_refunded_amount:.2f}"])
+    
+    # Add grand total row
+    summary_data.append(['Grand Total', f"Rs.{grand_total:.2f}"])
+    
+    # Create the summary table with proper widths
+    summary_table = Table(summary_data, colWidths=[3*inch, 2*inch])
+    
+    summary_table_style = [
+        ('ALIGN', (0, 0), (0, -1), 'RIGHT'),  # Right-align labels for better alignment
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('LINEBELOW', (0, -2), (1, -2), 1, colors.grey),  # Line above grand total
+        ('TOPPADDING', (0, -1), (1, -1), 6),  # Space above grand total
+        ('BOTTOMPADDING', (0, -1), (1, -1), 6),  # Space below grand total
+        ('BACKGROUND', (0, -1), (1, -1), light_teal),  # Highlight grand total row with light teal
+        ('FONTNAME', (0, -1), (1, -1), 'Helvetica-Bold'),  # Bold font for grand total
+    ]
+    
+    summary_table.setStyle(TableStyle(summary_table_style))
+    
+    # Create a table to right-align the summary table
+    alignment_table = Table([[None, summary_table]], colWidths=[2*inch, 5*inch])
+    alignment_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (1, 0), 'TOP'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
     ]))
     
-    # Add styling for the summary section
-    for i, row in enumerate(data[summary_row_start:], start=summary_row_start):
-        if 'Grand Total' in row[0]:
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, i), (-1, i), colors.lightgrey),
-                ('FONTNAME', (0, i), (0, i), 'Helvetica-Bold'),
-                ('FONTNAME', (-2, i), (-2, i), 'Helvetica-Bold'),
-                ('SPAN', (0, i), (4, i)),
-            ]))
-        else:
-            table.setStyle(TableStyle([
-                ('SPAN', (0, i), (4, i)),
-                ('ALIGN', (0, i), (0, i), 'LEFT'),
-                ('ALIGN', (-2, i), (-2, i), 'RIGHT'),
-            ]))
+    elements.append(alignment_table)
     
-    elements.append(table)
+    # Add a horizontal line - changed to teal
+    elements.append(Spacer(1, 24))
+    elements.append(HRFlowable(width="100%", thickness=1, color=teal_color, spaceBefore=10, spaceAfter=10))
     
     # Add footer
-    elements.append(Spacer(1, 24))
-    elements.append(Paragraph("Thank you for shopping with WordBloom!", styles['Normal']))
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph("Thank you for shopping with WordBloom!", styles['Footer']))
+    elements.append(Paragraph("If you have any questions about your order, please contact our customer service.", styles['Footer']))
     
+    # Build the PDF document
     doc.build(elements)
     pdf = buffer.getvalue()
     buffer.close()

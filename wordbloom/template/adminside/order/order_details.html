@@ -136,37 +136,7 @@
     </div>
     <div class="order-items">
         <h2>Order Items</h2>
-        <table>
-            {% comment %} <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Variant</th>
-                    <th>Quantity</th>
-                    <th>Unit Price</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in order_items %}
-                <tr>
-                    <td>{{ item.product_variant.product.product_name }}</td>
-                    <td>{{ item.product_variant.format }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>₹{{ item.price }}</td>
-                    <td>₹{{ item.get_cost }}</td>
-                    <td>
-                        {% if item.is_cancelled %}
-                            Cancelled
-                        {% elif item.is_returned %}
-                            Returned
-                        {% else %}
-                            Active
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody> {% endcomment %}
+        <table>            
             <thead>
                 <tr>
                     <th>Product</th>
@@ -176,7 +146,7 @@
                     <th>Effective Price</th>
                     <th>Discount</th>
                     <th>Discount Type</th>
-                    {% comment %} <th>Item Total</th> {% endcomment %}
+                    <th>Item Total</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -199,7 +169,7 @@
                         No Discount
                         {% endif %}
                     </td>
-                    {% comment %} <td>₹{{  }}</td> {% endcomment %}
+                    <td>₹{{ detail.item_subtotal }}</td>
                     <td>
                         {% if detail.item.is_cancelled %}
                         Cancelled
@@ -217,13 +187,13 @@
 
     <div class="order-summary">
         <h2>Order Summary</h2>
-        <p><strong>Subtotal:</strong> ₹{{ order.total_amount }}</p>
-        <p><strong>Discount:</strong> ₹{{ order.discount_amount }}</p>
-        <p><strong>Total Discount:</strong> -₹{{ total_discount }}</p>
-        <p><strong>Coupon Discount:</strong> -₹{{ order.discount_amount|floatformat:2 }}</p>
-        <p><strong>Shipping Charge:</strong> ₹{{ shipping_charge|default:"0.00"|floatformat:2 }}</p>
-        <p><strong>Grand Total:</strong> ₹{{ order.total_amount }}</p>
-        <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+        <p><strong>Original Subtotal:</strong> ₹{{ total_original_price }}</p>
+        <p><strong>Product Discounts:</strong> -₹{{ total_product_discount }}</p>
+        <p><strong>Subtotal after product discounts:</strong> ₹{{ subtotal_after_product_discounts }}</p>
+        <p><strong>Coupon Discount:</strong> -₹{{ coupon_discount }}</p>
+        <p><strong>Shipping Charge:</strong> ₹{{ shipping_charge }}</p>
+        <p><strong>Grand Total:</strong> ₹{{ grand_total }}</p>
+        <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
         <p><strong>Payment Status:</strong> {{ order.get_payment_status_display }}</p>
     </div>
     {% if order.order_status == 'Return_Initiated' %}

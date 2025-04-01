@@ -174,7 +174,13 @@ def place_order(request):
                     'callback_url': request.build_absolute_uri(reverse('orders:razorpay-callback')),
                     'user_name': request.user.full_name,
                     'user_email': request.user.email,
-                    'user_contact': getattr(request.user, 'phone_number', '')
+                    'user_contact': getattr(request.user, 'phone_number', ''),
+                    'subtotal': cart_total,
+                    'discount_amount': discount_amount,
+                    'shipping_charge': shipping_charge,
+                    'total_original_price': cart_total + Decimal(str(discount_amount)),  # Calculate original price
+                    'total_after_discount': final_total,
+                    'total_discount': Decimal(str(discount_amount))
                 }
                 
                 # Clear the session data
@@ -231,6 +237,7 @@ def place_order(request):
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('cart:checkout')
 
+
 @csrf_exempt
 def razorpay_callback(request):
     if request.method == "POST":
@@ -272,41 +279,78 @@ def razorpay_callback(request):
     return JsonResponse({'status': 'failed', 'error': 'Invalid request method'})
 
 
-
 @login_required
 def retry_payment(request, order_id):
     order = get_object_or_404(OrderMain, order_id=order_id, user=request.user)
-    
     if order.payment_method != 'Razorpay' or order.payment_status == 'Success':
         messages.error(request, "Invalid retry request")
         return redirect('userpanel:order_list')
-    
     try:
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-        
         payment_data = {
             'amount': int(order.total_amount * 100),
             'currency': 'INR',
             'receipt': order.order_id,
         }
-        
         razorpay_order = client.order.create(data=payment_data)
         order.razorpay_order_id = razorpay_order['id']
         order.payment_status = 'Pending'
         order.save()
+
+        # Calculate the required values for the context
+        order_items = order.items.all()
+        total_original_price = Decimal('0.00')
+        total_effective_price = Decimal('0.00')
+        total_product_discount = Decimal('0.00')
+        
+        # Calculate totals from order items
+        for item in order_items:
+            variant = item.product_variant
+            discount_info = variant.get_discount_info()
+            
+            # Calculate original and effective prices
+            original_price = variant.price
+            effective_price = discount_info['effective_price']
+            
+            # Calculate totals for this item
+            original_item_total = original_price * item.quantity
+            effective_item_total = effective_price * item.quantity
+            
+            # Accumulate totals
+            total_original_price += original_item_total
+            total_effective_price += effective_item_total
+            total_product_discount += (original_item_total - effective_item_total)
+        
+        # Get coupon discount and shipping charge
+        coupon_discount = order.discount_amount
+        shipping_charge = Decimal(settings.SHIPPING_CHARGE)
+        
+        # Calculate final total
+        final_total = total_effective_price - coupon_discount + shipping_charge
         
         context = {
+            'order': order,
             'order_id': order.order_id,
             'razorpay_order_id': razorpay_order['id'],
             'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
             'razorpay_amount': payment_data['amount'],
             'currency': payment_data['currency'],
             'callback_url': request.build_absolute_uri(reverse('orders:razorpay-callback')),
+            'user_name': request.user.full_name,
+            'user_email': request.user.email,
+            'user_contact': getattr(request.user, 'phone_number', ''),
+            'subtotal': total_effective_price,
+            'discount_amount': coupon_discount,
+            'shipping_charge': shipping_charge,
+            'total_original_price': total_original_price,
+            'total_after_discount': final_total,
+            'total_discount': total_product_discount
         }
         return render(request, 'userside/order/razorpay_payment.html', context)
     except Exception as e:
         messages.error(request, f"Error initiating payment: {str(e)}")
         return redirect('userpanel:order_list')
+
 
 @login_required
 def order_confirmation(request, order_id):
@@ -425,30 +469,7 @@ def admin_order_list(request):
     }
     return render(request, 'adminside/order/order_list.html', context)
 
-
-# @admin_required
-# def admin_order_detail(request, order_id):
-#     order = get_object_or_404(OrderMain, id=order_id)
-#     order_items = order.items.all()
-    
-#     # Get all return requests for this order
-#     return_requests = ReturnRequest.objects.filter(order=order)
-    
-#     # Calculate subtotal, discount, and grand total
-#     subtotal = sum(item.total_cost for item in order_items)
-#     discount_amount = order.discount_amount
-#     grand_total = subtotal - discount_amount
-    
-#     context = {
-#         'order': order,
-#         'order_items': order_items,
-#         'return_requests': return_requests,
-#         'subtotal': subtotal,
-#         'discount_amount': discount_amount,
-#         'grand_total': grand_total
-#     }
-#     return render(request, 'adminside/order/order_details.html', context)
-
+@admin_required
 def admin_order_detail(request, order_id):
     order = get_object_or_404(OrderMain, id=order_id)
     order_items = order.items.all()
@@ -466,20 +487,28 @@ def admin_order_detail(request, order_id):
         variant = item.product_variant
         discount_info = variant.get_discount_info()
         
-        original_item_total = variant.price * item.quantity
-        effective_item_total = discount_info['effective_price'] * item.quantity
+        # Calculate original and effective prices
+        original_price = variant.price
+        effective_price = discount_info['effective_price']
+        
+        # Calculate totals for this item
+        original_item_total = original_price * item.quantity
+        effective_item_total = effective_price * item.quantity
         item_discount = original_item_total - effective_item_total
         
+        # Add to the list of item details
         order_item_details.append({
             'item': item,
-            'original_price': variant.price,
-            'effective_price': discount_info['effective_price'],
+            'original_price': original_price,
+            'effective_price': effective_price,
             'discount_type': discount_info.get('type', 'No Discount'),
             'offer_name': discount_info.get('offer_name', 'N/A'),
             'item_discount': item_discount,
-            'quantity': item.quantity
+            'quantity': item.quantity,
+            'item_subtotal': effective_item_total  # Add the subtotal for each item
         })
         
+        # Accumulate totals
         total_original_price += original_item_total
         total_effective_price += effective_item_total
         total_product_discount += item_discount
@@ -489,8 +518,17 @@ def admin_order_detail(request, order_id):
     
     # Calculate final totals
     coupon_discount = order.discount_amount
-    grand_total = total_effective_price + shipping_charge
-
+    subtotal_after_product_discounts = total_effective_price
+    grand_total = subtotal_after_product_discounts - coupon_discount + shipping_charge
+    
+    # Calculate total refunded amount if any
+    total_refunded = Decimal('0.00')
+    has_refunded_items = False
+    for item in order_items:
+        if item.is_refunded:
+            total_refunded += item.refunded_amount
+            has_refunded_items = True
+    
     context = {
         'order': order,
         'order_items': order_items,
@@ -501,8 +539,12 @@ def admin_order_detail(request, order_id):
         'total_product_discount': total_product_discount,
         'coupon_discount': coupon_discount,
         'shipping_charge': shipping_charge,
-        'grand_total': grand_total
+        'grand_total': grand_total,
+        'subtotal_after_product_discounts': subtotal_after_product_discounts,
+        'has_refunded_items': has_refunded_items,
+        'total_refunded': total_refunded
     }
+    
     return render(request, 'adminside/order/order_details.html', context)
 
 

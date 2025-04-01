@@ -1,77 +1,319 @@
 {% extends 'base.html' %}
 {% block title %}Payment | WordBloom{% endblock %}
 {% block page_styles %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <style>
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
+/* Main container styles */
+.payment-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Payment card styles */
+.payment-card {
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(43, 95, 95, 0.15);
+    margin-bottom: 2rem;
+    border: 1px solid #eaeaea;
+}
+
+.payment-header {
+    background-color: #2b5f5f;
+    color: white;
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+}
+
+.payment-header h2 {
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.payment-body {
+    padding: 2rem 1.5rem;
+}
+
+/* Order details section */
+.order-details {
+    text-align: center;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.order-id {
+    font-size: 1rem;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+.order-amount {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2b5f5f;
+    margin-bottom: 0.75rem;
+}
+
+.order-description {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-bottom: 1rem;
+}
+
+/* Payment button */
+.pay-button {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background-color: #2b5f5f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.pay-button:hover {
+    background-color: #234c4c;
+}
+
+/* Security notice */
+.security-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    gap: 0.5rem;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.security-notice i {
+    color: #2b5f5f;
+}
+
+/* Error message */
+.payment-error {
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 4px;
+    color: #b91c1c;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    display: none;
+}
+
+/* Order summary section */
+.order-summary {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.summary-title {
+    font-size: 1.25rem;
+    color: #2b5f5f;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.summary-item-label {
+    color: #4a5568;
+}
+
+.summary-item-value {
+    font-weight: 500;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.summary-total-label {
+    color: #2b5f5f;
+}
+
+.summary-total-value {
+    color: #2b5f5f;
+}
+
+/* Back button */
+.back-link {
+    display: inline-block;
+    color: #2b5f5f;
+    font-size: 0.9rem;
+    text-decoration: none;
+    margin-top: 1rem;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+/* Payment methods section */
+.payment-methods {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.payment-method-icon {
+    width: 40px;
+    height: auto;
+    opacity: 0.7;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .payment-container {
+        padding: 0 1rem;
+        margin: 1.5rem auto;
     }
-    .card {
-        margin-bottom: 1rem;
-        border: none;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    
+    .payment-header h2 {
+        font-size: 1.25rem;
     }
-    .card-header {
-        background-color: #2b5f5f;
-        color: white;
-        font-weight: bold;
+    
+    .order-amount {
+        font-size: 1.75rem;
     }
-    .btn-primary {
-        background-color: #2b5f5f;
-        border-color: #2b5f5f;
+    
+    .payment-body {
+        padding: 1.5rem 1.25rem;
     }
-    .btn-primary:hover {
-        background-color: #234c4c;
-        border-color: #234c4c;
+}
+
+@media (max-width: 480px) {
+    .payment-container {
+        margin: 1rem auto;
     }
-    .btn-secondary {
-        background-color: #6c757d;
-        border-color: #6c757d;
+    
+    .payment-header {
+        padding: 1rem;
     }
-    .btn-secondary:hover {
-        background-color: #5a6268;
-        border-color: #545b62;
+    
+    .payment-header h2 {
+        font-size: 1.1rem;
     }
-    .address-item {
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        padding: 10px;
-        margin-bottom: 10px;
+    
+    .order-amount {
+        font-size: 1.5rem;
     }
-    .address-item.selected {
-        border-color: #2b5f5f;
-        background-color: #f0f8f8;
+    
+    .payment-body {
+        padding: 1.25rem 1rem;
     }
-    @media (max-width: 768px) {
-        .col-md-8, .col-md-4 {
-            width: 100%;
-        }
+    
+    .pay-button {
+        padding: 0.875rem;
     }
+    
+    .order-id, .order-description {
+        font-size: 0.85rem;
+    }
+    
+    .security-notice {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 375px) {
+    .payment-header h2 {
+        font-size: 1rem;
+    }
+    
+    .order-amount {
+        font-size: 1.3rem;
+    }
+    
+    .order-id, .order-description, .security-notice {
+        font-size: 0.75rem;
+    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center mb-0">Complete Your Payment</h3>
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-header">
+            <h2>Complete Your Payment</h2>
+        </div>
+        <div class="payment-body">
+            <div class="order-details">
+                <div class="order-id">Order ID: <strong>{{ order_id }}</strong></div>
+                <div class="order-amount">₹{{ razorpay_amount|stringformat:'d'|slice:':-2' }}</div>
+                <div class="order-description">Secure payment for your WordBloom order</div>
+            </div>
+            
+            <!-- Order Summary Section -->
+            <div class="order-summary">
+                <div class="summary-title">Order Summary</div>
+                <div class="summary-item">
+                    <span class="summary-item-label">Order MRP</span>
+                    <span class="summary-item-value">₹{{ total_original_price|floatformat:2 }}</span>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <h5>Order ID: {{ order_id }}</h5>
-                        <h6>Amount: ₹{{ razorpay_amount|stringformat:'d'|slice:':-2' }}</h6>
-                    </div>
-                    <button id="rzp-button" class="btn btn-primary w-100">Pay Now</button>
-                    <div id="payment-error" class="alert alert-danger mt-3" style="display: none;"></div>
+                <div class="summary-item">
+                    <span class="summary-item-label">Total Discount</span>
+                    <span class="summary-item-value summary-discount">-₹{{ total_discount|floatformat:2 }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-item-label">Coupon Discount</span>
+                    <span class="summary-item-value summary-discount">-₹{{ discount_amount|floatformat:2 }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-item-label">Subtotal</span>
+                    <span class="summary-item-value">₹{{ subtotal|floatformat:2 }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-item-label">Shipping</span>
+                    <span class="summary-item-value">₹{{ shipping_charge|floatformat:2 }}</span>
+                </div>
+                <div class="summary-total">
+                    <span class="summary-total-label">Total</span>
+                    <span class="summary-total-value">₹{{ total_after_discount|floatformat:2 }}</span>
                 </div>
             </div>
+            
+            <button id="rzp-button" class="pay-button">Pay Securely Now</button>
+            
+            <div class="security-notice">
+                <i class="ri-lock-line"></i> Secured by Razorpay Payment Gateway
+            </div>
+            
+            <div id="payment-error" class="payment-error"></div>
+            
+            <!-- Payment Method Icons -->
+            <div class="payment-methods">
+                <img src="https://cdn.razorpay.com/static/assets/merchant-badge/visa.svg" alt="Visa" class="payment-method-icon">
+                <img src="https://cdn.razorpay.com/static/assets/merchant-badge/mastercard.svg" alt="Mastercard" class="payment-method-icon">
+                <img src="https://cdn.razorpay.com/static/assets/merchant-badge/rupay.svg" alt="RuPay" class="payment-method-icon">
+                <img src="https://cdn.razorpay.com/static/assets/merchant-badge/upi.svg" alt="UPI" class="payment-method-icon">
+            </div>
+            
+            <a href="javascript:history.back()" class="back-link">← Back to checkout</a>
         </div>
     </div>
 </div>
@@ -103,13 +345,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
-
+    
     var rzp = new Razorpay(options);
+    
     document.getElementById('rzp-button').onclick = function(e) {
         rzp.open();
         e.preventDefault();
     }
-
+    
     function handlePaymentSuccess(response) {
         var form = document.createElement('form');
         form.method = 'POST';
@@ -121,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
         csrfInput.name = 'csrfmiddlewaretoken';
         csrfInput.value = "{{ csrf_token }}";
         form.appendChild(csrfInput);
-
+        
         // Add payment details
         var fields = {
             'razorpay_payment_id': response.razorpay_payment_id,
@@ -140,11 +383,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(form);
         form.submit();
     }
-
+    
     function handlePaymentFailure(error) {
         var errorDiv = document.getElementById('payment-error');
         errorDiv.textContent = error;
         errorDiv.style.display = 'block';
+        
+        // Scroll to error message
+        errorDiv.scrollIntoView({ behavior: 'smooth' });
     }
 });
 </script>
