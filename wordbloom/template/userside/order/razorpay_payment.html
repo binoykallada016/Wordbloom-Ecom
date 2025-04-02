@@ -1,8 +1,15 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Payment | WordBloom{% endblock %}
 {% block page_styles %}
 <style>
 /* Main container styles */
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
 .payment-container {
     max-width: 800px;
     margin: 2rem auto;
@@ -158,19 +165,6 @@
     color: #2b5f5f;
 }
 
-/* Back button */
-.back-link {
-    display: inline-block;
-    color: #2b5f5f;
-    font-size: 0.9rem;
-    text-decoration: none;
-    margin-top: 1rem;
-}
-
-.back-link:hover {
-    text-decoration: underline;
-}
-
 /* Payment methods section */
 .payment-methods {
     display: flex;
@@ -180,8 +174,8 @@
 }
 
 .payment-method-icon {
-    width: 40px;
-    height: auto;
+    width: 3rem;
+    height: 2rem;
     opacity: 0.7;
 }
 
@@ -195,7 +189,12 @@
     .payment-header h2 {
         font-size: 1.25rem;
     }
-    
+    .order-details {
+        text-align: center;
+        padding-bottom: 0rem;
+        margin-bottom: 0rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
     .order-amount {
         font-size: 1.75rem;
     }
@@ -207,11 +206,12 @@
 
 @media (max-width: 480px) {
     .payment-container {
-        margin: 1rem auto;
+        margin: 1rem 0.25rem;
     }
     
     .payment-header {
-        padding: 1rem;
+        padding: 0.5rem;
+        height: 2.5rem;
     }
     
     .payment-header h2 {
@@ -280,13 +280,14 @@
                     <span class="summary-item-value summary-discount">-₹{{ total_discount|floatformat:2 }}</span>
                 </div>
                 <div class="summary-item">
-                    <span class="summary-item-label">Coupon Discount</span>
-                    <span class="summary-item-value summary-discount">-₹{{ discount_amount|floatformat:2 }}</span>
-                </div>
-                <div class="summary-item">
                     <span class="summary-item-label">Subtotal</span>
                     <span class="summary-item-value">₹{{ subtotal|floatformat:2 }}</span>
                 </div>
+                <div class="summary-item">
+                    <span class="summary-item-label">Coupon Discount</span>
+                    <span class="summary-item-value summary-discount">-₹{{ discount_amount|floatformat:2 }}</span>
+                </div>
+                
                 <div class="summary-item">
                     <span class="summary-item-label">Shipping</span>
                     <span class="summary-item-value">₹{{ shipping_charge|floatformat:2 }}</span>
@@ -307,13 +308,11 @@
             
             <!-- Payment Method Icons -->
             <div class="payment-methods">
-                <img src="https://cdn.razorpay.com/static/assets/merchant-badge/visa.svg" alt="Visa" class="payment-method-icon">
-                <img src="https://cdn.razorpay.com/static/assets/merchant-badge/mastercard.svg" alt="Mastercard" class="payment-method-icon">
-                <img src="https://cdn.razorpay.com/static/assets/merchant-badge/rupay.svg" alt="RuPay" class="payment-method-icon">
-                <img src="https://cdn.razorpay.com/static/assets/merchant-badge/upi.svg" alt="UPI" class="payment-method-icon">
+                <img src="{% static 'userside/assets/imgs/theme/icons/visa_logo.png' %}" alt="Visa" class="payment-method-icon">
+                <img src="{% static 'userside/assets/imgs/theme/icons/mastercard_logo.png' %}" alt="Mastercard" class="payment-method-icon">
+                <img src="{% static 'userside/assets/imgs/theme/icons/rupay_logo.png' %}" alt="RuPay" class="payment-method-icon">
+                <img src="{% static 'userside/assets/imgs/theme/icons/upi_logo.png' %}" alt="UPI" class="payment-method-icon">
             </div>
-            
-            <a href="javascript:history.back()" class="back-link">← Back to checkout</a>
         </div>
     </div>
 </div>

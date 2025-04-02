@@ -1,104 +1,289 @@
 {% extends 'base.html' %}
 {% block title %}Order Confirmation | WordBloom{% endblock %}
-
 {% block page_styles %}
 <style>
     .container {
-        max-width: 800px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 2rem 1rem;
     }
-    .order-confirmation {
-        text-align: center;
-        background-color: #fff;
-        border-radius: 8px;
-        padding: 2rem;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    .order-confirmation-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
     }
-    .order-confirmation i {
-        font-size: 5rem;
-        color: #28a745;
-        margin-bottom: 1rem;
+
+    .order-confirmation-card {
+    text-align: center;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     }
-    .order-confirmation h1 {
-        color: #28a745;
-        margin-bottom: 1rem;
+
+    .confirmation-icon {
+    font-size: 5rem;
+    color: #28a745;
+    margin-bottom: 1rem;
     }
-    .order-details, .shipping-address {
-        margin-top: 2rem;
-        text-align: left;
+
+    .confirmation-title {
+    color: #28a745;
+    margin-bottom: 1rem;
+    font-size: 2rem;
     }
-    .order-details h2, .shipping-address h2 {
-        color: #2b5f5f;
-        margin-bottom: 1rem;
+
+    .confirmation-message {
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
     }
-    .actions {
-        margin-top: 2rem;
+
+    .info-section {
+    margin-top: 2rem;
+    text-align: left;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
     }
-    .btn {
+
+    .info-section h2 {
+    color: #2b5f5f;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-item {
+    margin-bottom: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    }
+
+    .info-label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+    min-width: 150px;
+    }
+    .info-colon {
         display: inline-block;
-        padding: 0.5rem 1rem;
-        margin: 0.5rem;
-        text-decoration: none;
-        border-radius: 4px;
-        transition: background-color 0.3s;
+        width: 20px;
+        text-align: center;
     }
+    .info-value {
+    color: #4a5568;
+    }
+
+    .address-block {
+    margin-bottom: 0.5rem;
+    }
+
+    .action-buttons {
+    margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    }
+
+    .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    text-align: center;
+    }
+
     .btn-primary {
-        background-color: #2b5f5f;
-        color: white;
+    background-color:hsl(201, 82.10%, 64.90%);
+    color: white;
     }
+
+    .btn-primary:hover {
+        background-color: #a9f393;
+        color: black;
+    }
+
     .btn-secondary {
-        background-color: #6c757d;
+        background-color:rgb(49, 182, 175);
         color: white;
     }
-    .btn:hover {
-        opacity: 0.9;
+    .btn-secondary:hover{
+        background-color: #a9f393;
+        color: black;
     }
+
+    .btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    }
+
+    /* Responsive styles */
     @media (max-width: 768px) {
-        .order-confirmation {
-            padding: 1rem;
-        }
+    .order-confirmation-container {
+        margin: 1.5rem auto;
+    }
+    
+    .order-confirmation-card {
+        padding: 1.5rem;
+    }
+    
+    .confirmation-icon {
+        font-size: 4rem;
+    }
+    
+    .confirmation-title {
+        font-size: 1.75rem;
+    }
+    
+    .info-section {
+        padding: 0.75rem;
+    }
+    
+    .info-section h2 {
+        font-size: 1.25rem;
+    }
+    
+    .info-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .info-label {
+        min-width: 130px;
+    }
+    }
+
+    @media (max-width: 576px) {
+    .order-confirmation-container {
+        margin: 1rem auto;
+        padding: 0.75rem;
+    }
+    
+    .order-confirmation-card {
+        padding: 1rem;
+    }
+    
+    .confirmation-icon {
+        font-size: 3.5rem;
+    }
+    
+    .confirmation-title {
+        font-size: 1.5rem;
+    }
+    
+    .confirmation-message {
+        font-size: 0.9rem;
+    }
+    
+    .info-section h2 {
+        font-size: 1.2rem;
+    }
+    
+    .info-item {
+        flex-direction: column;
+    }
+    .info-colon {
+        display: none;
+    }
+    .info-label {
+        min-width: initial;
+        margin-bottom: 0.25rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    }
+
+    @media (max-width: 375px) {
+    .order-confirmation-container {
+        margin: 0.5rem auto;
+        padding: 0.5rem;
+    }
+    
+    .confirmation-icon {
+        font-size: 3rem;
+    }
+    
+    .confirmation-title {
+        font-size: 1.25rem;
+    }
+    
+    .info-section {
+        padding: 0.5rem;
+    }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="order-confirmation">
-        <i class="fas fa-check-circle"></i>
-        <h1>Order Confirmed</h1>
-        <p>Your order has been successfully confirmed and is being processed.</p>
-        <div class="order-details">
+    <div class="order-confirmation-container">
+        <div class="order-confirmation-card">
+            <i class="fas fa-check-circle confirmation-icon"></i>
+            <h1 class="confirmation-title">Order Confirmed</h1>
+            <p class="confirmation-message">Your order has been successfully confirmed and is being processed.</p>
+            
+            <div class="info-section">
             <h2>Order Details</h2>
-            <p><strong>Order Number:</strong> {{ order.order_id }}</p>
-            <p><strong>Order Date:</strong> {{ order.created_at }}</p>
-            <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
-            {% comment %} <p><strong>Payment Method:</strong> {{ order.payment_method }}</p> {% endcomment %}
-            <p><strong>Payment Method:</strong> 
+            <div class="info-item">
+                <span class="info-label">Order Number</span>
+                <span class="info-colon">:</span>
+                <span class="info-value">{{ order.order_id }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Order Date</span>
+                <span class="info-colon">:</span>
+                <span class="info-value">{{ order.created_at }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Total Amount</span>
+                <span class="info-colon">:</span>
+                <span class="info-value">₹{{ order.total_amount }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Payment Method</span>
+                <span class="info-colon">:</span>
+                <span class="info-value">
                 {% if wallet_used and wallet_used > 0 %}
                     {% if amount_to_pay > 0 %}
-                        Wallet (₹{{ wallet_used }}) + {{ order.payment_method }}
+                    Wallet (₹{{ wallet_used }}) + {{ order.payment_method }}
                     {% else %}
-                        Wallet (₹{{ wallet_used }})
+                    Wallet (₹{{ wallet_used }})
                     {% endif %}
                 {% else %}
                     {{ order.payment_method }}
                 {% endif %}
-            </p>
-            <p><strong>Estimated Delivery:</strong> {{ order.estimated_delivery_date }}</p>
-        </div>
-        <div class="shipping-address">
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Estimated Delivery</span>
+                <span class="info-colon">:</span>
+                <span class="info-value">{{ order.estimated_delivery_date }}</span>
+            </div>
+            </div>
+            
+            <div class="info-section">
             <h2>Shipping Address</h2>
-            <p>{{ order.address.name }}</p>
-            <p>{{ order.address.house_name }}, {{ order.address.street_name }}</p>
-            <p>{{ order.address.district }}, {{ order.address.state }}</p>
-            <p>{{ order.address.country }} - {{ order.address.pin_number }}</p>
-            <p>Phone: {{ order.address.phone_number }}</p>
-        </div>
-        <div class="actions">
+            <div class="address-block">
+                <p>{{ order.address.name }}</p>
+                <p>{{ order.address.house_name }}, {{ order.address.street_name }}</p>
+                <p>{{ order.address.district }}, {{ order.address.state }}</p>
+                <p>{{ order.address.country }} - {{ order.address.pin_number }}</p>
+                <p>Phone: {{ order.address.phone_number }}</p>
+            </div>
+            </div>
+            
+            <div class="action-buttons">
             <a href="{% url 'userpanel:order_list' %}" class="btn btn-primary">View My Orders</a>
             <a href="{% url 'accounts:shop' %}" class="btn btn-secondary">Continue Shopping</a>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

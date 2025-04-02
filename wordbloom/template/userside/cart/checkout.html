@@ -64,6 +64,12 @@
         background-color: #a9c4fd;
         border-color: #234c4c;
     }
+    .btn-primary:disabled {
+        background-color: #e0e0e0;
+        border-color: #bdbdbd;
+        color: #757575;
+        cursor: not-allowed;
+    }
     .btn-secondary {
         background-color: #6c757d;
         border-color: #6c757d;
@@ -239,6 +245,21 @@
         font-size: 1.1rem;
     }
     
+    .spinner-border {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        vertical-align: text-bottom;
+        border: 0.2em solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spinner-border .75s linear infinite;
+    }
+
+    @keyframes spinner-border {
+        to { transform: rotate(360deg); }
+    }
+    
     @media (max-width: 1200px) {
         .checkout-grid {
             grid-template-columns: 1fr 320px;
@@ -270,7 +291,7 @@
 {% block content %}
 <div class="container">
     <h1 class="page-title">Checkout</h1>
-    <form method="post" action="{% url 'cart:checkout' %}">
+    <form method="post" action="{% url 'cart:checkout' %}" id="checkout-form">
         {% csrf_token %}
         <div class="checkout-grid">
             <div class="checkout-main">
@@ -363,44 +384,6 @@
             </div>
             
             <!-- Order Summary -->
-            {% comment %} <div class="order-summary">
-                <h2 class="section-title">Order Summary</h2>
-                <div class="summary-items">
-                    {% for item in cart_items %}
-                    <div class="summary-item">
-                        <span>{{ item.variant.product.product_name }} (x{{ item.quantity }})</span>
-                        <span>₹{{ item.sub_total }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Order MRP:</span>
-                    <span class="summary-value">₹<span id="cart-original-price">{{ total_original_price }}</span></span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Total Discount:</span>
-                    <span class="summary-value summary-discount">-₹<span id="cart-discount">{{ total_discount }}</span></span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Order Subtotal:</span>
-                    <span class="summary-value">₹<span id="cart-subtotal">{{ total_amount }}</span></span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Coupon Discount:</span>
-                    <span class="summary-value summary-discount">-₹<span id="coupon-discount">{{ discount_amount|floatformat:2 }}</span></span>
-                </div>
-                <div class="summary-item">
-                    <span>Shipping</span>
-                    <span>₹{{ shipping_charge }}</span>
-                </div>
-                <div class="summary-total">
-                    <span>Amount to Pay</span>
-                    <span>₹<span id="amount-to-pay">{{ total_after_discount|floatformat:2 }}</span></span>
-                </div>
-                <button type="submit" class="btn btn-primary" id="place-order-btn">Place Order</button>
-            </div> {% endcomment %}
-
-            <!-- Order Summary -->
             <div class="order-summary">
                 <h2 class="section-title">Order Summary</h2>
                 <div class="order-summary-container">
@@ -478,11 +461,13 @@ document.addEventListener('DOMContentLoaded', function () {
     let remainingAmountElement = document.getElementById("remaining-amount");
     let walletOptionElement = document.getElementById("wallet-option");
     let placeOrderBtn = document.getElementById("place-order-btn");
+    let checkoutForm = document.getElementById("checkout-form");
     
     // Values
     let walletBalance = parseFloat("{{ wallet_balance|floatformat:2 }}");
     let totalAmount = parseFloat("{{ total_after_discount|floatformat:2 }}");
     let paymentSelected = false;
+    let isSubmitting = false;
     
     // Set default payment method
     function setDefaultPaymentMethod() {
@@ -598,31 +583,49 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     
-    // Form validation
-    document.querySelector('form').addEventListener('submit', function(e) {
-        let addressSelected = false;
-        document.querySelectorAll('input[name="address"]').forEach(radio => {
-            if (radio.checked) addressSelected = true;
+    // Form validation and prevent multiple submissions
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            // Prevent multiple form submissions
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Check if address is selected
+            let addressSelected = false;
+            document.querySelectorAll('input[name="address"]').forEach(radio => {
+                if (radio.checked) addressSelected = true;
+            });
+            
+            if (!addressSelected) {
+                e.preventDefault();
+                alert('Please select a shipping address');
+                return false;
+            }
+            
+            // Check if payment method is selected
+            if (!paymentSelected) {
+                e.preventDefault();
+                alert('Please select a payment method');
+                return false;
+            }
+            
+            // Set the form as submitting
+            isSubmitting = true;
+            
+            // Disable the place order button and change its text
+            if (placeOrderBtn) {
+                placeOrderBtn.disabled = true;
+                placeOrderBtn.innerHTML = '<span class="spinner-border" role="status" aria-hidden="true"></span> Processing...';
+            }
+            
+            return true;
         });
-        
-        if (!addressSelected) {
-            e.preventDefault();
-            alert('Please select a shipping address');
-            return false;
-        }
-        
-        if (!paymentSelected) {
-            e.preventDefault();
-            alert('Please select a payment method');
-            return false;
-        }
-        
-        return true;
-    });
+    }
     
     // Initialize
     setDefaultPaymentMethod();
 });
 </script>
 {% endblock %}
-
