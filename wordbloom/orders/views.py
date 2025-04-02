@@ -24,7 +24,6 @@ from django.utils import timezone
 
 
 # Create your views here.
-
 @login_required
 @transaction.atomic
 def place_order(request):
@@ -52,10 +51,26 @@ def place_order(request):
         
         # Calculate totals using effective price
         cart_total = Decimal('0.00')
+        original_total = Decimal('0.00')  # Add this to track original price
+        total_product_discount = Decimal('0.00')  # Add this to track product discount
+        
         for cart_item in cart_items:
             variant = cart_item.variant
+            # Get original price and effective price
+            original_price = variant.price
             effective_price = Decimal(str(variant.get_effective_price()))
-            cart_total += effective_price * cart_item.quantity
+            
+            # Calculate item totals
+            original_item_total = original_price * cart_item.quantity
+            effective_item_total = effective_price * cart_item.quantity
+            
+            # Track product discount
+            item_discount = original_item_total - effective_item_total
+            total_product_discount += item_discount
+            
+            # Accumulate totals
+            original_total += original_item_total
+            cart_total += effective_item_total
         
         # Apply coupon discount if any
         discount_amount = cart.get_discount_amount()
@@ -178,9 +193,9 @@ def place_order(request):
                     'subtotal': cart_total,
                     'discount_amount': discount_amount,
                     'shipping_charge': shipping_charge,
-                    'total_original_price': cart_total + Decimal(str(discount_amount)),  # Calculate original price
+                    'total_original_price': original_total,  # Use the calculated original price
                     'total_after_discount': final_total,
-                    'total_discount': Decimal(str(discount_amount))
+                    'total_discount': total_product_discount  # Use product discount instead of coupon discount
                 }
                 
                 # Clear the session data
@@ -236,6 +251,7 @@ def place_order(request):
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('cart:checkout')
+
 
 
 @csrf_exempt
