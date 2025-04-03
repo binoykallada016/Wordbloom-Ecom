@@ -384,6 +384,15 @@ def shop(request):
     else:
         wishlisted_items = {}
 
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:        
+        products = products.filter(
+            Q(product_name__icontains=search_query) |
+            Q(author__name__icontains=search_query) |
+            Q(category__name__icontains=search_query)
+        ).distinct()
+
     # Apply filters
     category_id = request.GET.getlist('category')
     if category_id:
@@ -448,6 +457,7 @@ def shop(request):
         'selected_authors': author_ids,
         'sort_by': sort_by,
         'wishlisted_items': wishlisted_items,
+        'search_query': search_query,
     }
     return render(request, 'userside/product/shop_page.html', context)
 

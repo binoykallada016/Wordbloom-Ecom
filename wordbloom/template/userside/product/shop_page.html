@@ -21,6 +21,96 @@
         font-size: 2rem;
         color: #2b5f5f;
     }
+    .shop-controls {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+    
+    .search-form {
+        flex: 1;        
+        margin-right: 1rem;
+    }
+    
+    .search-container {
+        display: flex;
+        position: relative;
+        width: 100%;
+    }
+    
+    .search-input {
+        width: 53rem;
+        height:3rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        background-repeat: no-repeat;
+        background-position: 10px center;
+        padding-left: 1.5rem;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #2b5f5f;
+        box-shadow: 0 0 0 2px rgba(43, 95, 95, 0.2);
+    }
+    
+    .search-button {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: transparent;
+        border: none;
+        width: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #2b5f5f;
+    }
+    
+    .search-button:hover {
+        color: #1e4242;
+    }
+    
+    .search-input-mobile {
+        width: 100%;
+        padding: 0.5rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .search-results-message {
+        margin: 1rem 0;
+        padding: 0.5rem 1rem;
+        background-color: #f0f7f7;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .search-results-message p {
+        margin: 0;
+    }
+    
+    .clear-search {
+        color: #2b5f5f;
+        text-decoration: none;
+        font-size: 0.9rem;
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #2b5f5f;
+        border-radius: 4px;
+        transition: all 0.3s;
+    }
+    
+    .clear-search:hover {
+        background-color: #2b5f5f;
+        color: white;
+    }
     .sort-dropdown {
         padding: 0.5rem 1rem;
         border: 1px solid #ccc;
@@ -231,8 +321,8 @@
         cursor: pointer;
         flex: 1;
         font-weight: 500;
-        white-space: nowrap; /* Prevents text wrapping to a new line */
-        text-align: center; /* Ensures the text is centered */
+        white-space: nowrap;
+        text-align: center;
     }
 
     .rating {
@@ -291,9 +381,9 @@
 
     /* Mobile filter toggle button */
     .filter-toggle {
-        display: none; /* Hidden by default for larger screens */
+        display: none; 
         position: fixed;
-        top: 80px; /* Position it below the header */
+        top: 80px;
         left: 15px;
         z-index: 1020;
         background-color: #2b5f5f;
@@ -368,7 +458,7 @@
     }
     
     .mobile-filters-body {
-        margin-bottom: 4rem; /* Space for the apply button */
+        margin-bottom: 4rem;
     }
     
     .mobile-filters-footer {
@@ -439,34 +529,81 @@
             padding: 1rem 0.5rem;
             margin-left: 0.5rem;
         }
-        
-        .shop-header {
-            flex-direction: row; /* Change from column back to row */
+        .desktop-only {
+            display: none;
+        }
+        .mobile-title-sort-container {
+            display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }        
+        
+        .shop-header {
+            display: none;
+        }        
+        
+        .mobile-shop-header {
+            display: block;
+            margin-bottom: 1rem;
         }
+        
+        /* Create a new container for title and sort dropdown */
+        .title-sort-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+    
         
         .shop-title {
             font-size: 1.5rem;
-            margin-right: 1rem; /* Add space between title and dropdown */
+            margin-right: 0.5rem;
+            margin-bottom: 0;
         }
         
+        .shop-controls {
+            width: 100%;
+            margin-top: 0.75rem;
+        }
+        
+        .search-form {
+            margin-right: 0;
+            width: 100%;
+            max-width: 100%;
+        }
+        .search-input {
+            width: 100%;
+            height: 2.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            padding-left: 1.5rem;
+        }
         .sort-dropdown {
             font-size: 0.8rem;
+            min-width: 120px;
         }
+        
         .sort-dropdown option {
             font-size: 0.8rem;
             padding: 8px;
-            white-space: normal; /* Allow text to wrap within dropdown options */
+            white-space: normal;
         }
+        
+        /* Rest of your existing mobile styles */
         .filters {
             display: none;
         }
         
-        /* Show mobile filter toggle on small screens */
         .filter-toggle {
-            display: flex            ;
-            /* display: none; */
+            display: flex;
             position: fixed;
             top: 15px;
             left: 15px;
@@ -596,7 +733,22 @@
             font-weight: bold;
         }
     }
+    @media (min-width: 769px) {
+        .mobile-shop-header {
+          display: none;
+        }
+    }
     @media (max-width: 480px) {
+        .search-results-message {
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: center;
+        }
+        
+        .search-input {
+            padding: 0.4rem 2rem 0.4rem 0.75rem;
+            font-size: 0.85rem;
+        }
         .pagination a:nth-child(1),
         .pagination a:nth-child(2),
         .pagination a:nth-last-child(1),
@@ -612,7 +764,21 @@
             margin: 0.1rem;
         }
     }
-    @media (max-width: 375px) {        
+    @media (max-width: 375px) {     
+        .mobile-title-sort-container {
+            flex-wrap: nowrap;
+        }
+        
+        .shop-title {
+            font-size: 1.2rem;
+            max-width: 50%;
+        }
+        
+        .sort-dropdown {
+            font-size: 0.75rem;
+            max-width: 100px;
+            padding: 0.3rem 0.5rem;
+        }   
         .book-grid {
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             gap: 0.5rem;
@@ -666,56 +832,144 @@
 {% block content %}
 <main>
     <div class="container">
-        <div class="shop-header">
-            <h1 class="shop-title">Shop Books</h1>          
-            <form method="get" action="{% url 'accounts:shop' %}" class="sort-form">
-                <!-- Preserve other filter parameters -->
-                {% for key, value in request.GET.items %}
-                    {% if key != 'sort' and key != 'page' %}
-                        {% if value|length > 1 %}
-                            {% for v in value %}
-                                <input type="hidden" name="{{ key }}" value="{{ v }}">
-                            {% endfor %}
-                        {% else %}
-                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        <!--Desktop layout -->
+        <div class="shop-header desktop-only">
+            <h1 class="shop-title">Shop Books</h1>
+            <div class="shop-controls">
+                <!-- Search form -->
+                <form method="get" action="{% url 'accounts:shop' %}" class="search-form">
+                    <!-- Preserve existing filter parameters -->
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'search' and key != 'page' %}
+                            {% if value|length > 1 %}
+                                {% for v in value %}
+                                    <input type="hidden" name="{{ key }}" value="{{ v }}">
+                                {% endfor %}
+                            {% else %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                {% endfor %}
+                    {% endfor %}
+                    <div class="search-container">
+                        <input type="text" name="search" placeholder="Search books, authors, categories..." value="{{ search_query }}" class="search-input">
+                        <button type="submit" class="search-button">
+                            <i class="ri-search-line"></i>
+                        </button>
+                    </div>
+                </form>
                 
-                <select name="sort" id="sortDropdown" class="sort-dropdown" onchange="this.form.submit()">
-                    <option value="popularity" {% if sort_by == 'popularity' %}selected{% endif %}>Sort by Popularity</option>
-                    <option value="price-low-high" {% if sort_by == 'price-low-high' %}selected{% endif %}>Price: Low to High</option>
-                    <option value="price-high-low" {% if sort_by == 'price-high-low' %}selected{% endif %}>Price: High to Low</option>
-                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
-                </select>
-            </form>
+                <!-- Sort form -->
+                <form method="get" action="{% url 'accounts:shop' %}" class="sort-form">
+                    <!-- Preserve other filter parameters -->
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'sort' and key != 'page' %}
+                            {% if value|length > 1 %}
+                                {% for v in value %}
+                                    <input type="hidden" name="{{ key }}" value="{{ v }}">
+                                {% endfor %}
+                            {% else %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    <select name="sort" id="sortDropdown" class="sort-dropdown" onchange="this.form.submit()">
+                        <option value="popularity" {% if sort_by == 'popularity' %}selected{% endif %}>Sort by Popularity</option>
+                        <option value="price-low-high" {% if sort_by == 'price-low-high' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price-high-low" {% if sort_by == 'price-high-low' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+                    </select>
+                </form>
+            </div>
         </div>
-        
+
+        <!-- New mobile-specific layout -->
+        <div class="mobile-shop-header">
+            <div class="mobile-title-sort-container">
+                <h1 class="shop-title">Shop Books</h1>
+                <!-- Sort dropdown for mobile -->
+                <form method="get" action="{% url 'accounts:shop' %}" class="sort-form">
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'sort' and key != 'page' %}
+                            {% if value|length > 1 %}
+                                {% for v in value %}
+                                    <input type="hidden" name="{{ key }}" value="{{ v }}">
+                                {% endfor %}
+                            {% else %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    <select name="sort" id="mobileSortDropdown" class="sort-dropdown" onchange="this.form.submit()">
+                        <option value="popularity" {% if sort_by == 'popularity' %}selected{% endif %}>Sort by Popularity</option>
+                        <option value="price-low-high" {% if sort_by == 'price-low-high' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price-high-low" {% if sort_by == 'price-high-low' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+                    </select>
+                </form>
+            </div>
+            
+            <div class="shop-controls">
+                <!-- Search form for mobile -->
+                <form method="get" action="{% url 'accounts:shop' %}" class="search-form">
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'search' and key != 'page' %}
+                            {% if value|length > 1 %}
+                                {% for v in value %}
+                                    <input type="hidden" name="{{ key }}" value="{{ v }}">
+                                {% endfor %}
+                            {% else %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="search-container">
+                        <input type="text" name="search" placeholder="Search books, authors, categories..." value="{{ search_query }}" class="search-input">
+                        <button type="submit" class="search-button">
+                            <i class="ri-search-line"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    
+        <!-- Display search results message if search was performed -->
+        {% if search_query %}
+        <div class="search-results-message">
+            <p>Search results for: <strong>"{{ search_query }}"</strong></p>
+            <a href="{% url 'accounts:shop' %}" class="clear-search">Clear search</a>
+        </div>
+        {% endif %}
+    
         <!-- Mobile filter toggle button -->
         <button class="filter-toggle" id="filterToggleBtn">
             <i class="fas fa-bars"></i>
         </button>
-        
+    
         <div class="shop-layout">
             <!-- Desktop filters -->
             <aside class="filters">
                 <form id="filterForm" method="get" action="{% url 'accounts:shop' %}">
+                    <!-- Add search field hidden input to preserve search query -->
+                    {% if search_query %}
+                    <input type="hidden" name="search" value="{{ search_query }}">
+                    {% endif %}
+    
                     <div class="filter-section">
                         <h3 class="filter-title">Categories</h3>
                         <div class="filter-options">
                             {% for category in categories %}
-                                <label class="filter-option">
-                                    <input type="checkbox" name="category" value="{{ category.id }}" 
-                                           {% if category.id|stringformat:"i" in selected_categories %}checked{% endif %}>
-                                    {{ category.name }}
-                                </label>
+                            <label class="filter-option">
+                                <input type="checkbox" name="category" value="{{ category.id }}"
+                                    {% if category.id|stringformat:"i" in selected_categories %}checked{% endif %}>
+                                {{ category.name }}
+                            </label>
                             {% endfor %}
                         </div>
                     </div>
                     
                     <!-- Add hidden input for current sort -->
                     <input type="hidden" name="sort" value="{{ sort_by }}">
-
+                    
                     <div class="filter-section">
                         <h3 class="filter-title">Price Range</h3>
                         <div class="price-range">
@@ -724,14 +978,15 @@
                             <input type="number" name="max_price" class="price-input" placeholder="Max" value="{{ max_price }}">
                         </div>
                     </div>
+                    
                     <!-- Author filter section -->
                     <div class="filter-section">
                         <h3 class="filter-title">Author</h3>
                         <div class="filter-options">
                             {% for author in authors %}
                             <label class="filter-option">
-                                <input type="checkbox" 
-                                    name="author" 
+                                <input type="checkbox"
+                                    name="author"
                                     value="{{ author.author_id }}"
                                     {% if author.author_id|stringformat:"i" in selected_authors %}checked{% endif %}>
                                 {{ author.name }}
@@ -739,11 +994,11 @@
                             {% endfor %}
                         </div>
                     </div>
-
+                    
                     <button type="submit" class="apply-filters">Apply Filters</button>
                 </form>
             </aside>
-
+            
             <!-- Mobile filters overlay and container -->
             <div class="mobile-filters-overlay" id="mobileFiltersOverlay"></div>
             <div class="mobile-filters-container" id="mobileFiltersContainer">
@@ -755,22 +1010,30 @@
                 </div>
                 <div class="mobile-filters-body">
                     <form id="mobileFilterForm" method="get" action="{% url 'accounts:shop' %}">
+                        <!-- Add search input to mobile filters from Case I -->
+                        <div class="filter-section">
+                            <h3 class="filter-title">Search</h3>
+                            <div class="filter-options">
+                                <input type="text" name="search" value="{{ search_query }}" placeholder="Search books, authors..." class="search-input-mobile">
+                            </div>
+                        </div>
+                        
                         <div class="filter-section">
                             <h3 class="filter-title">Categories</h3>
                             <div class="filter-options">
                                 {% for category in categories %}
-                                    <label class="filter-option">
-                                        <input type="checkbox" name="category" value="{{ category.id }}" 
-                                               {% if category.id|stringformat:"i" in selected_categories %}checked{% endif %}>
-                                        {{ category.name }}
-                                    </label>
+                                <label class="filter-option">
+                                    <input type="checkbox" name="category" value="{{ category.id }}"
+                                        {% if category.id|stringformat:"i" in selected_categories %}checked{% endif %}>
+                                    {{ category.name }}
+                                </label>
                                 {% endfor %}
                             </div>
                         </div>
                         
                         <!-- Add hidden input for current sort -->
                         <input type="hidden" name="sort" value="{{ sort_by }}">
-
+                        
                         <div class="filter-section">
                             <h3 class="filter-title">Price Range</h3>
                             <div class="price-range">
@@ -779,14 +1042,15 @@
                                 <input type="number" name="max_price" class="price-input" placeholder="Max" value="{{ max_price }}">
                             </div>
                         </div>
+                        
                         <!-- Author filter section -->
                         <div class="filter-section">
                             <h3 class="filter-title">Author</h3>
                             <div class="filter-options">
                                 {% for author in authors %}
                                 <label class="filter-option">
-                                    <input type="checkbox" 
-                                        name="author" 
+                                    <input type="checkbox"
+                                        name="author"
                                         value="{{ author.author_id }}"
                                         {% if author.author_id|stringformat:"i" in selected_authors %}checked{% endif %}>
                                     {{ author.name }}
@@ -802,113 +1066,114 @@
                     </form>
                 </div>
             </div>
-
+            
             <div class="book-grid">
                 {% for product in products %}
-                    <div class="book-card">
-                        {% with preferred_variant=product.active_variants|first %}
-                            {% if preferred_variant %}
-                                {% if request.user.is_authenticated and product.product_id in wishlisted_product_ids %}
-                                    <span class="wishlist">
-                                        <i class="ri-heart-fill"></i>
-                                    </span>
-                                {% else %}
-                                    <form method="post" action="{% url 'userpanel:add_to_wishlist' product.product_id %}" style="display:inline;">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="variant_id" value="{{ preferred_variant.id }}">
-                                        <button type="submit" class="wishlist">
-                                            <i class="ri-heart-line"></i>
-                                        </button>
-                                    </form>
-                                {% endif %}
-                            {% endif %}
+                <div class="book-card">
+                    {% with preferred_variant=product.active_variants|first %}
+                    {% if preferred_variant %}
+                    {% if request.user.is_authenticated and product.product_id in wishlisted_product_ids %}
+                    <span class="wishlist">
+                        <i class="ri-heart-fill"></i>
+                    </span>
+                    {% else %}
+                    <form method="post" action="{% url 'userpanel:add_to_wishlist' product.product_id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="variant_id" value="{{ preferred_variant.id }}">
+                        <button type="submit" class="wishlist">
+                            <i class="ri-heart-line"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% endif %}
+                    {% endwith %}
+                    
+                    {% with preferred_variant=product.active_variants|first %}
+                    {% if preferred_variant %}
+                    <div class="book-cover-container">
+                        {% if preferred_variant.primary_images %}
+                        <img src="{{ preferred_variant.primary_images.0.image.url }}" alt="{{ product.product_name }}" class="book-cover">
+                        {% else %}
+                        {% with first_image=preferred_variant.images.first %}
+                        {% if first_image %}
+                        <img src="{{ first_image.image.url }}" alt="{{ product.product_name }}" class="book-cover">
+                        {% else %}
+                        <img src="/placeholder.svg?height=300&width=200" alt="{{ product.product_name }}" class="book-cover">
+                        {% endif %}
                         {% endwith %}
-                        {% with preferred_variant=product.active_variants|first %}
-                            {% if preferred_variant %}
-                                <div class="book-cover-container">
-                                    {% if preferred_variant.primary_images %}
-                                        <img src="{{ preferred_variant.primary_images.0.image.url }}" alt="{{ product.product_name }}" class="book-cover">
-                                    {% else %}
-                                        {% with first_image=preferred_variant.images.first %}
-                                            {% if first_image %}
-                                                <img src="{{ first_image.image.url }}" alt="{{ product.product_name }}" class="book-cover">
-                                            {% else %}
-                                                <img src="/placeholder.svg?height=300&width=200" alt="{{ product.product_name }}" class="book-cover">
-                                            {% endif %}
-                                        {% endwith %}
-                                    {% endif %}
-                                </div>
-                                <h3 class="book-title">{{ product.product_name }}</h3>
-                                <p>
-                                    <span class="book-author-label">Author:</span>
-                                    <span class="book-author">{{ product.author.name }}</span>
-                                </p>
-                                <div class="price-container">
-                                    {% with preferred_variant=product.active_variants|first %}
-                                        {% if preferred_variant %}
-                                            {% with discount_info=preferred_variant.get_discount_info %}
-                                                <span class="current-price">₹{{ discount_info.effective_price }}</span>
-                                                {% if discount_info.discount_amount > 0 %}
-                                                    <span class="original-price">₹{{ discount_info.original_price }}</span>
-                                                    {% if discount_info.type == 'category' %}
-                                                        <span class="offer-badge">{{ discount_info.offer_name }}</span>
-                                                    {% endif %}
-                                                {% endif %}
-                                            {% endwith %}
-                                        {% endif %}
-                                    {% endwith %}
-                                </div>
-                            {% else %}
-                                <img src="/placeholder.svg?height=300&width=200" alt="{{ product.product_name }}" class="book-cover">
-                                <h3 class="book-title">{{ product.product_name }}</h3>
-                                <p>
-                                    <span class="book-author-label">Author:</span>
-                                    <span class="book-author">{{ product.author.name }}</span>
-                                </p>
-                                <div class="price-container">
-                                    <span class="error">No variant available</span>
-                                </div>
-                            {% endif %}
-                        {% endwith %}                        
-                        
-                        <div class="button-container">
-                            <a href="{% url 'accounts:product_detail' product.product_id %}" class="buy-button">VIEW DETAILS</a>                            
-                        </div>
+                        {% endif %}
                     </div>
+                    <h3 class="book-title">{{ product.product_name }}</h3>
+                    <p>
+                        <span class="book-author-label">Author:</span>
+                        <span class="book-author">{{ product.author.name }}</span>
+                    </p>
+                    <div class="price-container">
+                        {% with preferred_variant=product.active_variants|first %}
+                        {% if preferred_variant %}
+                        {% with discount_info=preferred_variant.get_discount_info %}
+                        <span class="current-price">₹{{ discount_info.effective_price }}</span>
+                        {% if discount_info.discount_amount > 0 %}
+                        <span class="original-price">₹{{ discount_info.original_price }}</span>
+                        {% if discount_info.type == 'category' %}
+                        <span class="offer-badge">{{ discount_info.offer_name }}</span>
+                        {% endif %}
+                        {% endif %}
+                        {% endwith %}
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    {% else %}
+                    <img src="/placeholder.svg?height=300&width=200" alt="{{ product.product_name }}" class="book-cover">
+                    <h3 class="book-title">{{ product.product_name }}</h3>
+                    <p>
+                        <span class="book-author-label">Author:</span>
+                        <span class="book-author">{{ product.author.name }}</span>
+                    </p>
+                    <div class="price-container">
+                        <span class="error">No variant available</span>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    <div class="button-container">
+                        <a href="{% url 'accounts:product_detail' product.product_id %}" class="buy-button">VIEW DETAILS</a>
+                    </div>
+                </div>
                 {% endfor %}
             </div>
-        </div>        
+        </div>
+        
         <div class="pagination">
             {% if products.has_previous %}
-                <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
-                    <i class="ri-arrow-left-double-line"></i> First
-                </a>
-                <a href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
-                    <i class="ri-arrow-left-line"></i> Previous
-                </a>
+            <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
+                <i class="ri-arrow-left-double-line"></i> First
+            </a>
+            <a href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
+                <i class="ri-arrow-left-line"></i> Previous
+            </a>
             {% else %}
-                <span class="page-link disabled"><i class="ri-arrow-left-double-line"></i> First</span>
-                <span class="page-link disabled"><i class="ri-arrow-left-line"></i> Previous</span>
+            <span class="page-link disabled"><i class="ri-arrow-left-double-line"></i> First</span>
+            <span class="page-link disabled"><i class="ri-arrow-left-line"></i> Previous</span>
             {% endif %}
-
+            
             {% for num in products.paginator.page_range %}
-                {% if products.number == num %}
-                    <span class="page-link active">{{ num }}</span>
-                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                    <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">{{ num }}</a>
-                {% endif %}
+            {% if products.number == num %}
+            <span class="page-link active">{{ num }}</span>
+            {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+            <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">{{ num }}</a>
+            {% endif %}
             {% endfor %}
-
+            
             {% if products.has_next %}
-                <a href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
-                    Next <i class="ri-arrow-right-line"></i>
-                </a>
-                <a href="?page={{ products.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
-                    Last <i class="ri-arrow-right-double-line"></i>
-                </a>
+            <a href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
+                Next <i class="ri-arrow-right-line"></i>
+            </a>
+            <a href="?page={{ products.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">
+                Last <i class="ri-arrow-right-double-line"></i>
+            </a>
             {% else %}
-                <span class="page-link disabled">Next <i class="ri-arrow-right-line"></i></span>
-                <span class="page-link disabled">Last <i class="ri-arrow-right-double-line"></i></span>
+            <span class="page-link disabled">Next <i class="ri-arrow-right-line"></i></span>
+            <span class="page-link disabled">Last <i class="ri-arrow-right-double-line"></i></span>
             {% endif %}
         </div>
     </div>
